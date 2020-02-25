@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Sign Up</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <div class="field">
+                <p class="control">
+                {{ form.csrf_token }}
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <input class="input" type="text" placeholder= "First Name" name = "firstName" value = "{{ request.form.firstName }}">
+                            <ul>
+                                {% for error in form.firstName.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                    <!--for each error, output the error string -->
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <input class="input" type="text" placeholder= "Last Name" name = "lastName" value = "{{ request.form.lastName }}">
+                            <ul>
+                                {% for error in form.lastName.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                    <!--for each error, output the error string -->
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <input class="input" type="text" placeholder= "Username" name = "username" value = "{{ request.form.username }}">
+                            <ul>
+                                {% for error in form.username.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                    <!--for each error, output the error string -->
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <input class="input" type="password" placeholder= "Password" name = "password" value = "{{ request.form.password }}">
+                    <!-- {{ form.username.label }}
+                    {{ form.username }} -->
+                            <ul>
+                                {% for error in form.password.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                    <!--for each error, output the error string -->
+                                {% endfor %}
+                            </ul>
+
+                        </div>
+                    </div>
+                    <div class= "buttons has-addons is-left">
+                        <button class="button is-block is-info is-medium" type = "submit">Sign Up</button>
+                    </div>
+
+                </p>
+            </div>
+        </form>
+    </div>
+    <h2 class="subtitle">Already a member? Log in <a style="font-weight:bold" href = "/login">here</a>!</h2>
+</div>
+{% endblock %}

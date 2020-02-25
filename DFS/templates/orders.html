@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<body>
+  <section class="section">
+    <div class="container">
+    {% if current_user.is_authenticated %}
+      <!-- <h2 class="subtitle" style = "font-size: 200%"> -->
+        {{ boolean }} 
+      <!-- </h2> -->
+    {% endif %}
+    {% if not current_user.is_authenticated %}
+      {% if boolean == False %}
+      <h2 class="subtitle" style = "font-size: 200%">
+          Table does not exist!
+      </h2>
+      {% endif %}
+    {% endif %}
+    </div>
+</body>
+{% endblock %}
