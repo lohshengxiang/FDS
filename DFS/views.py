@@ -176,6 +176,9 @@ def orders():
 def logout():
 	logout_user()
 	return render_template('logout.html')
+@view.route("/restaurants", methods = ["GET","POST"])
+def restaurants():
+	return render_template('restaurants2.html')
 
 @view.route("/exit",methods = ["GET"])
 def exit():
