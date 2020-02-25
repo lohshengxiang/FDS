@@ -1,7 +1,7 @@
 drop table web_user cascade;
 drop table orders;
 drop table restaurants2;
-drop table 
+
 
 CREATE TABLE web_user(
     username VARCHAR PRIMARY KEY NOT NULL,

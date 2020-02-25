@@ -15,10 +15,10 @@ cur = conn.cursor()
 class User():
 	username = None
 	firstName = None
-	if username:
-		query = "SELECT firstName from web_user where username = %s"
-		cur.execute(query,(username,))
-		firstName = cur.fetchone()[0]
+	# if username:
+	# 	query = "SELECT firstName from web_user where username = %s"
+	# 	cur.execute(query,(username,))
+	# 	firstName = cur.fetchone()[0]
 
 
 	def is_authenticated(self):
@@ -33,10 +33,15 @@ class User():
 	def get_id(self):
 		return self.username
 
+
 @login_manager.user_loader
 def load_user(username):
 	user = User()
-	user.username = username
+	user.username = username 
+	query = "SELECT firstName from web_user where username = %s"
+	cur.execute(query,(username,))
+	firstName = cur.fetchone()[0]
+	user.firstName = firstName
 
 	return user
 
@@ -101,7 +106,7 @@ def login():
 			password = cur.fetchone()[0]
 			if password == form.password.data:
 				user = User()
-				user.username = form.username.data
+				user.username = form.username.data 
 				login_user(user) #so we can access WebUser object with its attributes
 				return redirect("/")
 			else:
@@ -171,11 +176,16 @@ def orders():
 		return render_template('orders.html', boolean = order_table)
 	else:
 		return render_template('orders.html', boolean = False)
+		
 @view.route("/logout", methods = ["GET"])
 @login_required
 def logout():
 	logout_user()
 	return render_template('logout.html')
+
+@view.route("/restaurants", methods = ["GET","POST"])
+def restaurants():
+	return render_template('restaurants2.html')
 
 @view.route("/exit",methods = ["GET"])
 def exit():
