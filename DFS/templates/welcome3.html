@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title" style = "font-size: 400%;  ">
+<h1 class="title" style = "font-size: 300%;  ">
   Welcome to DFS {{ test }}
 </h1>
-<h1 class="title is-1">Order Now!</h1>
+{% if current_user.is_authenticated %}
+  <h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}! Start ordering now!
+  </h2>
+{% endif %}
+{% if not current_user.is_authenticated %}
+  <h2 class="subtitle" style = "font-size: 200%">
+    We are a food delivery service. <a style="font-weight:bold" href="/registration">Sign up</a> 
+    or <a style="font-weight:bold" href="/login">Log in</a> to start ordering now!
+  </h2>
+{% endif %}
 <div class="columns">
   <div class="column is-one-third">
     <div class="module-card-wrap">

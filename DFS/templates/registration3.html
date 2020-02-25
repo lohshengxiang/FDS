@@ -17,28 +17,6 @@
                 {{ form.csrf_token }}
                     <div class="field is-horizontal">
                         <div class="field-label is-normal">
-                            <input class="input" type="text" placeholder= "First Name" name = "firstName" value = "{{ request.form.firstName }}">
-                            <ul>
-                                {% for error in form.firstName.errors %}
-                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
-                                    <!--for each error, output the error string -->
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="field is-horizontal">
-                        <div class="field-label is-normal">
-                            <input class="input" type="text" placeholder= "Last Name" name = "lastName" value = "{{ request.form.lastName }}">
-                            <ul>
-                                {% for error in form.lastName.errors %}
-                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
-                                    <!--for each error, output the error string -->
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="field is-horizontal">
-                        <div class="field-label is-normal">
                             <input class="input" type="text" placeholder= "Username" name = "username" value = "{{ request.form.username }}">
                             <ul>
                                 {% for error in form.username.errors %}
@@ -51,8 +29,6 @@
                     <div class="field is-horizontal">
                         <div class="field-label is-normal">
                             <input class="input" type="password" placeholder= "Password" name = "password" value = "{{ request.form.password }}">
-                    <!-- {{ form.username.label }}
-                    {{ form.username }} -->
                             <ul>
                                 {% for error in form.password.errors %}
                                     <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
