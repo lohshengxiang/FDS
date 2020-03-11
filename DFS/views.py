@@ -17,7 +17,7 @@ cur = conn.cursor()
 
 class User():
 	username = None
-	# firstName = None
+	firstName = None
 	user_type = None
 
 	def is_authenticated(self):
@@ -44,9 +44,27 @@ def load_user(username):
 		conn.rollback()
 	exist = cur.fetchone()
 	if exist:
-		user.user_type = "Admin"
+		user.user_type = "Manager"
 	else:
-		user.user_type = "User"
+		query = "SELECT * from Customer where uname = %s"
+		try:
+			cur.execute(query,(username,))
+		except:
+			conn.rollback()
+		exist = cur.fetchone()
+		if exist:
+			user.user_type = "User"
+		else:
+			query = "SELECT * from Restaurant where uname = %s"
+			try:
+				cur.execute(query,(username,))
+			except:
+				conn.rollback()
+			exist = cur.fetchone()
+			if exist:
+				user.user_type = "Restaurant"
+			else:
+				user.user_type = "Delivery_staff"
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
@@ -79,7 +97,10 @@ def choose_food(rname):
 	form3 = AddressForm()
 
 	query = "SELECT distinct fname from Food where runame = %s"
-	cur.execute(query,(rname,))
+	try:
+		cur.execute(query,(rname,))
+	except:
+		conn.rollback()	
 	fname_rows = cur.fetchall() # list of tuples
 	fname_choices = []
 	for row in fname_rows:
