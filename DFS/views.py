@@ -9,7 +9,7 @@ from datetime import datetime
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=postgres user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=postgres user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
