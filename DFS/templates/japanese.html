@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<h1 class="title" style = "font-size: 200%;">
+	Japanese
+	</h1>
+	<section class="section">
+	    <form method="POST">
+	      <div class="column">
+	        {{ form.csrf_token }}
+	        <div>
+	          <font size="6"><b>Restaurant:</b></font>
+	          <div class = "select"> 
+	          {{ form.rname }}
+	          </div>
+	        </div>
+	        <div>
+	          <font size="6"><b>Food:</b></font>
+	          <div class = "select"> 
+	            {{ form.fname }}
+	          </div>
+	        </div>
+	        <script>
+	          let rname_select = document.getElementById('rname');
+	          let fname_select = document.getElementById('fname');
+
+	          rname_select.onchange = function() {
+	            rname = rname_select.value; //get rname value
+
+	            fetch('/fname/' + rname).then(function(response) { //get response object
+	              response.json().then(function(data) {
+
+	                let optionHTML = '';
+
+	                for (let fname of data.fname){ //data.rname is an array of rname from /fname/rname
+
+	                  optionHTML += '<option value = "' + fname.id + '">' + fname.fname + '</option>'; //create options for html
+
+	                }
+	                fname_select.innerHTML = optionHTML; //replace inner html in forms
+	              });
+
+	            }); 
+
+	          }
+
+	        </script>
+	        <!-- <div>
+	          <font size="6"><b>Quantity:</b></font>
+	          <div class = "select"> 
+	            {{ form.quantity }}
+	          </div>
+	        </div>
+	        <script>
+	          alert('hii')
+	          let rname_select = document.getElementById('rname');
+	          let fname_select = document.getElementById('fname');
+	          let quantity_select = document.getElementById('quantity');
+
+	          rname_select.onchange = function() {
+	            rname = rname_select.value; //get rname value
+	            alert("HIII");
+
+	            fname_select.onchange = function() {
+	            	fname = fname_select.value;
+
+	            	alert('HI');
+	            	fetch('/quantity/' + fname + '/' + rname).then(function(response){
+	            		response.json().then(function(data){
+
+	            			let optionHTML = '';
+	            			for (let quantity of data.quantity){
+
+	            				optionHTML += '<option value = "' + quantity.id + '">' + quantity.quantity + '</option>';
+	            			}
+	            			quantity_select.innerHTML = optionHTML;
+	            		});
+	            	});
+	            }
+
+	        </script> -->
+	        <div>
+	          <div class= "buttons has-addons is-centered">
+	            <button class="button is-block is-info is-medium button-padding-horizontal:2em" type = "submit">Add to cart</button>
+	          </div>
+	        </div>
+	      </div>
+	    </form>
+	</section>
+</body>
+
+{% endblock %}

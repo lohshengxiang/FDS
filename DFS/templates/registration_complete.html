@@ -7,7 +7,7 @@
     <div class="container">
     {% if current_user.is_authenticated %}
     <h2 class="subtitle" style = "font-size: 200%">
-      Welcome {{ current_user.firstname }}! Click <a style="font-weight:bold" href = "/">here</a> to start ordering now!
+      Welcome {{ current_user.username }}! Click <a style="font-weight:bold" href = "/">here</a> to start ordering now!
     </h2>
     {% endif %}
     {% if not current_user.is_authenticated %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  Welcome to DFS {{ test }}
+</h1>
+{% if current_user.is_authenticated %}
+  <h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}! You are a {{ current_user.user_type }}. Start ordering now!
+  </h2>
+{% endif %}
+{% if not current_user.is_authenticated %}
+  <h2 class="subtitle" style = "font-size: 200%">
+    We are a food delivery service. <a style="font-weight:bold" href="/registration">Sign up</a> 
+    or <a style="font-weight:bold" href="/login">Log in</a> to start ordering now!
+  </h2>
+{% endif %}
+<div class="columns">
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Japanese">
+              <img src="https://5rubyjapanunit.weebly.com/uploads/2/7/4/5/27451463/9504377.jpg" alt="Placeholder image">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Japanese</p>
+          </div>
+          <div class="content">
+            <p align="left">
+            Japanese cuisine is unique, varied, exciting and delicious. Try some Japanese dishes now!
+          </p>
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Chinese">
+              <img src="https://www.chinasichuanfood.com/wp-content/uploads/2014/09/xiao-long-bao-25-500x375.jpg">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Chinese</p>
+          </div>
+          <div class="content">
+            <p align="left">
+            Chinese cuisine features diversified color, aromatic flavor and excellent taste.
+            </p>
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Western">
+              <img src="https://www.thespruceeats.com/thmb/hl4lkmdLO7tj1eDCsGbakfk97Co=/3088x2055/filters:fill(auto,1)/marinated-top-round-steak-3060302-hero-02-ed071d5d7e584bea82857112aa734a94.jpg" alt="Placeholder image">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Western</p>
+          </div>
+          <div class="content">
+            <p align="left">
+            Fancy chops and steaks? Sink your teeth into these juicy meats from the west!
+            </p> 
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+</div>
+<div class="columns">
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Malay">
+              <img src="https://eatzcatering.com/blog/wp-content/uploads/2016/03/catering-singapore-top-10-malay-food-to-try-nasi-lemak.jpg" alt="Placeholder image">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Malay</p>
+          </div>
+          <div class="content">
+            <p align="left">Tuck into Malay cuisine which is known for its vibrant and diverse flavors.</p>
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Indian">
+              <img src="https://www.whatsupgoa.com/dyn/establishments/slideshow/451/01.jpg">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Indian</p>
+          </div>
+          <div class="content">
+            <p align="left">
+            Traditional food of India is widely appreciated for its fabulous use of herbs and spices.
+            </p>
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="column is-one-third">
+    <div class="module-card-wrap">
+      <div class="module-card">
+        <div class="card">
+          <figure class="image is-5by3">
+            <a href= "/category/Dessert">
+              <img src="https://d22ir9aoo7cbf6.cloudfront.net/wp-content/uploads/sites/6/2017/06/Hong-Kong-ice-cream-Triple-scoop-Fruit-Loops-Cone-at-Emack-Bolio%E2%80%99s.jpg" alt="Placeholder image">
+            </a>
+          </figure>
+          <div class="media-content">
+            <p class="title is-4">Dessert</p>
+          </div>
+          <div class="content">
+            <p align="left">
+            No meal is complete without desserts. From ice-creams to molten lava cakes, we have them all!
+            </p>
+          </div>
+        </div>
+      </div>
+     </div>
+  </div>
+</div>
+{% endblock %}

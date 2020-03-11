@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<h1 class="title" style = "font-size: 200%;">
+	{{ rest }}
+	</h1>
+	<section class="section">
+	    <form method="POST">
+	      	<div class="column">
+		        {{ form.csrf_token }}
+		        <div>
+		          	<font size="6"><b>Food:</b>
+		          	</font>
+				    <div class = "select"> 
+					    {{ form.fname }}
+				    </div>
+			    </div>
+		        <div>
+			        <font size="6"><b>Quantity:</b></font>
+				    <div class = "select"> 
+					    {{ form.quantity }}
+				    </div>
+			    </div>
+			    <script>
+		          var rname = '{{ rest }}';
+		          let fname_select = document.getElementById('fname');
+		          let quantity_select = document.getElementById('quantity');
+
+
+		          fname_select.onchange = function() {
+		            fname = fname_select.value; //get rname value
+
+		            fetch('/quantity/' + fname +'/'+ rname ).then(function(response) { //get response object
+		              response.json().then(function(data) {
+
+		                let optionHTML = '';
+
+		                for (let quantity of data.quantity){ //data.rname is an array of rname from /fname/rname
+
+		                  optionHTML += '<option value = "' + quantity.id + '">' + quantity.quantity + '</option>'; //create options for html
+
+		                }
+		                quantity_select.innerHTML = optionHTML; //replace inner html in forms
+		              });
+
+		            }); 
+
+		          }
+
+		        </script>
+		        <div class= "buttons has-addons is-centered">
+		            <button class="button is-block is-info is-medium button-padding-horizontal:2em" type = "submit">Select</button>
+		        </div>
+	      	</div>
+	    </form>
+	</section>
+</body>
+
+{% endblock %}
