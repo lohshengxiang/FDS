@@ -23,7 +23,20 @@ class RegistrationForm(FlaskForm):
     username = StringField('Username', validators = [InputRequired(message = 'A username is required')])
     password = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
 
+class RestaurantForm(FlaskForm):
+    rname = SelectField('rname', choices = [])
+
 class OrderForm(FlaskForm):
     # username = StringField('Username')
-    rname = SelectField('rname', choices = [])
+    # rname = SelectField('rname', choices = [])
     fname = SelectField('fname', choices = [])
+    quantity = SelectField('quantity', choices=[])
+
+class PaymentForm(FlaskForm):  # Create Order Form
+    address = SelectField('Address', choices = [])
+    payment_method = SelectField('Payment Method', choices = [('Credit Card','Credit Card'),('Points','Points'),('Cash On Delivery','Cash On Delivery')])
+    # address = StringField('Address', validators = [InputRequired(message = 'A username is required')])
+
+
+class AddressForm(FlaskForm):
+    address = StringField('Address', validators = [InputRequired(message = 'An address is required')])

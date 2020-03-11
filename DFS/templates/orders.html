@@ -7,13 +7,13 @@
     <div class="container">
     {% if current_user.is_authenticated %}
       <!-- <h2 class="subtitle" style = "font-size: 200%"> -->
-        {{ boolean }} 
+        {{ status }} 
       <!-- </h2> -->
     {% endif %}
     {% if not current_user.is_authenticated %}
-      {% if boolean == False %}
+      {% if status == False %}
       <h2 class="subtitle" style = "font-size: 200%">
-          Table does not exist!
+          You're not authenticated
       </h2>
       {% endif %}
     {% endif %}

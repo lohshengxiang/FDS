@@ -2,22 +2,22 @@ from flask import Blueprint, redirect, render_template, jsonify, flash
 from flask_login import current_user, login_required, login_user, logout_user
 import psycopg2
 from __init__ import login_manager
-from forms import LoginForm, RegistrationForm, OrderForm
-
+from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm
 
 from datetime import datetime
 
 #global
 cart_list = []
+new_address = []
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=postgres user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
 	username = None
-	firstName = None
+	# firstName = None
 	user_type = None
 
 	def is_authenticated(self):
@@ -37,61 +37,159 @@ class User():
 def load_user(username):
 	user = User()
 	user.username = username 
-	user.user_type = "User"
+	query = "SELECT * from FDS_Manager where uname = %s"
+	try:
+		cur.execute(query,(username,))
+	except:
+		conn.rollback()
+	exist = cur.fetchone()
+	if exist:
+		user.user_type = "Admin"
+	else:
+		user.user_type = "User"
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
 def home():
-	return render_template('welcome3.html')
+	test = False
+	if current_user.is_authenticated:
+		test = current_user.user_type
+	return render_template('welcome3.html', test = test)
 
-@view.route("/japanese", methods = ["GET","POST"])
-def japanese():
-	form = OrderForm()
-	query = "SELECT distinct rname from Food where category = 'Japanese'"
-	cur.execute(query)
-	rname_rows = cur.fetchall() # list of tuples
+@view.route("/category/<category>", methods = ["GET","POST"])
+def category(category):
+	form = RestaurantForm()
+	query = "SELECT distinct runame from Food where category = %s"
+	cur.execute(query,(category,))
+	rname_rows = cur.fetchall()
 	rname_choices = []
 	for row in rname_rows:
 		rname_choices.append((row[0],row[0]))
-	form.rname.choices = rname_choices 
+	form.rname.choices = rname_choices
+	if form.validate_on_submit():
+		return redirect('/restaurant/' + form.rname.data)
+	return render_template('category.html', form = form, category = category)
 
-	# get fnames
-	# query = "SELECT distinct fname from Food where category = 'Japanese'" #issue here that wont submit form if food not jap
-	query = "SELECT distinct fname from Food"
-	cur.execute(query)
-	fname_rows = cur.fetchall()
+
+
+@view.route("/restaurant/<rname>",methods = ["GET","POST"])
+def choose_food(rname):
+	form = OrderForm()
+	form2 = PaymentForm()
+	form3 = AddressForm()
+
+	query = "SELECT distinct fname from Food where runame = %s"
+	cur.execute(query,(rname,))
+	fname_rows = cur.fetchall() # list of tuples
 	fname_choices = []
 	for row in fname_rows:
 		fname_choices.append((row[0],row[0]))
 	form.fname.choices = fname_choices
 
-	#create order
-	if form.validate_on_submit():
+	query = "SELECT max(order_limit) from Food where runame = %s" 
+	try:
+		cur.execute(query,(rname,))
+	except:
+		conn.rollback()
+	limit = int(cur.fetchone()[0])
+	quantity_choices = []
+	for i in range(1,limit+1):
+		quantity_choices.append((str(i),i)) #id has to be string
+	form.quantity.choices = quantity_choices
+
+	global cart_list
+	global new_address
+	if cart_list != []:
+
+		addresses = []
+		if new_address != []:
+			for i in new_address:
+				addresses.append(i)
+
+		query = "SELECT distinct address from orders where cuname = %s limit 5" #change this to order by
+		cur.execute(query,(current_user.username,))
+		address_rows = cur.fetchall()
+
+		if address_rows:
+			for i in address_rows:
+				addresses.append(i[0])
+
+		address_choices = []
+		for i in addresses:
+			address_choices.append((str(i),i))
+		form2.address.choices = address_choices
+
+	if form.validate_on_submit(): 
 		if not current_user.is_authenticated:
 			return redirect('/login')
 		else:
 			username = current_user.username
-			rname = form.rname.data
 			order_time = datetime.now().strftime("%H:%M:%S")
-			payment_type = "CC"
+			fname = form.fname.data
 
 			# get food price
-			query = "SELECT price from Food where rname = %s and fname = %s"
-			cur.execute(query,(form.rname.data,form.fname.data))
-			total_cost = int(cur.fetchone()[0])
+			query = "SELECT price from Food where runame = %s and fname = %s"
+			cur.execute(query,(rname,form.fname.data))
+			total_cost = int(cur.fetchone()[0]) 
+			total_cost *= int(form.quantity.data) #subject to promotion
 
 			order_date = datetime.now().strftime("%m/%d/%Y")
 			dropoff = 1 #whats this?
-			date = datetime.now().strftime("%m/%d/%Y")
-			time = datetime.now().strftime("%H:%M:%S")
+			
 
-			cart_list.append((username,rname,order_time,payment_type,total_cost,order_date,dropoff,date,time)) #insert tuple
-			# query = '''INSERT INTO orders(orderid, username, payment_method, order_time) \
-			# VALUES (%s ,%s, %s, %s)'''
-			# cur.execute(query,(orderid,username,payment_method,order_time,))
-			# conn.commit()
-			return redirect("/cart")
-	return render_template('japanese.html', form = form)
+			
+			item_dict = {'username': username,
+						'rname' : rname,
+						'fname' : fname,
+						'quantity' : form.quantity.data,
+						'order_time' : order_time,
+						'total_cost' : total_cost}
+
+			cart_list.append(item_dict)
+			return redirect("/restaurant/" + rname)
+
+	if form2.validate_on_submit() and cart_list != []:
+		cuname = current_user.username
+		rname = rname
+		payment_type = form2.payment_method.data
+		total_cost = 0 # need to recalculate this by having quantity
+
+		for i in cart_list:
+			total_cost += i["total_cost"]
+
+		address = form2.address.data
+		order_date = datetime.now().strftime("%m/%d/%Y")
+		order_time = datetime.now().strftime("%H:%M:%S")
+		#used to have rname in query
+		query = '''INSERT INTO orders(cuname, payment_type,total_cost,address,order_date,order_time) 
+					VALUES (%s,%s,%s,%s,%s,%s)'''
+		cur.execute(query,(cuname,payment_type,total_cost,address,order_date,order_time))
+		conn.commit()
+		return redirect('/pay')
+			
+	return render_template('orders2.html', form = form, form2 = form2, 
+		form3 = form3, rest = rname, current_order = cart_list, current_order_len = len(cart_list), 
+		new_address = new_address)
+
+@view.route("/<rname>/add_address", methods = ["GET","POST"])
+def add_address(rname):
+	global new_address
+	form = AddressForm()
+	if form.validate_on_submit(): 
+		new_address.append(form.address.data)
+		return redirect("/restaurant/" + rname)
+
+	return render_template("add_address.html", form = form)
+
+
+@view.route("/pay", methods = ["GET","POST"])
+def pay():
+	global cart_list
+	cart_list = []
+	global new_address
+	new_address = []
+	return render_template('pay.html')
+
 
 @view.route("/cart", methods = ["GET","POST"])
 def cart():
@@ -109,7 +207,10 @@ def login():
 		user_exist = cur.fetchone() #checks the web_user db for user
 		if user_exist: #is the user exists. i.e. he signed up before
 			query = '''SELECT password FROM Users WHERE uname = %s'''
-			cur.execute(query,(form.username.data,))
+			try:
+			    cur.execute(query,(form.username.data,))
+			except Exception:
+			    conn.rollback()
 			password = cur.fetchone()[0]
 			if password == form.password.data:
 				user = User()
@@ -124,23 +225,21 @@ def login():
 
 
 
-@view.route('/fname/<rname>')
-def fname(rname):
-	query = "SELECT fname from Food where rname = %s"
-	cur.execute(query,(rname,))
-	fname_rows = cur.fetchall()
-	fname_choices = []
+@view.route('/quantity/<fname>/<rname>')
+def quantity(fname,rname):
+	query = "SELECT order_limit from Food where rname = %s and fname = %s"
+	cur.execute(query,(rname,fname))
+	limit = int(cur.fetchone()[0])
 
-	for row in fname_rows:
-		fname_choices.append((row[0],row[0]))
-	
-	fnameArray = []
-	for row in fname_rows:
-		fnameObj = {}
-		fnameObj['id'] = row[0] #id is pizza
-		fnameObj['fname'] = row[0] #fname also pizza
-		fnameArray.append(fnameObj)
-	return jsonify({'fname':fnameArray})
+	quantityArray = []
+	for i in range(1,limit+1):
+		quantityObj = {}
+		quantityObj['id'] = i
+		quantityObj['quantity'] = i
+		quantityArray.append(quantityObj)
+	return jsonify({'quantity':quantityArray})
+
+
 
 @view.route("/registration", methods = ["GET","POST"])
 def registration():
@@ -157,6 +256,9 @@ def registration():
 			query = "INSERT INTO Users VALUES (%s,%s)"
 			cur.execute(query,(username,password))
 			conn.commit()
+			query = "INSERT INTO Customer VALUES (%s,%s,0)"
+			cur.execute(query,(username,username))
+			conn.commit()
 			user = User()
 			user.username = form.username.data
 			login_user(user)
@@ -170,16 +272,20 @@ def registration_complete():
 @view.route("/orders")
 @login_required
 def orders():
-	query = "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' and table_name = 'Orders'"
-	cur.execute(query)
-	exists_table = cur.fetchone()
-	if exists_table:
-		query = "SELECT * from orders where username = %s"
+	# query = "SELECT * from orders where cuname = %s"
+	# cur.execute(query,(current_user.username,))
+	# order_table = cur.fetchall() #order_table is a list of tuples
+
+	query = "SELECT * from get_orders(%s)"
+	try: 
 		cur.execute(query,(current_user.username,))
-		order_table = cur.fetchall()
-		return render_template('orders.html', boolean = order_table)
+	except:
+		conn.rollback()
+	order_table = cur.fetchall() ##order_table is a list of tuples
+	if order_table:  
+		return render_template('orders.html', status = order_table)
 	else:
-		return render_template('orders.html', boolean = False)
+		return render_template('orders.html', status = 'You have no orders')
 		
 @view.route("/logout", methods = ["GET"])
 @login_required

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<h1 class="title" style = "font-size: 200%;">
+	Welcome to {{ rest }}! {{ new_address }}
+	</h1>
+	<h1>
+	{% if current_order == [] %}
+	You have no orders
+	{% endif %}
+	{% if not current_order == [] %}
+	<!-- <table class="table is striped">
+		<thead>
+		    <tr>
+		    	<th></th>
+		        <th>Food</th>
+		        <th>Quantity</th>
+		        <th>Total Cost</th>
+		    </tr>
+		</thead>
+		<tbody>
+		    <script>
+			var order_list = current_order;
+			document.write("<tr>");
+			for (i=0;i<order_list.length;i++)
+			{
+			document.write(order_list[0][] + "<br />");
+			}
+	</script>
+		      <th>1</th>
+		      <td><a href="https://en.wikipedia.org/wiki/Leicester_City_F.C." title="Leicester City F.C.">Leicester City</a> <strong>(C)</strong>
+		      </td>
+		      <td>38</td>
+		      <td>23</td>
+		      <td>12</td>
+		      <td>3</td>
+		      <td>68</td>
+		      <td>36</td>
+		      <td>+32</td>
+		      <td>81</td>
+		      <td>Qualification for the <a href="https://en.wikipedia.org/wiki/2016%E2%80%9317_UEFA_Champions_League#Group_stage" title="2016–17 UEFA Champions League">Champions League group stage</a></td>
+		    </tr> -->
+	Your current order is {{ current_order }}
+	{% endif %}
+	</h1>
+	<section class="section">
+	    <form action = "" method="POST">
+	      <div class="column">
+	      	{{ form.csrf_token }}
+	        <div>
+	          <font size="6"><b>Food:</b></font>
+	          <div class = "select"> 
+	          {{ form.fname }}
+	          </div>
+	        </div>
+	        <div>
+	          <font size="6"><b>Quantity:</b></font>
+	          <div class = "select"> 
+	            {{ form.quantity }}
+	          </div>
+	        </div>
+	        <script>
+	          var rname = '{{ rest }}';
+	          let fname_select = document.getElementById('fname');
+	          let quantity_select = document.getElementById('quantity');
+
+
+	          fname_select.onchange = function() {
+	            fname = fname_select.value; //get rname value
+
+	            fetch('/quantity/' + fname +'/'+ rname ).then(function(response) { //get response object
+	              response.json().then(function(data) {
+
+	                let optionHTML = '';
+
+	                for (let quantity of data.quantity){ //data.rname is an array of rname from /fname/rname
+
+	                  optionHTML += '<option value = "' + quantity.id + '">' + quantity.quantity + '</option>'; //create options for html
+
+	                }
+	                quantity_select.innerHTML = optionHTML; //replace inner html in forms
+	              });
+
+	            }); 
+
+	          }
+
+	        </script>
+	        <div>
+	          <div class= "buttons has-addons is-centered">
+	            <button class="button is-block is-info is-medium button-padding-horizontal:2em" type = "submit">Add</button>
+	          </div>
+	        </div>
+	      </div>
+	    </form>
+	    {% if not current_order == [] %}
+	    <form action = "" method="POST">
+	      <div class="column">
+	      	{{ form2.csrf_token }}
+	        <div>
+	          <font size="6"><b>Choose a delivery address:</b></font>
+	          <div class = "select"> 
+	          {{ form2.address }}
+	          </div>
+	        </div>
+	        or add an address <a href = "/{{ rest }}/add_address"> here </a>
+	        <div>
+	        <font size="6"><b>Payment Method:</b></font>
+	          <div class = "select"> 
+	          {{ form2.payment_method }}
+	          </div>
+	        </div>
+	        <div class= "buttons has-addons is-centered">
+		    	<a href = "/pay">
+		            <button class="button is-block is-danger is-medium button-padding-horizontal:2em" type = "submit">Pay Now</button>
+		        </a>
+		    </div>
+	      </div>
+	    </form>
+	    <!-- <div class= "buttons has-addons is-centered">
+	    	<a href = "/pay">
+	            <button class="button is-block is-danger is-medium button-padding-horizontal:2em" type = "submit">Pay</button>
+	        </a>
+	    </div> -->
+	    {% endif %}
+	</section>
+</body>
+
+{% endblock %}

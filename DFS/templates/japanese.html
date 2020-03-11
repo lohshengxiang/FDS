@@ -46,6 +46,40 @@
 	          }
 
 	        </script>
+	        <!-- <div>
+	          <font size="6"><b>Quantity:</b></font>
+	          <div class = "select"> 
+	            {{ form.quantity }}
+	          </div>
+	        </div>
+	        <script>
+	          alert('hii')
+	          let rname_select = document.getElementById('rname');
+	          let fname_select = document.getElementById('fname');
+	          let quantity_select = document.getElementById('quantity');
+
+	          rname_select.onchange = function() {
+	            rname = rname_select.value; //get rname value
+	            alert("HIII");
+
+	            fname_select.onchange = function() {
+	            	fname = fname_select.value;
+
+	            	alert('HI');
+	            	fetch('/quantity/' + fname + '/' + rname).then(function(response){
+	            		response.json().then(function(data){
+
+	            			let optionHTML = '';
+	            			for (let quantity of data.quantity){
+
+	            				optionHTML += '<option value = "' + quantity.id + '">' + quantity.quantity + '</option>';
+	            			}
+	            			quantity_select.innerHTML = optionHTML;
+	            		});
+	            	});
+	            }
+
+	        </script> -->
 	        <div>
 	          <div class= "buttons has-addons is-centered">
 	            <button class="button is-block is-info is-medium button-padding-horizontal:2em" type = "submit">Add to cart</button>

@@ -1,4 +1,5 @@
 drop table IF EXISTS Users CASCADE;
+drop table IF EXISTS Manager CASCADE;
 drop table IF EXISTS Restaurant CASCADE;
 drop table IF EXISTS Promotion CASCADE;
 drop table IF EXISTS Food CASCADE;
@@ -17,13 +18,14 @@ CREATE TABLE Users (
 );
 
 insert into Users
-	values ('Restaurant1','password'),('Restaurant2','password'),('Restaurant3','password'),('Admin','admin');
+	values ('Restaurant1','password'),('Restaurant2','password'),('Restaurant3','password');
 
-insert into Manager
-	values ('Admin');
+CREATE TABLE Manager(
+	uname varchar(100) REFERENCES Users
+);
 
 CREATE TABLE Restaurant (
-	uname varchar(100) PRIMARY KEY References Users,
+	uname varchar(100) PRIMARY KEY References Users ON DELETE CASCADE,
 	rname varchar(100) NOT NULL UNIQUE,
 	address varchar(100) NOT NULL,
 	min_amt numeric NOT NULL
@@ -54,14 +56,14 @@ CREATE TABLE Food (
 );
 
 insert into Food
-	values ('Restaurant1','Sushi',true,20,20,'Japanese'),('Restaurant1','Ramen',true,30,10,'Japanese'),
-	('Restaurant1','Mochi',true,10,10,'Dessert'),('Restaurant2','Chicken Rice',true,10,20,'Chinese'),
-	('Restaurant2','Dim Sum',true,30,10,'Chinese'), ('Restaurant2','Soba',true,40,5,'Japanese'),
-	('Restaurant3','Roti Prata',true,10,10,'Indian'),('Restaurant3','Chicken Chop',true,50,10,'Western'),
-	('Restaurant3','Nasi Lemak',true,20,10,'Malay');
+	values ('Restaurant1','Sushi',true,20,10,'Japanese'),('Restaurant1','Ramen',true,30,10,'Japanese'),
+	('Restaurant1','Mochi',true,10,10,'Dessert'),('Restaurant2','Chicken Rice',true,10,10,'Chinese'),
+	('Restaurant2','Dim Sum',true,30,10,'Chinese'), ('Restaurant2','Hokkien Mee',true,40,10,'Chinese'),
+	('Restaurant3','Roti Prata',true,10,10,'Indian'),('Restaurant2','Chicken Chop',true,50,10,'Western'),
+	('Restaurant2','Nasi Lemak',true,20,10,'Malay');
 
 CREATE TABLE Customer (
-	uname varchar(100) PRIMARY KEY REFERENCES Users,
+	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
 	cname varchar(100) NOT NULL,
 	points numeric
 );
@@ -69,12 +71,9 @@ CREATE TABLE Customer (
 CREATE TABLE Orders (
 	cuname varchar(100) REFERENCES Customer(uname) ON DELETE CASCADE,
 	rname varchar(100), --error here
-	order_time time NOT NULL,
-	address varchar NOT NULL,
 	payment_type varchar NOT NULL,
 	total_cost numeric NOT NULL,
-	order_date date NOT NULL,
-	dropoff varchar NOT NULL,
+	address varchar NOT NULL,
 	is_delivered boolean DEFAULT false,
 	review varchar,
 	date date NOT NULL,
@@ -83,15 +82,13 @@ CREATE TABLE Orders (
 );
 
 CREATE TABLE Delivery_Staff (
-	uname varchar(100) PRIMARY KEY REFERENCES Users,
+	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
 	avg_rating numeric
 );
 
-CREATE TABLE Manager(
-	uname varchar(100) PRIMARY KEY REFERENCES Users
-);
-
 CREATE TABLE Delivers (
+	date date, 
+	time time, 
 	duname varchar(100) REFERENCES Delivery_Staff(uname),
 	cuname varchar(100),
 	rating numeric,
@@ -99,13 +96,11 @@ CREATE TABLE Delivers (
 	arrive_restaurant time,
 	depart_customer time,
 	arrive_customer time,
-	date date,
-	time time,
-	FOREIGN KEY (cuname, date, time) REFERENCES Orders,
-	PRIMARY KEY (cuname, date, time)
+	--PRIMARY KEY(cuname, date, time)
+	PRIMARY KEY(cuname, date, time) REFERENCES Orders(cuname, date,time) --??
+	FOREIGN KEY(time) REFERENCES Orders
 );
 	
-
 CREATE TABLE Part_Time (
 	uname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff ON DELETE CASCADE
 );
@@ -124,7 +119,7 @@ CREATE TABLE WWS (
 );
 
 CREATE TABLE MWS (
-	uname varchar(100) REFERENCES Part_Time ON DELETE CASCADE,
+	uname varchar(100) REFERENCES Full_Time ON DELETE CASCADE,
 	month varchar NOT NULL,
 	day_option numeric NOT NULL,
 	shift numeric NOT NULL,
