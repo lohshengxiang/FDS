@@ -98,21 +98,22 @@ INSERT INTO CreditCard values
 	('Customer2', '000000000', 'DBS');
 
 CREATE TABLE Orders (
-	orderId varchar PRIMARY KEY,
-	cuname varchar(100) REFERENCES Customer(uname) ON DELETE CASCADE,
-	payment_type varchar NOT NULL,
-	deliveryAddress varchar NOT NULL,
-	is_delivered boolean DEFAULT false,
-	order_date date,
-	order_time time,
-	deliveryFee numeric NOT NULL,
-	promoCode varchar
+ orderId varchar PRIMARY KEY,
+ cuname varchar(100) REFERENCES Customer(uname) ON DELETE CASCADE,
+ payment_type varchar NOT NULL,
+ deliveryAddress varchar NOT NULL,
+ is_delivered boolean DEFAULT false,
+ order_date date,
+ order_time time,
+ deliveryFee numeric NOT NULL,
+ foodCost numeric NOT NULL,
+ promoCode varchar
 );
 
 INSERT INTO Orders values
-	('1','Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', '5', null),
-	('2','Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', '5', null);
-
+ ('1','Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,10, null),
+ ('2','Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,20, null);
+ 
 CREATE TABLE Reviews (
 	orderId varchar REFERENCES Orders(orderId) ON DELETE CASCADE,
 	review varchar,

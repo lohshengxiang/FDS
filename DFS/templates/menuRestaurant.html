@@ -1,0 +1,31 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Restaurant Admin Page
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}!
+</h2>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Food Name</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Availability</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in foodItem_list %}
+        <tr>
+            <td>{{item.foodName}}</td>
+            <td>{{item.price}}</td>
+            <td>{{item.category}}</td>
+            <td>{{item.availability}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
