@@ -12,12 +12,12 @@ new_address = []
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
 	username = None
-	# firstName = None
+	firstName = None
 	user_type = None
 
 	def is_authenticated(self):
@@ -32,6 +32,12 @@ class User():
 	def get_id(self):
 		return self.username
 
+class FoodItem():
+	foodName = None
+	price = None
+	category = None
+	availability = None
+
 
 @login_manager.user_loader
 def load_user(username):
@@ -44,9 +50,27 @@ def load_user(username):
 		conn.rollback()
 	exist = cur.fetchone()
 	if exist:
-		user.user_type = "Admin"
+		user.user_type = "Manager"
 	else:
-		user.user_type = "User"
+		query = "SELECT * from Customer where uname = %s"
+		try:
+			cur.execute(query,(username,))
+		except:
+			conn.rollback()
+		exist = cur.fetchone()
+		if exist:
+			user.user_type = "User"
+		else:
+			query = "SELECT * from Restaurant where uname = %s"
+			try:
+				cur.execute(query,(username,))
+			except:
+				conn.rollback()
+			exist = cur.fetchone()
+			if exist:
+				user.user_type = "Restaurant"
+			else:
+				user.user_type = "Delivery_staff"
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
@@ -54,7 +78,48 @@ def home():
 	test = False
 	if current_user.is_authenticated:
 		test = current_user.user_type
+		userType = current_user.user_type
+		if (userType == 'Restaurant'):
+			return redirect ('/homeRestaurant')
 	return render_template('welcome3.html', test = test)
+
+# START OF RESTAURANT VIEW ROUTES
+@view.route("/homeRestaurant", methods = ["GET","POST"])
+def homePage():
+	return render_template('homeRestaurant.html')
+
+@view.route("/menuRestaurant", methods = ["GET","POST"])
+def menuPage():
+	username = current_user.username
+	#create empty list to store all food items of restaurant
+	foodItem_list = []
+	nameQuery = "SELECT distinct fname from Food where runame = %s"
+	cur.execute(nameQuery,(username,)) 
+	nameList = cur.fetchall()
+
+	priceQuery = "SELECT price from Food where runame = %s"
+	cur.execute(priceQuery,(username,)) 
+	priceList = cur.fetchall()
+
+	categoryQuery = "SELECT category from Food where runame = %s"
+	cur.execute(categoryQuery,(username,)) 
+	categoryList = cur.fetchall()
+
+	availabilityQuery = "SELECT availability from Food where runame = %s"
+	cur.execute(availabilityQuery,(username,)) 
+	availabilityList = cur.fetchall()
+
+	for x in range(len(nameList)):
+		item = FoodItem()
+		item.foodName = nameList[x]
+		item.price = priceList[x]
+		item.category = categoryList[x]
+		item.availability = availabilityList[x]
+		foodItem_list.append(item)
+
+	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
+
+# END OF RESTAURANT VIEW ROUTES
 
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
@@ -71,7 +136,6 @@ def category(category):
 	return render_template('category.html', form = form, category = category)
 
 
-
 @view.route("/restaurant/<rname>",methods = ["GET","POST"])
 def choose_food(rname):
 	form = OrderForm()
@@ -79,7 +143,10 @@ def choose_food(rname):
 	form3 = AddressForm()
 
 	query = "SELECT distinct fname from Food where runame = %s"
-	cur.execute(query,(rname,))
+	try:
+		cur.execute(query,(rname,))
+	except:
+		conn.rollback()	
 	fname_rows = cur.fetchall() # list of tuples
 	fname_choices = []
 	for row in fname_rows:
