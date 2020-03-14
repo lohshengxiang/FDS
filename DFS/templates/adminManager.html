@@ -1,0 +1,50 @@
+{% extends "baseManager.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Manager Admin Page
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}! What would you like to do?
+</h2>
+
+<div class="columns">
+    <div class="column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> Manage Restaurants </b></h5>
+                    <p class="card-text">Create and Delete Restaurants</p>
+                    <br>
+                    <a href="/adminManager/manageRestaurants" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> Manage Delivery Staff </b></h5>
+                    <p class="card-text">Create and Delete Delivery Staff</p>
+                    <br>
+                    <a href="/adminManager/manageDeliveryStaff" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> Manage Promotions </b></h5>
+                    <p class="card-text">Create and Delete Promotions</p>
+                    <br>
+                    <a href="/adminManager/managePromotions" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

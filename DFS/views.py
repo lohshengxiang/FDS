@@ -38,6 +38,13 @@ class FoodItem():
 	category = None
 	availability = None
 
+class Restaurant():
+	restaurantName = None
+	restaurantaddress = None
+
+class DeliveryStaff():
+	dName = None
+	dRating = None
 
 @login_manager.user_loader
 def load_user(username):
@@ -81,6 +88,8 @@ def home():
 		userType = current_user.user_type
 		if (userType == 'Restaurant'):
 			return redirect ('/homeRestaurant')
+		elif userType == 'Manager': 
+			return redirect('/homeManager')
 	return render_template('welcome3.html', test = test)
 
 # START OF RESTAURANT VIEW ROUTES
@@ -120,6 +129,67 @@ def menuPage():
 	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
 
 # END OF RESTAURANT VIEW ROUTES
+
+# START OF MANAGER VIEW ROUTES
+@view.route("/homeManager", methods = ["GET", "POST"])
+def managerHome(): 
+	return render_template('homeManager.html')
+
+@view.route("/adminManager", methods = ["GET", 'POST'])
+def managerAdmin(): 
+	return render_template('adminManager.html')
+
+@view.route("/adminManager/manageRestaurants", methods = ["GET", "POST"])
+def manageRestuarants():
+	restaurant_list = []
+	rnameQuery = "SELECT distinct rname from Restaurant"  
+	cur.execute(rnameQuery)
+	rnames = cur.fetchall()
+	rname_rows = []
+	for row in rnames:
+		rname_rows.append(row[0])
+
+	addressQuery = "SELECT distinct address from Restaurant"
+	cur.execute(addressQuery)
+	addresses = cur.fetchall()
+	address_rows = []
+	for row in addresses: 
+		address_rows.append(row[0])
+
+	for x in range(len(rname_rows)):
+		restaurant = Restaurant()
+		restaurant.restaurantName = rname_rows[x]
+		restaurant.restaurantAddress = address_rows[x]
+		restaurant_list.append(restaurant)
+
+	return render_template('manageRestaurants.html', restaurant_list = restaurant_list)
+
+@view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
+def manageDeliveryStaff():
+	dstaff_list = []
+	dnameQuery = "SELECT distinct dname from Delivery_Staff"  
+	cur.execute(dnameQuery)
+	dnames = cur.fetchall()
+	dname_rows = []
+	for row in dnames:
+		dname_rows.append(row[0])
+
+	ratingQuery = "SELECT distinct avg_rating from Delivery_Staff"
+	cur.execute(ratingQuery)
+	ratings = cur.fetchall()
+	rating_rows = []
+	for row in ratings: 
+		rating_rows.append(row[0])
+
+	for x in range(len(dname_rows)):
+		dstaff = DeliveryStaff()
+		dstaff.dName = dname_rows[x]
+		dstaff.dRating = rating_rows[x]
+		dstaff_list.append(dstaff)
+
+	return render_template('manageDeliveryStaff.html', dstaff_list = dstaff_list)
+
+# END OF MANAGER VIEW ROUTES
 
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
