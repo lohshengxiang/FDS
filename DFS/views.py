@@ -12,7 +12,7 @@ new_address = []
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -59,6 +59,9 @@ def load_user(username):
 
 	if exist:
 		user.user_type = "Manager"
+		query = "SELECT distinct mname from FDS_Manager where uname = %s"
+		cur.execute(query,(username,))
+		user.firstName = cur.fetchone()[0]
 	else:
 		query = "SELECT * from Customer where uname = %s"
 		try:
@@ -68,6 +71,9 @@ def load_user(username):
 		exist = cur.fetchone()
 		if exist:
 			user.user_type = "User"
+			query = "SELECT distinct cname from Customer where uname = %s"
+			cur.execute(query,(username,))
+			user.firstName = cur.fetchone()[0]
 		else:
 			query = "SELECT * from Restaurant where uname = %s"
 			try:
@@ -77,13 +83,14 @@ def load_user(username):
 			exist = cur.fetchone()
 			if exist:
 				user.user_type = "Restaurant"
+				query = "SELECT distinct rname from Restaurant where uname = %s"
+				cur.execute(query,(username,))
+				user.firstName = cur.fetchone()[0]
 			else:
 				user.user_type = "Delivery_staff"
-
-	#get first name
-	query = "SELECT distinct cname from Customer where uname = %s"
-	cur.execute(query,(username,))
-	user.firstName = cur.fetchone()[0]
+				query = "SELECT distinct dname from Delivery_Staff where uname = %s"
+				cur.execute(query,(username,))
+				user.firstName = cur.fetchone()[0]
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
