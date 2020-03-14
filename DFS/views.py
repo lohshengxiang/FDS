@@ -12,7 +12,7 @@ new_address = []
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -32,6 +32,19 @@ class User():
 	def get_id(self):
 		return self.username
 
+class FoodItem():
+	foodName = None
+	price = None
+	category = None
+	availability = None
+
+class Restaurant():
+	restaurantName = None
+	restaurantaddress = None
+
+class DeliveryStaff():
+	dName = None
+	dRating = None
 
 @login_manager.user_loader
 def load_user(username):
@@ -78,7 +91,111 @@ def home():
 	test = False
 	if current_user.is_authenticated:
 		test = current_user.user_type
+		userType = current_user.user_type
+		if (userType == 'Restaurant'):
+			return redirect ('/homeRestaurant')
+		elif userType == 'Manager': 
+			return redirect('/homeManager')
 	return render_template('welcome3.html', test = test)
+
+# START OF RESTAURANT VIEW ROUTES
+@view.route("/homeRestaurant", methods = ["GET","POST"])
+def homePage():
+	return render_template('homeRestaurant.html')
+
+@view.route("/menuRestaurant", methods = ["GET","POST"])
+def menuPage():
+	username = current_user.username
+	#create empty list to store all food items of restaurant
+	foodItem_list = []
+	nameQuery = "SELECT distinct fname from Food where runame = %s"
+	cur.execute(nameQuery,(username,)) 
+	nameList = cur.fetchall()
+
+	priceQuery = "SELECT price from Food where runame = %s"
+	cur.execute(priceQuery,(username,)) 
+	priceList = cur.fetchall()
+
+	categoryQuery = "SELECT category from Food where runame = %s"
+	cur.execute(categoryQuery,(username,)) 
+	categoryList = cur.fetchall()
+
+	availabilityQuery = "SELECT availability from Food where runame = %s"
+	cur.execute(availabilityQuery,(username,)) 
+	availabilityList = cur.fetchall()
+
+	for x in range(len(nameList)):
+		item = FoodItem()
+		item.foodName = nameList[x]
+		item.price = priceList[x]
+		item.category = categoryList[x]
+		item.availability = availabilityList[x]
+		foodItem_list.append(item)
+
+	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
+
+# END OF RESTAURANT VIEW ROUTES
+
+# START OF MANAGER VIEW ROUTES
+@view.route("/homeManager", methods = ["GET", "POST"])
+def managerHome(): 
+	return render_template('homeManager.html')
+
+@view.route("/adminManager", methods = ["GET", 'POST'])
+def managerAdmin(): 
+	return render_template('adminManager.html')
+
+@view.route("/adminManager/manageRestaurants", methods = ["GET", "POST"])
+def manageRestuarants():
+	restaurant_list = []
+	rnameQuery = "SELECT distinct rname from Restaurant"  
+	cur.execute(rnameQuery)
+	rnames = cur.fetchall()
+	rname_rows = []
+	for row in rnames:
+		rname_rows.append(row[0])
+
+	addressQuery = "SELECT distinct address from Restaurant"
+	cur.execute(addressQuery)
+	addresses = cur.fetchall()
+	address_rows = []
+	for row in addresses: 
+		address_rows.append(row[0])
+
+	for x in range(len(rname_rows)):
+		restaurant = Restaurant()
+		restaurant.restaurantName = rname_rows[x]
+		restaurant.restaurantAddress = address_rows[x]
+		restaurant_list.append(restaurant)
+
+	return render_template('manageRestaurants.html', restaurant_list = restaurant_list)
+
+@view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
+def manageDeliveryStaff():
+	dstaff_list = []
+	dnameQuery = "SELECT distinct dname from Delivery_Staff"  
+	cur.execute(dnameQuery)
+	dnames = cur.fetchall()
+	dname_rows = []
+	for row in dnames:
+		dname_rows.append(row[0])
+
+	ratingQuery = "SELECT distinct avg_rating from Delivery_Staff"
+	cur.execute(ratingQuery)
+	ratings = cur.fetchall()
+	rating_rows = []
+	for row in ratings: 
+		rating_rows.append(row[0])
+
+	for x in range(len(dname_rows)):
+		dstaff = DeliveryStaff()
+		dstaff.dName = dname_rows[x]
+		dstaff.dRating = rating_rows[x]
+		dstaff_list.append(dstaff)
+
+	return render_template('manageDeliveryStaff.html', dstaff_list = dstaff_list)
+
+# END OF MANAGER VIEW ROUTES
 
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
@@ -97,7 +214,6 @@ def category(category):
 	if form.validate_on_submit():
 		return redirect('/restaurant/' + form.rname.data)
 	return render_template('category.html', form = form, category = category)
-
 
 
 @view.route("/restaurant/<rname>",methods = ["GET","POST"])
