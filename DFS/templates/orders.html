@@ -4,11 +4,40 @@
 
 <body>
   <section class="section">
-    <div class="container">
     {% if current_user.is_authenticated %}
-      <!-- <h2 class="subtitle" style = "font-size: 200%"> -->
-        {{ status }} 
-      <!-- </h2> -->
+      <table class="table" style="margin-left:auto;margin-right:auto;">
+        <thead class="thead">
+          <tr>
+              <th>Order ID</th>
+              <th>Restaurant</th>
+              <th>Payment Type</th>
+              <th>Address</th>
+              <th>Order Date</th>
+              <th>Order Time</th>
+              <th>Delivery Fee</th>
+              <th>Food Cost</th>
+              <th>Promo Code</th>
+              <th>Delivered</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for item in status %}
+          <tr>
+              <td>{{item.orderid}}</td>
+              <td>{{item.rname}}</td>
+              <td>{{item.payment_type}}</td>
+              <td>{{item.address}}</td>
+              <td>{{item.order_date}}</td>
+              <td>{{item.order_time}}</td>
+              <td>{{item.deliveryFee}}</td>
+              <td>{{item.foodCost}}</td>
+              <td>{{item.promoCode}}</td>
+              <td>{{item.is_delivered}}</td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+    </table>
     {% endif %}
     {% if not current_user.is_authenticated %}
       {% if status == False %}
@@ -17,6 +46,5 @@
       </h2>
       {% endif %}
     {% endif %}
-    </div>
 </body>
 {% endblock %}

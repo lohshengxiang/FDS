@@ -37,9 +37,9 @@ CREATE TABLE Restaurant (
 );
 
 INSERT INTO Restaurant values
-	('Restaurant1', 'Restaurant1','NUS',20),
-	('Restaurant2', 'Restaurant2','NTU',30),
-	('Restaurant3', 'Restaurant3','SMU',20);
+	('Restaurant1', 'Kenki Sushi','NUS',20),
+	('Restaurant2', 'Tin Tai Feng','NTU',30),
+	('Restaurant3', 'Prada Wala','SMU',20);
 
 
 CREATE TABLE Promotion (
@@ -68,7 +68,7 @@ CREATE TABLE Food (
 );
 
 INSERT INTO Food values 
-	('Restaurant1','Sushi',true,20,10,'Japanese'),('Restaurant1','Ramen',true,30,10,'Japanese'), ('Restaurant1','Mochi',true,10,10,'Dessert'),
+	('Restaurant1','Sushi',true,20,10,'Japanese'),('Restaurant1','Ramen',true,30,5,'Japanese'), ('Restaurant1','Mochi',true,10,10,'Dessert'),
 	('Restaurant2','Chicken Rice',true,10,10,'Chinese'), ('Restaurant2','Dim Sum',true,30,10,'Chinese'), ('Restaurant2','Hokkien Mee',true,40,10,'Chinese'), 
 	('Restaurant2','Chicken Chop',true,50,10,'Western'), ('Restaurant2','Nasi Lemak',true,20,10,'Malay'),
 	('Restaurant3','Roti Prata',true,10,10,'Indian');
@@ -106,12 +106,13 @@ CREATE TABLE Orders (
 	order_date date,
 	order_time time,
 	deliveryFee numeric NOT NULL,
+	foodCost numeric NOT NULL,
 	promoCode varchar
 );
 
 INSERT INTO Orders values
-	('1','Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', '5', null),
-	('2','Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', '5', null);
+	('1','Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,10, null),
+	('2','Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,20, null);
 
 CREATE TABLE Reviews (
 	orderId varchar REFERENCES Orders(orderId) ON DELETE CASCADE,

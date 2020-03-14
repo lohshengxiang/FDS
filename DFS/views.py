@@ -1,8 +1,8 @@
-from flask import Blueprint, redirect, render_template, jsonify, flash
+from flask import Blueprint, redirect, render_template, jsonify, flash, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import psycopg2
 from __init__ import login_manager
-from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm
+from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm, ChangePasswordForm
 
 from datetime import datetime
 
@@ -43,6 +43,7 @@ def load_user(username):
 	except:
 		conn.rollback()
 	exist = cur.fetchone()
+
 	if exist:
 		user.user_type = "Manager"
 	else:
@@ -65,6 +66,11 @@ def load_user(username):
 				user.user_type = "Restaurant"
 			else:
 				user.user_type = "Delivery_staff"
+
+	#get first name
+	query = "SELECT distinct cname from Customer where uname = %s"
+	cur.execute(query,(username,))
+	user.firstName = cur.fetchone()[0]
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
@@ -77,8 +83,12 @@ def home():
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
 	form = RestaurantForm()
-	query = "SELECT distinct runame from Food where category = %s"
-	cur.execute(query,(category,))
+	query = "SELECT distinct rname from Restaurant,Food where runame = uname and category = %s"
+	# query = "SELECT distinct runame from Food where category = %s"
+	try:
+		cur.execute(query,(category,))
+	except:
+		conn.rollback()
 	rname_rows = cur.fetchall()
 	rname_choices = []
 	for row in rname_rows:
@@ -95,21 +105,40 @@ def choose_food(rname):
 	form = OrderForm()
 	form2 = PaymentForm()
 	form3 = AddressForm()
+	global cart_list
+	global new_address
 
-	query = "SELECT distinct fname from Food where runame = %s"
+	query = "SELECT distinct uname from Restaurant where rname = %s"
 	try:
 		cur.execute(query,(rname,))
 	except:
 		conn.rollback()	
+
+	runame = cur.fetchone()[0]
+
+	query = "SELECT distinct fname from Food where runame = %s"
+	try:
+		cur.execute(query,(runame,))
+	except:
+		conn.rollback()	
 	fname_rows = cur.fetchall() # list of tuples
+
+	current_foods = []
+	if cart_list != []:
+		for i in cart_list:
+			current_foods.append(i['fname'])
+
+
+	#we dont want repeated foods if not primary key error in Contains
 	fname_choices = []
 	for row in fname_rows:
-		fname_choices.append((row[0],row[0]))
+		if row[0] not in current_foods:
+			fname_choices.append((row[0],row[0]))
 	form.fname.choices = fname_choices
 
 	query = "SELECT max(order_limit) from Food where runame = %s" 
 	try:
-		cur.execute(query,(rname,))
+		cur.execute(query,(runame,))
 	except:
 		conn.rollback()
 	limit = int(cur.fetchone()[0])
@@ -118,27 +147,29 @@ def choose_food(rname):
 		quantity_choices.append((str(i),i)) #id has to be string
 	form.quantity.choices = quantity_choices
 
-	global cart_list
-	global new_address
+	
+	
 	if cart_list != []:
+		if cart_list[0]["rname"] != rname:
+			cart_list = []
 
-		addresses = []
-		if new_address != []:
-			for i in new_address:
-				addresses.append(i)
+	addresses = []
+	if new_address != []:
+		for i in new_address:
+			addresses.append(i)
 
-		query = "SELECT distinct address from orders where cuname = %s limit 5" #change this to order by
-		cur.execute(query,(current_user.username,))
-		address_rows = cur.fetchall()
+	query = "SELECT distinct deliveryAddress from orders where cuname = %s limit 5" #change this to order by
+	cur.execute(query,(current_user.username,))
+	address_rows = cur.fetchall()
 
-		if address_rows:
-			for i in address_rows:
-				addresses.append(i[0])
+	if address_rows:
+		for i in address_rows:
+			addresses.append(i[0])
 
-		address_choices = []
-		for i in addresses:
-			address_choices.append((str(i),i))
-		form2.address.choices = address_choices
+	address_choices = []
+	for i in addresses:
+		address_choices.append((str(i),i))
+	form2.address.choices = address_choices
 
 	if form.validate_on_submit(): 
 		if not current_user.is_authenticated:
@@ -150,47 +181,61 @@ def choose_food(rname):
 
 			# get food price
 			query = "SELECT price from Food where runame = %s and fname = %s"
-			cur.execute(query,(rname,form.fname.data))
-			total_cost = int(cur.fetchone()[0]) 
-			total_cost *= int(form.quantity.data) #subject to promotion
+			cur.execute(query,(runame,form.fname.data))
+			food_cost = int(cur.fetchone()[0]) 
+			food_cost *= int(form.quantity.data) #subject to promotion
 
 			order_date = datetime.now().strftime("%m/%d/%Y")
-			dropoff = 1 #whats this?
-			
-
 			
 			item_dict = {'username': username,
 						'rname' : rname,
 						'fname' : fname,
 						'quantity' : form.quantity.data,
-						'order_time' : order_time,
-						'total_cost' : total_cost}
+						# 'order_time' : order_time,
+						'food_cost' : food_cost}
 
 			cart_list.append(item_dict)
+			# return redirect(request.referrer)
 			return redirect("/restaurant/" + rname)
 
 	if form2.validate_on_submit() and cart_list != []:
 		cuname = current_user.username
-		rname = rname
 		payment_type = form2.payment_method.data
-		total_cost = 0 # need to recalculate this by having quantity
+		total_cost = 0 
 
 		for i in cart_list:
-			total_cost += i["total_cost"]
+			total_cost += i["food_cost"]
 
 		address = form2.address.data
 		order_date = datetime.now().strftime("%m/%d/%Y")
 		order_time = datetime.now().strftime("%H:%M:%S")
 		#used to have rname in query
-		query = '''INSERT INTO orders(cuname, payment_type,total_cost,address,order_date,order_time) 
-					VALUES (%s,%s,%s,%s,%s,%s)'''
-		cur.execute(query,(cuname,payment_type,total_cost,address,order_date,order_time))
+		query = "SELECT max(orderid) from Orders"
+		cur.execute(query)
+		maxid = int(cur.fetchone()[0])
+		if maxid:
+			newid = maxid + 1
+		else:
+			newid = 0
+		query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress,order_date,order_time,deliveryFee,foodCost) 
+					VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'''
+		cur.execute(query,(newid,cuname,payment_type,address,order_date,order_time,5,total_cost))
 		conn.commit()
+
+		for i in cart_list:
+			query = '''INSERT INTO Contain(orderId,runame,fname,quantity) values (%s,%s,%s,%s)'''
+			cur.execute(query,(newid,runame,i['fname'],i['quantity']))
+			conn.commit()
+		
 		return redirect('/pay')
+
+	total_cost = 0
+	for i in cart_list:
+		total_cost += i["food_cost"]
 			
 	return render_template('orders2.html', form = form, form2 = form2, 
-		form3 = form3, rest = rname, current_order = cart_list, current_order_len = len(cart_list), 
-		new_address = new_address)
+		form3 = form3, rname = rname, current_order = cart_list, current_order_len = len(cart_list), 
+		new_address = new_address, runame = runame, total_cost = total_cost, cart_list = cart_list)
 
 @view.route("/<rname>/add_address", methods = ["GET","POST"])
 def add_address(rname):
@@ -248,7 +293,7 @@ def login():
 
 @view.route('/quantity/<fname>/<rname>')
 def quantity(fname,rname):
-	query = "SELECT order_limit from Food where rname = %s and fname = %s"
+	query = "SELECT order_limit from Food where runame = %s and fname = %s"
 	cur.execute(query,(rname,fname))
 	limit = int(cur.fetchone()[0])
 
@@ -293,21 +338,74 @@ def registration_complete():
 @view.route("/orders")
 @login_required
 def orders():
-	# query = "SELECT * from orders where cuname = %s"
-	# cur.execute(query,(current_user.username,))
-	# order_table = cur.fetchall() #order_table is a list of tuples
+	query = '''WITH new_contains as(
+	select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
+	)
+	select * from Orders join (select distinct orderid, rname from new_contains) c2 using (orderid) where cuname = %s order by orderid DESC'''
 
-	query = "SELECT * from get_orders(%s)"
+	# query = "SELECT * from get_orders(%s)"
 	try: 
 		cur.execute(query,(current_user.username,))
 	except:
 		conn.rollback()
 	order_table = cur.fetchall() ##order_table is a list of tuples
-	if order_table:  
-		return render_template('orders.html', status = order_table)
+	order_list = []
+	for i in order_table:
+		one_order_dict = {}
+	
+		#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+		one_order_dict["orderid"] = i[0]
+		one_order_dict["payment_type"] = i[2]
+		one_order_dict["address"] = i[3]
+		one_order_dict["is_delivered"] = i[4]
+		one_order_dict["order_date"] = i[5]
+		one_order_dict["order_time"] = i[6]
+		one_order_dict["deliveryFee"] = i[7]
+		one_order_dict["foodCost"] = i[8]
+		one_order_dict["promoCode"] = i[9]
+		one_order_dict["rname"] = i[10]
+		order_list.append(one_order_dict)
+	if order_list:  
+		return render_template('orders.html', status = order_list)
 	else:
 		return render_template('orders.html', status = 'You have no orders')
 		
+
+@view.route("/profile", methods = ["GET","POST"])
+@login_required
+def profile():
+	#get points
+	query = "SELECT distinct points from customer where uname = %s"
+	cur.execute(query,(current_user.username,))
+	points = int(cur.fetchone()[0])
+	return render_template("profile.html", points = points)
+
+@view.route("/profile/<nav>", methods = ["GET","POST"])
+@login_required
+def profile_nav(nav):
+	form = ChangePasswordForm()
+	if nav == "password":
+		if form.validate_on_submit():
+			oldPassword = form.oldPassword.data
+			newPassword = form.newPassword.data
+
+			#check old password exist
+			query = "SELECT * from Users where uname = %s and password = %s"
+			cur.execute(query,(current_user.username,oldPassword))
+			exist = cur.fetchone()
+			if not exist:
+				form.oldPassword.errors.append("Wrong Password")
+			else:
+				query = "UPDATE Users SET password = %s where uname = %s"
+				cur.execute(query,(newPassword,current_user.username))
+				conn.commit()
+				flash('Password changed!')
+				return redirect(url_for('view.profile_nav', nav = "password"))
+		return render_template("profile_password.html",form = form)
+	else:
+		template = "profile_" + nav + ".html"
+		return render_template(template)
+
 @view.route("/logout", methods = ["GET"])
 @login_required
 def logout():

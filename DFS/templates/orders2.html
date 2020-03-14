@@ -3,45 +3,38 @@
 {% block content %}
 <body>
 	<h1 class="title" style = "font-size: 200%;">
-	Welcome to {{ rest }}! {{ new_address }}
+	Welcome to {{ rname }}
 	</h1>
 	<h1>
 	{% if current_order == [] %}
 	You have no orders
 	{% endif %}
 	{% if not current_order == [] %}
-	<!-- <table class="table is striped">
-		<thead>
+	<table class="table" style="margin-left:auto;margin-right:auto;">
+	    <thead class="thead">
 		    <tr>
-		    	<th></th>
-		        <th>Food</th>
+		        <th>Food Item</th>
 		        <th>Quantity</th>
-		        <th>Total Cost</th>
+		        <th>Cost</th>
 		    </tr>
 		</thead>
 		<tbody>
-		    <script>
-			var order_list = current_order;
-			document.write("<tr>");
-			for (i=0;i<order_list.length;i++)
-			{
-			document.write(order_list[0][] + "<br />");
-			}
-	</script>
-		      <th>1</th>
-		      <td><a href="https://en.wikipedia.org/wiki/Leicester_City_F.C." title="Leicester City F.C.">Leicester City</a> <strong>(C)</strong>
-		      </td>
-		      <td>38</td>
-		      <td>23</td>
-		      <td>12</td>
-		      <td>3</td>
-		      <td>68</td>
-		      <td>36</td>
-		      <td>+32</td>
-		      <td>81</td>
-		      <td>Qualification for the <a href="https://en.wikipedia.org/wiki/2016%E2%80%9317_UEFA_Champions_League#Group_stage" title="2016–17 UEFA Champions League">Champions League group stage</a></td>
-		    </tr> -->
-	Your current order is {{ current_order }}
+        {% for item in current_order %}
+        <tr>
+            <td>{{item.fname}}</td>
+            <td>{{item.quantity}}</td>
+            <td>{{item.food_cost}}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+        	<td></td>
+        	<td>Total Cost:</td>
+        	<td>{{total_cost}}</td>
+        </tr>
+
+	    </tbody>
+	</table>
+	<!-- Your current order is {{ current_order }} -->
 	{% endif %}
 	</h1>
 	<section class="section">
@@ -61,7 +54,7 @@
 	          </div>
 	        </div>
 	        <script>
-	          var rname = '{{ rest }}';
+	          var rname = '{{ runame }}';
 	          let fname_select = document.getElementById('fname');
 	          let quantity_select = document.getElementById('quantity');
 
@@ -104,7 +97,7 @@
 	          {{ form2.address }}
 	          </div>
 	        </div>
-	        or add an address <a href = "/{{ rest }}/add_address"> here </a>
+	        or add an address <a href = "/{{ rname }}/add_address"> here </a>
 	        <div>
 	        <font size="6"><b>Payment Method:</b></font>
 	          <div class = "select"> 

@@ -37,6 +37,9 @@ class PaymentForm(FlaskForm):  # Create Order Form
     payment_method = SelectField('Payment Method', choices = [('Credit Card','Credit Card'),('Points','Points'),('Cash On Delivery','Cash On Delivery')])
     # address = StringField('Address', validators = [InputRequired(message = 'A username is required')])
 
-
 class AddressForm(FlaskForm):
     address = StringField('Address', validators = [InputRequired(message = 'An address is required')])
+
+class ChangePasswordForm(FlaskForm):
+    oldPassword = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
+    newPassword = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
