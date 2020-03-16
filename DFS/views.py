@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, jsonify, flash, request,
 from flask_login import current_user, login_required, login_user, logout_user
 import psycopg2
 from __init__ import login_manager
-from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm, ChangePasswordForm
+from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm, ChangePasswordForm, ReviewForm
 
 from datetime import datetime
 
@@ -436,6 +436,7 @@ def registration():
 	if form.validate_on_submit():
 		username = form.username.data
 		password = form.password.data
+		firstName = form.firstName.data
 		query = '''SELECT * FROM Users WHERE uname = %s'''
 		cur.execute(query,(username,))
 		exists_user = cur.fetchone()
@@ -446,7 +447,7 @@ def registration():
 			cur.execute(query,(username,password))
 			conn.commit()
 			query = "INSERT INTO Customer VALUES (%s,%s,0)"
-			cur.execute(query,(username,username))
+			cur.execute(query,(username,firstName))
 			conn.commit()
 			user = User()
 			user.username = form.username.data
@@ -491,7 +492,7 @@ def orders():
 	if order_list:  
 		return render_template('orders.html', status = order_list)
 	else:
-		return render_template('orders.html', status = 'You have no orders')
+		return render_template('orders.html', status = [])
 		
 
 @view.route("/profile", methods = ["GET","POST"])
@@ -525,9 +526,99 @@ def profile_nav(nav):
 				flash('Password changed!')
 				return redirect(url_for('view.profile_nav', nav = "password"))
 		return render_template("profile_password.html",form = form)
+	elif nav == "pastOrders":
+		query = '''WITH new_contains as(
+		select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
+		)
+		select * from Orders join (select distinct orderid, rname from new_contains) c2 using (orderid) 
+		where cuname = %s and is_delivered = True order by orderid DESC'''
+
+		try: 
+			cur.execute(query,(current_user.username,))
+		except:
+			conn.rollback()
+		order_table = cur.fetchall() ##order_table is a list of tuples
+		order_list = []
+		for i in order_table:
+			one_order_dict = {}
+		
+			#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+			one_order_dict["orderid"] = i[0]
+			one_order_dict["payment_type"] = i[2]
+			one_order_dict["address"] = i[3]
+			one_order_dict["is_delivered"] = i[4]
+			one_order_dict["order_date"] = i[5]
+			one_order_dict["order_time"] = i[6]
+			one_order_dict["deliveryFee"] = i[7]
+			one_order_dict["foodCost"] = i[8]
+			one_order_dict["promoCode"] = i[9]
+			one_order_dict["rname"] = i[10]
+			order_list.append(one_order_dict)
+		return render_template("profile_pastOrders.html", status = order_list)
+	elif nav == "currentOrders":
+		query = '''WITH new_contains as(
+		select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
+		)
+		select * from Orders join (select distinct orderid, rname from new_contains) c2 using (orderid) 
+		where cuname = %s and is_delivered = False order by orderid DESC'''
+
+		try: 
+			cur.execute(query,(current_user.username,))
+		except:
+			conn.rollback()
+		order_table = cur.fetchall() ##order_table is a list of tuples
+		order_list = []
+		for i in order_table:
+			one_order_dict = {}
+		
+			#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+			one_order_dict["orderid"] = i[0]
+			one_order_dict["payment_type"] = i[2]
+			one_order_dict["address"] = i[3]
+			one_order_dict["is_delivered"] = i[4]
+			one_order_dict["order_date"] = i[5]
+			one_order_dict["order_time"] = i[6]
+			one_order_dict["deliveryFee"] = i[7]
+			one_order_dict["foodCost"] = i[8]
+			one_order_dict["promoCode"] = i[9]
+			one_order_dict["rname"] = i[10]
+			order_list.append(one_order_dict)
+		return render_template("profile_currentOrders.html", status = order_list)
+	elif nav == "reviews":
+		query = ''' WITH new_contains as(
+		select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
+		) 
+		SELECT distinct orderid,rname,review from new_contains join Reviews using (orderid) 
+		where orderid in (SELECT orderid from Orders where cuname = %s)'''
+		cur.execute(query,(current_user.username,))
+		review_table = cur.fetchall()
+		if review_table:
+			review_list = []
+			for i in review_table:
+				review_dict = {}
+				review_dict["orderid"] = i[0]
+				review_dict["rname"] = i[1]
+				review_dict["review"] = i[2]
+				review_list.append(review_dict)
+			return render_template("profile_reviews.html",status = review_list)
+		else:
+			return render_template("profile_reviews.html",status = [])
+
 	else:
 		template = "profile_" + nav + ".html"
 		return render_template(template)
+
+@view.route("/review/<rname>/<orderid>", methods = ["GET","POST"])
+@login_required
+def review(rname,orderid):
+	form = ReviewForm()
+	if form.validate_on_submit():
+		review = form.review.data
+		query = "INSERT INTO Reviews VALUES (%s,%s)"
+		cur.execute(query,(orderid,review))
+		conn.commit()
+		return redirect("/")
+	return render_template("review.html", form = form, rname = rname)
 
 @view.route("/logout", methods = ["GET"])
 @login_required

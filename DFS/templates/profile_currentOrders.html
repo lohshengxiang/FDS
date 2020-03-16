@@ -1,0 +1,101 @@
+{% extends "base_profile.html" %}
+
+{% block content %}
+
+    <!-- <div class="container"> -->
+        <div class="columns">
+            <div class="column is-3 ">
+                <aside class="menu is-hidden-mobile">
+                    <p class="menu-label has-text-left">
+                        General
+                    </p>
+                    <ul class="menu-list">
+                        <li><a href = "/profile">Profile</a></li>
+                        <li><a href="/profile/password">Change Password</a><li>
+                    </ul>
+                    <p class="menu-label has-text-left">
+                        Orders
+                    </p>
+                    <ul class="menu-list">
+                        <li><a class="is-active" href="/profile/currentOrders">Current Orders</a></li>
+                        <li><a href="/profile/pastOrders">Past Orders</a></li>
+                        <li><a href="/profile/reviews">Reviews</a></li>
+                    </ul>
+                    <p class="menu-label has-text-left">
+                        Manage Cards
+                    </p>
+                    <ul class = "menu-list">
+                        <li><a href="/profile/addCreditCard">Add Credit Card</a></li>
+                        <li><a href="/profile/removeCreditCard">Delete Credit Card</a></li>
+                    </ul>
+                </aside>
+            </div>
+            <div class="column is-9">
+                <section class="hero is-info welcome is-small is-bold">
+                    <div class="hero-body">
+                        <div class="container has-text-left">
+                            <h1 class="title">
+                                Hello, {{ current_user.firstName }}.
+                            </h1>
+                           
+                        </div>
+                    </div>
+                </section>
+                <section class="section">
+                    {% if current_user.is_authenticated %}
+                    {% if status == [] %}
+                    <h3 class="subtitle" style = "font-size: 120%">
+                          You have no current orders
+                    </h3>
+                    {% endif %}
+                    {% if not status == [] %}
+                      <table class="table" style="margin-left:auto;margin-right:auto;">
+                        <thead class="thead">
+                          <tr>
+                              <th>Order ID</th>
+                              <th>Restaurant</th>
+                              <th>Payment Type</th>
+                              <th>Address</th>
+                              <th>Order Date</th>
+                              <th>Order Time</th>
+                              <th>Delivery Fee</th>
+                              <th>Food Cost</th>
+                              <th>Promo Code</th>
+                              <th>Delivered</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for item in status %}
+                          <tr>
+                              <td>{{item.orderid}}</td>
+                              <td>{{item.rname}}</td>
+                              <td>{{item.payment_type}}</td>
+                              <td>{{item.address}}</td>
+                              <td>{{item.order_date}}</td>
+                              <td>{{item.order_time}}</td>
+                              <td>{{item.deliveryFee}}</td>
+                              <td>{{item.foodCost}}</td>
+                              <td>{{item.promoCode}}</td>
+                              <td>Delivering</td>
+                              <!-- <td>{{item.is_delivered}}</td> -->
+                          </tr>
+                          {% endfor %}
+
+                        </tbody>
+                    </table>
+                    {% endif %}
+                    {% endif %}
+                    {% if not current_user.is_authenticated %}
+                      {% if status == False %}
+                      <h2 class="subtitle" style = "font-size: 200%">
+                          You're not authenticated
+                      </h2>
+                      {% endif %}
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    <!-- </div> -->
+
+    <!-- <script async type="text/javascript" src="../js/bulma.js"></script> -->
+{% endblock %}
