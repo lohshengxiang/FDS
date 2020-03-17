@@ -18,7 +18,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
 
 class RegistrationForm(FlaskForm):
-    # firstName = StringField('First Name', validators = [InputRequired(message = 'Input is required')])
+    firstName = StringField('First Name', validators = [InputRequired(message = 'Input is required')])
     # lastName = StringField('Last Name', validators = [InputRequired(message = "Input is required")])
     username = StringField('Username', validators = [InputRequired(message = 'A username is required')])
     password = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
@@ -43,3 +43,6 @@ class AddressForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     oldPassword = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
     newPassword = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])
+
+class ReviewForm(FlaskForm):
+    review = StringField('Review',validators = [Length(min=10, message = "Message must be more than 10 characters")])

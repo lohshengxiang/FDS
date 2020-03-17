@@ -5,6 +5,12 @@
 <body>
   <section class="section">
     {% if current_user.is_authenticated %}
+    {% if status == [] %}
+    <h2 class="title" style = "font-size: 150%">
+          You have no orders
+    </h2>
+    {% endif %}
+    {% if not status == [] %}
       <table class="table" style="margin-left:auto;margin-right:auto;">
         <thead class="thead">
           <tr>
@@ -39,6 +45,7 @@
         </tbody>
     </table>
     {% endif %}
+    {% endif %}
     {% if not current_user.is_authenticated %}
       {% if status == False %}
       <h2 class="subtitle" style = "font-size: 200%">
@@ -46,5 +53,6 @@
       </h2>
       {% endif %}
     {% endif %}
+  </section>
 </body>
 {% endblock %}
