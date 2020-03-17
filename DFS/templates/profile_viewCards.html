@@ -19,14 +19,14 @@
                     <ul class="menu-list">
                         <li><a href="/profile/currentOrders">Current Orders</a></li>
                         <li><a href="/profile/pastOrders">Past Orders</a></li>
-                        <li><a class="is-active" href="/profile/reviews">Reviews</a></li>
+                        <li><a href="/profile/reviews">Reviews</a></li>
                     </ul>
                     <p class="menu-label has-text-left">
                         Manage Cards
                     </p>
                     <ul class = "menu-list">
                         <li><a href="/profile/addCreditCard">Add Credit Card</a></li>
-                        <li><a href="/profile/viewCards">View Cards</a></li>
+                        <li><a class="is-active" href="/profile/viewCards">View Cards</a></li>
                     </ul>
                 </aside>
             </div>
@@ -45,25 +45,32 @@
                     {% if current_user.is_authenticated %}
                     {% if status == [] %}
                     <h3 class="subtitle" style = "font-size: 120%">
-                          You have no reviews
+                          You have no cards
                     </h3>
                     {% endif %}
                     {% if not status == [] %}
                       <table class="table" style="margin-left:auto;margin-right:auto;">
                         <thead class="thead">
                           <tr>
-                              <th>Order ID</th>
-                              <th>Restaurant</th>
-                              <th>Review</th>
-                             
+                              <th>Card</th>
+                              <th>Card Number</th>
+                              <th>Bank</th>
+                              <th></th>
                           </tr>
                       </thead>
                       <tbody>
                           {% for item in status %}
                           <tr>
-                              <td>{{item.orderid}}</td>
-                              <td>{{item.rname}}</td>
-                              <td>{{item.review}}</td>
+                              <td>{{item.entry}}</td>
+                              <td>{{item.restricted}}</td>
+                              <td>{{item.bank}}</td>
+                              <td>
+                                <div class= "buttons has-addons is-centered">
+                                  <a href="/deleteCard/{{item.encoded}}">
+                                        <button class="button is-block is-danger is-small button-padding-horizontal:2em">Delete</button>
+                                    </a>
+                                </div>
+                              </td>
                           </tr>
                           {% endfor %}
 

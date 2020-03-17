@@ -1,0 +1,58 @@
+{% extends "base_profile.html" %}
+
+{% block content %}
+
+    <!-- <div class="container"> -->
+        <section class="hero is-success welcome is-small is-bold">
+            <div class="hero-body">
+                <div class="container has-text-left">
+                    <h1 class="title" style = "font-size: 200%;">
+                        Welcome to {{ rname }}
+                    </h1>
+                </div>
+            </div>
+        </section>
+        <br>
+        <br>
+        <br>
+        <div class="columns">
+            <div class="column is-3 ">
+                <aside class="menu is-hidden-mobile">
+                    <ul class="menu-list">
+                        <li><a class="is-static" href = "/order/{{rname}}">1. Order Food</a></li>
+                        <br>
+                        <li><a class="is-static" href = "/order/{{rname}}/address">2. Address</a><li>
+                        <br>
+                        <li><a class="is-active" href = "/order/{{rname}}/payment">3. Payment</a><li>
+                        <br>
+                        <li><a class="is-static">4. Order Confirmation</a><li>
+                    </ul>
+                </aside>
+            </div>
+            <div id = 'profile' class="column is-9">
+                <section class="section">
+                    <form action = "" method="POST">
+                      <div class="column">
+                        {{ form.csrf_token }}
+                        <div>
+                          <font size="6"><b>Choose a card:</b></font>
+                          <div class = "select"> 
+
+                          {{ form.cc }}
+                          </div>
+
+                        </div>
+                        <br>
+                    
+                        <div class= "buttons has-addons is-centered">
+                            <button class="button is-block is-light is-medium button-padding-horizontal:2em" type = "submit">Confirm</button>
+                        </div>
+                      </div>
+                    </form>
+                </section>                
+            </div>
+        </div>
+    <!-- </div> -->
+
+    <!-- <script async type="text/javascript" src="../js/bulma.js"></script> -->
+{% endblock %}

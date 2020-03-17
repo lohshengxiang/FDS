@@ -2,13 +2,24 @@ from flask import Blueprint, redirect, render_template, jsonify, flash, request,
 from flask_login import current_user, login_required, login_user, logout_user
 import psycopg2
 from __init__ import login_manager
-from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, PaymentForm, AddressForm, ChangePasswordForm, ReviewForm
-
+from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
+PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
+ConfirmForm, AddAddressForm, CreditCardForm
+import base64
 from datetime import datetime
+from cryptography.fernet import Fernet
+
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
+
 
 #global
 cart_list = []
 new_address = []
+payment_type = ""
+fixed_delivery_fee = 5
+card_used = ""
+points_used = 0
 
 view = Blueprint("view", __name__)
 
@@ -219,17 +230,18 @@ def category(category):
 		rname_choices.append((row[0],row[0]))
 	form.rname.choices = rname_choices
 	if form.validate_on_submit():
-		return redirect('/restaurant/' + form.rname.data)
+		return redirect('/order/' + form.rname.data)
 	return render_template('category.html', form = form, category = category)
 
-
-@view.route("/restaurant/<rname>",methods = ["GET","POST"])
-def choose_food(rname):
+@view.route("/order/<rname>",methods = ["GET","POST"])
+def order_food(rname):
 	form = OrderForm()
-	form2 = PaymentForm()
-	form3 = AddressForm()
+
 	global cart_list
 	global new_address
+	global fixed_delivery_fee
+	delivery_fee = fixed_delivery_fee
+	new_address = []
 
 	query = "SELECT distinct uname from Restaurant where rname = %s"
 	try:
@@ -276,23 +288,6 @@ def choose_food(rname):
 		if cart_list[0]["rname"] != rname:
 			cart_list = []
 
-	addresses = []
-	if new_address != []:
-		for i in new_address:
-			addresses.append(i)
-
-	query = "SELECT distinct deliveryAddress from orders where cuname = %s limit 5" #change this to order by
-	cur.execute(query,(current_user.username,))
-	address_rows = cur.fetchall()
-
-	if address_rows:
-		for i in address_rows:
-			addresses.append(i[0])
-
-	address_choices = []
-	for i in addresses:
-		address_choices.append((str(i),i))
-	form2.address.choices = address_choices
 
 	if form.validate_on_submit(): 
 		if not current_user.is_authenticated:
@@ -319,20 +314,147 @@ def choose_food(rname):
 
 			cart_list.append(item_dict)
 			# return redirect(request.referrer)
-			return redirect("/restaurant/" + rname)
+			return redirect("/order/" + rname)
 
-	if form2.validate_on_submit() and cart_list != []:
-		cuname = current_user.username
-		payment_type = form2.payment_method.data
-		total_cost = 0 
+	total_cost = 0
+	for i in cart_list:
+		total_cost += i["food_cost"]
+			
+	return render_template('order_food.html', form = form, rname = rname,  current_order_len = len(cart_list), 
+	 runame = runame, total_cost = total_cost, cart_list = cart_list, delivery_fee = delivery_fee)
 
-		for i in cart_list:
-			total_cost += i["food_cost"]
+@view.route("/order/<rname>/address", methods = ["GET","POST"])
+def order_address(rname):
+	global new_address
+	global cart_list
+	global fixed_delivery_fee
+	delivery_fee = fixed_delivery_fee
+	form = AddressForm()
+	addresses = []
+	if new_address != []:
+		for i in new_address:
+			addresses.append(i)
 
-		address = form2.address.data
+	query = "SELECT distinct deliveryAddress from orders where cuname = %s limit 5" #change this to order by
+	cur.execute(query,(current_user.username,))
+	address_rows = cur.fetchall()
+
+	if address_rows:
+		for i in address_rows:
+			addresses.append(i[0])
+
+	address_choices = []
+	for i in addresses:
+		address_choices.append((str(i),i))
+	form.address.choices = address_choices
+
+	total_cost = 0
+	for i in cart_list:
+		total_cost += i["food_cost"]
+
+	if form.validate_on_submit():
+		address = form.address.data
+		new_address = [address]
+		return redirect("/order/"+rname+"/payment")
+	return render_template("order_address.html", form = form, new_address = new_address, 
+		rname = rname, cart_list = cart_list, total_cost = total_cost, delivery_fee = delivery_fee)
+
+
+@view.route("/order/<rname>/add_address", methods = ["GET","POST"])
+def add_address(rname):
+	global new_address
+	form = AddAddressForm()
+	if form.validate_on_submit(): 
+		new_address.append(form.address.data)
+		return redirect("/order/" + rname + "/address")
+
+	return render_template("add_address.html", form = form)
+
+@view.route("/order/<rname>/payment", methods = ["GET","POST"])
+def order_payment(rname):
+	global cart_list
+	global new_address
+	global payment_type
+	global fixed_delivery_fee
+	global points_used
+
+	delivery_fee = fixed_delivery_fee
+	form = PaymentForm()
+
+	query = '''SELECT points from Customer where uname = %s'''
+	cur.execute(query,(current_user.username,))
+	points = cur.fetchone()[0]
+
+	if form.validate_on_submit(): 
+		payment_type = form.payment_method.data
+		fee_boolean = form.points.data
+
+		if fee_boolean:
+			if points >= delivery_fee:
+				after_points = points - delivery_fee
+				delivery_fee = 0 
+			else:
+				delivery_fee -= points
+				after_points = 0
+			points_used = points - after_points
+			
+
+
+		if payment_type == "Credit Card":
+			return redirect("/order/" + rname + "/payment/cc")
+		else:
+			return redirect("/order/" + rname + "/confirm")
+
+	total_cost = 0
+	for i in cart_list:
+		total_cost += i["food_cost"]
+
+	return render_template("order_payment.html", form = form, cart_list = cart_list, new_address = new_address, 
+		total_cost = total_cost, rname = rname, delivery_fee = delivery_fee, points = points)
+
+@view.route("/order/<rname>/payment/cc", methods = ["GET","POST"])
+def order_cc(rname):
+	form = CreditCardForm()
+	global card_used
+
+	query = '''SELECT ccNumber,cardType from CreditCard where uname = %s'''
+	cur.execute(query,(current_user.username,))
+	card_rows = cur.fetchall()
+
+	card_choices = []
+	for i in card_rows:
+		card_choices.append((str(i[0]),'xxxxxxxxxxxx' + i[0][-4:]))
+	form.cc.choices = card_choices
+
+	if form.validate_on_submit(): 
+		cc = form.cc.data
+		card_used = cc
+		return redirect("/order/" + rname + "/confirm")
+
+	return render_template("order_cc.html", form = form, rname = rname)
+
+@view.route("/order/<rname>/confirm", methods = ["GET","POST"])
+def order_confirm(rname):
+	form = ConfirmForm()
+	global cart_list
+	global new_address
+	global payment_type
+	global fixed_delivery_fee
+	global points_used
+
+	delivery_fee = fixed_delivery_fee - points_used
+
+	total_cost = 0
+	for i in cart_list:
+		total_cost += i["food_cost"]
+
+	if form.validate_on_submit():
+
+		#settle Orders start
+
+		address = new_address[0]
 		order_date = datetime.now().strftime("%m/%d/%Y")
 		order_time = datetime.now().strftime("%H:%M:%S")
-		#used to have rname in query
 		query = "SELECT max(orderid) from Orders"
 		cur.execute(query)
 		maxid = int(cur.fetchone()[0])
@@ -340,44 +462,64 @@ def choose_food(rname):
 			newid = maxid + 1
 		else:
 			newid = 0
+		food_cost = total_cost - delivery_fee
 		query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress,order_date,order_time,deliveryFee,foodCost) 
 					VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'''
-		cur.execute(query,(newid,cuname,payment_type,address,order_date,order_time,5,total_cost))
+		cur.execute(query,(newid,current_user.username,payment_type,address,order_date,order_time,delivery_fee,food_cost))
 		conn.commit()
+
+		#settle Orders end
+
+		#settle points start
+		query = '''SELECT points from Customer where uname = %s'''
+		cur.execute(query,(current_user.username,))
+		points = cur.fetchone()[0]
+
+		after_points = round(points - points_used + food_cost)
+		query = '''UPDATE Customer SET points = %s where uname = %s'''
+		cur.execute(query,(after_points,current_user.username))
+		conn.commit()
+
+		#settle points end
+
+		#settle Contain start
+
+		query = "SELECT distinct uname from Restaurant where rname = %s"
+		try:
+			cur.execute(query,(rname,))
+		except:
+			conn.rollback()	
+
+		runame = cur.fetchone()[0]
 
 		for i in cart_list:
 			query = '''INSERT INTO Contain(orderId,runame,fname,quantity) values (%s,%s,%s,%s)'''
 			cur.execute(query,(newid,runame,i['fname'],i['quantity']))
 			conn.commit()
-		
-		return redirect('/pay')
 
-	total_cost = 0
-	for i in cart_list:
-		total_cost += i["food_cost"]
-			
-	return render_template('orders2.html', form = form, form2 = form2, 
-		form3 = form3, rname = rname, current_order = cart_list, current_order_len = len(cart_list), 
-		new_address = new_address, runame = runame, total_cost = total_cost, cart_list = cart_list)
-
-@view.route("/<rname>/add_address", methods = ["GET","POST"])
-def add_address(rname):
-	global new_address
-	form = AddressForm()
-	if form.validate_on_submit(): 
-		new_address.append(form.address.data)
-		return redirect("/restaurant/" + rname)
-
-	return render_template("add_address.html", form = form)
+		#settle Contain end
 
 
-@view.route("/pay", methods = ["GET","POST"])
-def pay():
+		return redirect("/done")
+
+	return render_template("order_confirm.html", form = form, rame = rname, cart_list = cart_list, new_address = new_address[0],
+		total_cost = total_cost, delivery_fee = delivery_fee, points_used = points_used, payment_type = payment_type) 
+
+
+
+@view.route("/done", methods = ["GET","POST"])
+def order_done():
 	global cart_list
-	cart_list = []
 	global new_address
+	global payment_type
+	global fixed_delivery_fee
+	global points_used
+	cart_list = []
 	new_address = []
-	return render_template('pay.html')
+	payment_type = ""
+	card_used = ""
+	points_used = 0
+	return render_template('order_done.html')
 
 
 @view.route("/cart", methods = ["GET","POST"])
@@ -507,8 +649,8 @@ def profile():
 @view.route("/profile/<nav>", methods = ["GET","POST"])
 @login_required
 def profile_nav(nav):
-	form = ChangePasswordForm()
 	if nav == "password":
+		form = ChangePasswordForm()
 		if form.validate_on_submit():
 			oldPassword = form.oldPassword.data
 			newPassword = form.newPassword.data
@@ -604,6 +746,44 @@ def profile_nav(nav):
 		else:
 			return render_template("profile_reviews.html",status = [])
 
+	elif nav == "addCreditCard":
+		form = AddCreditCardForm()
+		if form.validate_on_submit():
+			cc = form.cc.data
+			bank = form.bank.data
+			query = '''SELECT * from CreditCard where uname = %s and ccNumber = %s'''
+			cur.execute(query,(current_user.username,cc))
+			exist = cur.fetchone()
+			if exist:
+				form.cc.errors.append("Card already exists.")
+			else:
+				query = "INSERT INTO CreditCard VALUES (%s,%s,%s)"
+				cur.execute(query,(current_user.username,cc,bank))
+				conn.commit()
+				flash('Card added!')
+				return redirect(url_for('view.profile_nav', nav = "addCreditCard"))
+		return render_template('profile_addCreditCard.html',form = form)
+
+	elif nav == "viewCards":
+		query = ''' SELECT * from CreditCard where uname = %s'''
+		#uname,ccnumber,cardtype
+		cur.execute(query,(current_user.username,))
+		card_table = cur.fetchall()
+		if card_table:
+			card_list = []
+			count = 1
+			for i in card_table:
+				card_dict = {}
+				card_dict["entry"] = count
+				card_dict["ccNumber"] = i[1]
+				card_dict["restricted"] = 'xxxxxxxxxxxx' + i[1][-4:]
+				card_dict["bank"] = i[2]
+				card_dict["encoded"] = cipher_suite.encrypt(str.encode(i[1])).decode() # this is a string
+				card_list.append(card_dict)
+				count = count + 1
+			return render_template("profile_viewCards.html", status = card_list)
+		else:
+			return render_template("profile_viewCards.html", status = [])
 	else:
 		template = "profile_" + nav + ".html"
 		return render_template(template)
@@ -619,6 +799,24 @@ def review(rname,orderid):
 		conn.commit()
 		return redirect("/")
 	return render_template("review.html", form = form, rname = rname)
+
+@view.route("/deleteCard/<ccNumber>", methods = ["GET","POST"])
+@login_required
+def deleteCard(ccNumber):
+	ccNumber = cipher_suite.decrypt(str.encode(ccNumber)).decode() #gets back cc Number
+	form = ConfirmForm()
+	if form.validate_on_submit():
+		if 'Yes' in request.form.getlist('action'):
+			query = '''DELETE from CreditCard where ccNumber = %s and uname = %s'''
+			cur.execute(query,(ccNumber,current_user.username))
+			conn.commit()
+			return redirect('/profile/viewCards')
+		elif 'No' in request.form.getlist('action'):
+			return redirect('/profile/viewCards')
+
+	restrict = 'xxxxxxxxxxxx' + ccNumber[-4:]
+	return render_template('profile_deleteCard.html',form = form, ccNumber = restrict)
+	# return redirect("/profile/viewCards")
 
 @view.route("/logout", methods = ["GET"])
 @login_required

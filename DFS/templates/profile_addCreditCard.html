@@ -11,7 +11,7 @@
                     </p>
                     <ul class="menu-list">
                         <li><a href = "/profile">Profile</a></li>
-                        <li><a class="is-active" href="/profile/password">Change Password</a><li>
+                        <li><a href="/profile/password">Change Password</a><li>
                     </ul>
                     <p class="menu-label has-text-left">
                         Orders
@@ -25,7 +25,7 @@
                         Manage Cards
                     </p>
                     <ul class = "menu-list">
-                        <li><a href="/profile/addCreditCard">Add Credit Card</a></li>
+                        <li><a class="is-active" href="/profile/addCreditCard">Add Credit Card</a></li>
                         <li><a href="/profile/viewCards">View Cards</a></li>
                     </ul>
                 </aside>
@@ -50,10 +50,10 @@
                                     {{ form.csrf_token }}
                                         <div class="field is-horizontal">
                                             <div class="field-label is-normal">
-                                                <input class="input" type="password" placeholder= "Old Password" name = "oldPassword" value = "{{ request.form.oldPassword }}">
+                                                <input class="input" type="text" placeholder= "Card Number" name = "cc" value = "{{ request.form.cc }}">
 
                                                 <ul>
-                                                    {% for error in form.oldPassword.errors %}
+                                                    {% for error in form.cc.errors %}
                                                         <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
 
                                                     {% endfor %}
@@ -61,21 +61,14 @@
 
                                             </div>
                                         </div>
-                                        <div class="field is-horizontal">
-                                            <div class="field-label is-normal">
-                                                <input class="input" type="password" placeholder= "New Password" name = "newPassword" value = "{{ request.form.newPassword }}">
-
-                                                <ul>
-                                                    {% for error in form.newPassword.errors %}
-                                                        <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
-
-                                                    {% endfor %}
-                                                </ul>
-
-                                            </div>
+                                        <font size="5"><b>Bank:</b></font>
+                                        <div class = "select"> 
+                                            {{ form.bank }}
                                         </div>
+                                        <br>
+                                        <br>
                                         <div class= "buttons has-addons is-left">
-                                            <button class="button is-block is-danger is-normal" type = "submit">Change Password</button>
+                                            <button class="button is-block is-danger is-normal" type = "submit">Add Card</button>
                                         </div>
                                         {% with messages = get_flashed_messages() %}
                                             {% if messages %}

@@ -19,14 +19,14 @@
                     <ul class="menu-list">
                         <li><a href="/profile/currentOrders">Current Orders</a></li>
                         <li><a href="/profile/pastOrders">Past Orders</a></li>
-                        <li><a class="is-active" href="/profile/reviews">Reviews</a></li>
+                        <li><a href="/profile/reviews">Reviews</a></li>
                     </ul>
                     <p class="menu-label has-text-left">
                         Manage Cards
                     </p>
                     <ul class = "menu-list">
                         <li><a href="/profile/addCreditCard">Add Credit Card</a></li>
-                        <li><a href="/profile/viewCards">View Cards</a></li>
+                        <li><a class="is-active" href="/profile/viewCards">View Cards</a></li>
                     </ul>
                 </aside>
             </div>
@@ -41,44 +41,17 @@
                         </div>
                     </div>
                 </section>
-                <section class="section">
-                    {% if current_user.is_authenticated %}
-                    {% if status == [] %}
-                    <h3 class="subtitle" style = "font-size: 120%">
-                          You have no reviews
-                    </h3>
-                    {% endif %}
-                    {% if not status == [] %}
-                      <table class="table" style="margin-left:auto;margin-right:auto;">
-                        <thead class="thead">
-                          <tr>
-                              <th>Order ID</th>
-                              <th>Restaurant</th>
-                              <th>Review</th>
-                             
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {% for item in status %}
-                          <tr>
-                              <td>{{item.orderid}}</td>
-                              <td>{{item.rname}}</td>
-                              <td>{{item.review}}</td>
-                          </tr>
-                          {% endfor %}
-
-                        </tbody>
-                    </table>
-                    {% endif %}
-                    {% endif %}
-                    {% if not current_user.is_authenticated %}
-                      {% if status == False %}
-                      <h2 class="subtitle" style = "font-size: 200%">
-                          You're not authenticated
-                      </h2>
-                      {% endif %}
-                    {% endif %}
+                <section class = "section">
+                  Do you want to delete card {{ccNumber}}?
+                  <form action="" method="post">
+                    {{ form.csrf_token }}
+                      <div class="panel-body">
+                          <input type ="submit" name="action" value="Yes">
+                          <input type ="submit" name="action" value="No">
+                      </div>
+                 </form>
                 </section>
+                
             </div>
         </div>
     <!-- </div> -->
