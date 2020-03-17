@@ -23,7 +23,7 @@ points_used = 0
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -56,6 +56,13 @@ class Restaurant():
 class DeliveryStaff():
 	dName = None
 	dRating = None
+
+class FDSPromotion(): 
+	promoId = None
+	promoCode = None
+	startDate = None 
+	endDate = None
+	name = None
 
 @login_manager.user_loader
 def load_user(username):
@@ -166,19 +173,14 @@ def managerAdmin():
 @view.route("/adminManager/manageRestaurants", methods = ["GET", "POST"])
 def manageRestuarants():
 	restaurant_list = []
-	rnameQuery = "SELECT distinct rname from Restaurant"  
-	cur.execute(rnameQuery)
-	rnames = cur.fetchall()
+	restaurantQuery = "SELECT * from Restaurant"
+	cur.execute(restaurantQuery)
+	restaurants = cur.fetchall()
 	rname_rows = []
-	for row in rnames:
-		rname_rows.append(row[0])
-
-	addressQuery = "SELECT distinct address from Restaurant"
-	cur.execute(addressQuery)
-	addresses = cur.fetchall()
 	address_rows = []
-	for row in addresses: 
-		address_rows.append(row[0])
+	for row in restaurants:
+		rname_rows.append(row[1])
+		address_rows.append(row[2])
 
 	for x in range(len(rname_rows)):
 		restaurant = Restaurant()
@@ -191,19 +193,14 @@ def manageRestuarants():
 @view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
 def manageDeliveryStaff():
 	dstaff_list = []
-	dnameQuery = "SELECT distinct dname from Delivery_Staff"  
-	cur.execute(dnameQuery)
-	dnames = cur.fetchall()
+	dstaffQuery = "SELECT * from Delivery_Staff"
+	cur.execute(dstaffQuery)
+	dstaff = cur.fetchall()
 	dname_rows = []
-	for row in dnames:
-		dname_rows.append(row[0])
-
-	ratingQuery = "SELECT distinct avg_rating from Delivery_Staff"
-	cur.execute(ratingQuery)
-	ratings = cur.fetchall()
 	rating_rows = []
-	for row in ratings: 
-		rating_rows.append(row[0])
+	for row in dstaff:
+		dname_rows.append(row[1])
+		rating_rows.append(row[2])
 
 	for x in range(len(dname_rows)):
 		dstaff = DeliveryStaff()
@@ -212,6 +209,36 @@ def manageDeliveryStaff():
 		dstaff_list.append(dstaff)
 
 	return render_template('manageDeliveryStaff.html', dstaff_list = dstaff_list)
+
+@view.route("/adminManager/managePromo", methods = ["GET", "POST"]) 
+def managePromo():
+	promo_list = []
+
+	promoQuery = "SELECT * from FDS_Promo order by PromoId"
+	cur.execute(promoQuery)
+	promo = cur.fetchall()
+	ids_rows = []
+	codes_rows = []
+	sDates_rows = []
+	eDates_rows = []
+	names_rows = []
+	for row in promo: 
+		ids_rows.append(row[0])
+		codes_rows.append(row[1])
+		sDates_rows.append(row[2])
+		eDates_rows.append(row[3])
+		names_rows.append(row[4])
+
+	for x in range(len(sDates_rows)):
+		promo = FDSPromotion()
+		promo.promoId = ids_rows[x]
+		promo.promoCode = codes_rows[x]
+		promo.startDate = sDates_rows[x]
+		promo.endDate = eDates_rows[x]
+		promo.name = names_rows[x]
+		promo_list.append(promo)
+
+	return render_template('managePromo.html', promo_list = promo_list)
 
 # END OF MANAGER VIEW ROUTES
 

@@ -1,0 +1,43 @@
+{% extends "adminManager.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Manage Promotions
+</h1>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Promotion ID</th>
+            <th>Promotion Name</th>
+            <th>Promotion Code</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Delete?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for FDSPromotion in promo_list %}
+        <tr>
+            <td>{{FDSPromotion.promoId}}</td>
+            <td>{{FDSPromotion.name}}</td>
+            <td>{{FDSPromotion.promoCode}}</td>
+            <td>{{FDSPromotion.startDate}}</td>
+            <td>{{FDSPromotion.endDate}}</td>
+            <td style="text-align: center;">
+                <div class= "buttons has-addons is-centered">
+                    <button class="button is-block is-info is-small" type = "submit">Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+            
+<div class= "buttons has-addons is-centered">
+    <button class="button is-block is-info is-small" type = "submit">Create New Promotion</button>
+</div>
+
+{% endblock %}
+
