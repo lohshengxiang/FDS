@@ -43,18 +43,19 @@ INSERT INTO Restaurant values
 
 
 CREATE TABLE Promotion (
-	promoid varchar(10) PRIMARY KEY,
+	promoId numeric PRIMARY KEY,
 	start_date date NOT NULL,
 	end_date date NOT NULL,
-	message varchar,
+	name varchar,
+	promoCode varchar,
 	runame varchar(100),
 	FOREIGN KEY(runame) REFERENCES Restaurant(uname) ON DELETE CASCADE
 );
 
 INSERT INTO Promotion values
-	('promo1', '2020-01-01', '2020-01-02', 'free delivery', 'Restaurant1'),
-	('promo2', '2020-01-02', '2020-01-03', '10% off', 'Restaurant2'),
-	('promo3', '2020-01-03', '2020-01-04', '20% off', 'Restaurant3');
+	('1', '2020-01-01', '2020-01-02', 'free delivery', 'FREEDELIVERY''Restaurant1'),
+	('2', '2020-01-02', '2020-01-03', '10% off', '10OFF','Restaurant2'),
+	('3', '2020-01-03', '2020-01-04', '20% off', '20OFF''Restaurant3');
 
 CREATE TABLE Food (
 	runame varchar(100),
@@ -217,3 +218,18 @@ CREATE TABLE FDS_Manager (
 
 INSERT INTO FDS_Manager values
 	('Manager', 'Bob'); 
+
+CREATE TABLE FDS_Promo (
+	promoId numeric PRIMARY KEY, 
+	promoCode varchar, 
+	start_date date NOT NULL, 
+	end_date date NOT NULL, 
+	name varchar,
+	muname varchar(100), 
+	FOREIGN KEY(muname) REFERENCES FDS_Manager(uname) ON DELETE CASCADE
+);
+
+INSERT INTO FDS_Promo values
+	(1, '10OFF', '2020-01-01', '2020-02-08', '10% off', 'Manager'),
+	(2, '15OFF', '2020-01-10', '2020-02-20', '15% off', 'Manager'),
+	(3, '50OFF', '2020-02-01', '2020-03-01', '50% off', 'Manager');

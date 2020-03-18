@@ -10,7 +10,7 @@
                         General
                     </p>
                     <ul class="menu-list">
-                        <li><a class="is-active" href = "/profile">Profile</a></li>
+                        <li><a href = "/profile">Profile</a></li>
                         <li><a href="/profile/password">Change Password</a><li>
                     </ul>
                     <p class="menu-label has-text-left">
@@ -22,38 +22,36 @@
                         <li><a href="/profile/reviews">Reviews</a></li>
                     </ul>
                     <p class="menu-label has-text-left">
-                    	Manage Cards
+                        Manage Cards
                     </p>
                     <ul class = "menu-list">
-                    	<li><a href="/profile/addCreditCard">Add Credit Card</a></li>
-                    	<li><a href="/profile/viewCards">View Cards</a></li>
+                        <li><a href="/profile/addCreditCard">Add Credit Card</a></li>
+                        <li><a class="is-active" href="/profile/viewCards">View Cards</a></li>
                     </ul>
                 </aside>
             </div>
-            <div id = 'profile' class="column is-9">
+            <div class="column is-9">
                 <section class="hero is-info welcome is-small is-bold">
                     <div class="hero-body">
                         <div class="container has-text-left">
                             <h1 class="title">
                                 Hello, {{ current_user.firstName }}.
                             </h1>
-                            
+                           
                         </div>
                     </div>
                 </section>
-                <section class="hero is-small">
-                    <div class="hero-body">
-                        <div class="container has-text-left">
-                            <h2 class="subtitle">
-                                Username: {{ current_user.username }} 
-                            </h2>
-                            <h2 class="subtitle">
-                            	Points: {{ points }}
-                           	</h2>
-
-                        </div>
-                    </div>
+                <section class = "section">
+                  Do you want to delete card {{ccNumber}}?
+                  <form action="" method="post">
+                    {{ form.csrf_token }}
+                      <div class="panel-body">
+                          <input type ="submit" name="action" value="Yes">
+                          <input type ="submit" name="action" value="No">
+                      </div>
+                 </form>
                 </section>
+                
             </div>
         </div>
     <!-- </div> -->

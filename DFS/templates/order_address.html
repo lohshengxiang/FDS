@@ -1,0 +1,91 @@
+{% extends "base_profile.html" %}
+
+{% block content %}
+
+    <!-- <div class="container"> -->
+        <section class="hero is-success welcome is-small is-bold">
+            <div class="hero-body">
+                <div class="container has-text-left">
+                    <h1 class="title" style = "font-size: 200%;">
+                        Welcome to {{ rname }}
+                    </h1>
+                </div>
+            </div>
+        </section>
+        <br>
+        <br>
+        <br>
+        <div class="columns">
+            <div class="column is-3 ">
+                <aside class="menu is-hidden-mobile">
+                    <ul class="menu-list">
+                        <li><a class="is-static" href = "/order/{{rname}}">1. Order Food</a></li>
+                        <br>
+                        <li><a class="is-active" href = "/order/{{rname}}/address">2. Address</a><li>
+                        <br>
+                        <li><a class="is-static">3. Payment</a><li>
+                        <br>
+                        <li><a class="is-static">4. Order Confirmation</a><li>
+                    </ul>
+                </aside>
+            </div>
+            <div id = 'profile' class="column is-9">
+                <section class="hero is-small">
+                    <h1>
+                    {% if cart_list == [] %}
+                    You have no orders
+                    {% endif %}
+                    {% if not cart_list == [] %}
+                    <table class="table" style="margin-left:auto;margin-right:auto;">
+                        <thead class="thead">
+                            <tr>
+                                <th>Food Item</th>
+                                <th>Quantity</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in cart_list %}
+                        <tr>
+                            <td>{{item.fname}}</td>
+                            <td>{{item.quantity}}</td>
+                            <td>{{item.food_cost}}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td></td>
+                            <td>Delivery Cost:</br>Total Cost:</td>
+                            <td>{{delivery_fee}}</br>{{total_cost + delivery_fee}}</td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                    <!-- Your current order is {{ cart_list }} -->
+                    {% endif %}
+                    </h1>
+                </section>
+                <section class="section">
+                    <form action = "" method="POST">
+                      <div class="column">
+                        {{ form.csrf_token }}
+                        <div>
+                          <font size="6"><b>Choose a delivery address:</b></font>
+                          <div class = "select"> 
+                          {{ form.address }}
+                          </div>
+                        </div>
+                        or add an address <a href = "/order/{{ rname }}/add_address"> here </a>
+                        <br>
+                        <br>
+                        <div class= "buttons has-addons is-centered">
+                            <button class="button is-block is-light is-medium button-padding-horizontal:2em" type = "submit">Next</button>
+                        </div>
+                      </div>
+                    </form>
+                </section>                
+            </div>
+        </div>
+    <!-- </div> -->
+
+    <!-- <script async type="text/javascript" src="../js/bulma.js"></script> -->
+{% endblock %}

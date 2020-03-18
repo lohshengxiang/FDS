@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<h3 class="title">Enter your review for {{ rname }}</h3>
+	<section class="section">
+	    <form method="POST">
+            <div class="field">
+                <p class="control">
+                {{ form.csrf_token }}
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <textarea class="textarea" type="text" placeholder= "Enter review here" name = "review" value = "{{ request.form.review }}"></textarea>
+                            <ul>
+                                {% for error in form.review.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                    <!--for each error, output the error string -->
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+            
+                    <div class= "buttons has-addons is-left">
+                        <button class="button is-block is-info is-medium" type = "submit">Submit</button>
+                    </div>
+
+                </p>
+            </div>
+        </form>
+	</section>
+</body>
+{% endblock %}
