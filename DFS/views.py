@@ -12,7 +12,7 @@ new_address = []
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -103,6 +103,8 @@ def home():
 			return redirect ('/homeRestaurant')
 		elif userType == 'Manager': 
 			return redirect('/homeManager')
+		elif userType == 'Delivery_staff':
+			return redirect('/homeDeliveryStaff')
 	return render_template('welcome3.html', test = test)
 
 # START OF RESTAURANT VIEW ROUTES
@@ -203,6 +205,113 @@ def manageDeliveryStaff():
 	return render_template('manageDeliveryStaff.html', dstaff_list = dstaff_list)
 
 # END OF MANAGER VIEW ROUTES
+
+# START OF DELIVERY STAFF VIEW ROUTES
+
+@view.route("/homeDeliveryStaff", methods = ["GET", "POST"])
+def deliveryStaffHome(): 
+	return render_template('homeDeliveryStaff.html')
+
+@view.route("/deliveriesDeliveryStaff", methods = ["GET", 'POST'])
+def deliveryStaffDeliveries(): 
+	username = current_user.username
+
+	#current deliveries
+	currentQuery = '''WITH temp AS(
+					SELECT DISTINCT orderId, runame FROM Contain
+					)
+					SELECT DISTINCT * FROM Orders O 
+					JOIN Delivers D ON O.orderId = D.orderId 
+					JOIN temp C ON C.orderId = D.orderId 
+					JOIN Restaurant R ON R.uname = C.runame
+					WHERE O.is_delivered = false AND D.duname = %s'''
+	cur.execute(currentQuery,(username,))
+
+	current_table = cur.fetchall()
+	current_list = []
+	for i in current_table:
+		current_dict = {}
+	
+		#(orderId, rname, restaurantAddress, cuname, order_date, order_time, deliveryAddress, payment_type, total_payment, 
+		# depart_restaurant, arrive_restaurant, depart_customer, arrive_customer) 
+		current_dict["orderId"] = i[0]
+		current_dict["rname"] = i[20]
+		current_dict["restaurantAddress"] = i[21]
+		current_dict["cuname"] = i[1]
+		current_dict["order_date"] = i[5]
+		current_dict["order_time"] = i[6]
+		current_dict["deliveryAddress"] = i[3]
+		current_dict["payment_type"] = i[2]
+		current_dict["total_payment"] = i[7]+i[8]
+		current_dict["depart_restaurant"] = i[13]
+		current_dict["arrive_restaurant"] = i[14]
+		current_dict["depart_customer"] = i[15]
+		current_dict["arrive_customer"] = i[16]
+		current_list.append(current_dict)
+
+	#completed deliveries
+	completedQuery = '''WITH temp AS(
+					SELECT DISTINCT orderId, runame FROM Contain
+					)
+					SELECT DISTINCT * FROM Orders O 
+					JOIN Delivers D ON O.orderId = D.orderId 
+					JOIN temp C ON C.orderId = D.orderId 
+					JOIN Restaurant R ON R.uname = C.runame
+					WHERE O.is_delivered = true AND D.duname = %s'''
+	cur.execute(completedQuery,(username,))
+
+	completed_table = cur.fetchall()
+	completed_list = []
+	for i in completed_table:
+		completed_dict = {}
+	
+		#(orderId, rname, restaurantAddress, cuname, order_date, order_time, deliveryAddress, payment_type, total_payment, 
+		# depart_restaurant, arrive_restaurant, depart_customer, arrive_customer) 
+		completed_dict["orderId"] = i[0]
+		completed_dict["rname"] = i[20]
+		completed_dict["restaurantAddress"] = i[21]
+		completed_dict["cuname"] = i[1]
+		completed_dict["order_date"] = i[5]
+		completed_dict["order_time"] = i[6]
+		completed_dict["deliveryAddress"] = i[3]
+		completed_dict["payment_type"] = i[2]
+		completed_dict["total_payment"] = i[7]+i[8]
+		completed_dict["depart_restaurant"] = i[13]
+		completed_dict["arrive_restaurant"] = i[14]
+		completed_dict["depart_customer"] = i[15]
+		completed_dict["arrive_customer"] = i[16]
+		completed_dict["rating"] = i[12]
+		current_list.append(current_dict)	
+		
+	return render_template('deliveriesDeliveryStaff.html', current_list = current_list)
+
+@view.route("/scheduleDeliveryStaff", methods = ["GET", 'POST'])
+def deliveryStaffSchedule(): 
+	
+
+	return render_template('scheduleDeliveryStaff.html')
+
+@view.route("/ratingsDeliveryStaff", methods = ["GET", 'POST'])
+def deliveryStaffRatings(): 
+	username = current_user.username
+
+	ratingQuery = "SELECT orderId, rating from Delivers where duname = %s"
+	cur.execute(ratingQuery, (username,))
+	ratings = cur.fetchall()
+	ratings_list = []
+	for row in ratings:
+		ratings_dict = {}
+		ratings_dict["orderId"] = row[0]
+		ratings_dict["rating"] = row[1]
+		ratings_list.append(ratings_dict)
+
+	avg_ratingQuery = "SELECT avg_rating from Delivery_Staff where uname = %s"
+	cur.execute(avg_ratingQuery, (username,))
+	avg_rating = cur.fetchone()[0]
+
+	return render_template('ratingsDeliveryStaff.html', ratings_list = ratings_list, avg_rating = avg_rating)
+
+# END OF DELIVERY STAFF VIEW ROUTES
 
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
