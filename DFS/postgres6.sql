@@ -112,7 +112,7 @@ CREATE TABLE Orders (
 );
 
 INSERT INTO Orders values
-	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,10, null),
+	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', false, '2020-01-01', '09:01:01', 5,10, null),
 	(2,'Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,20, null);
 
 CREATE TABLE Reviews (
@@ -146,7 +146,7 @@ CREATE TABLE Delivery_Staff (
 
 INSERT INTO Delivery_Staff values
 	('PartTime1', 'Don', 5.0,'3'),
-	('PartTime2', 'Esther', 4.5,'3'),
+	('PartTime2', 'Esther', 5.0,'3'),
 	('FullTime1', 'Faith', 4.0,'4'),
 	('FullTime2', 'Glenn', 4.7,'4');
 

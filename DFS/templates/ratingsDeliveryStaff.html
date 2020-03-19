@@ -1,0 +1,27 @@
+{% extends "baseDeliveryStaff.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Delivery Staff Ratings
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Your average rating is <font color="red">{{ avg_rating }}</font>
+</h2>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Order ID</th>
+            <th>Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rating in ratings_list %}
+        <tr>
+            <td>{{rating.orderId}}</td>
+            <td>{{rating.rating}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
