@@ -23,7 +23,7 @@ points_used = 0
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
