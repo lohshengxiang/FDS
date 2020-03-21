@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, HiddenField, BooleanField
+from wtforms import StringField, PasswordField, SelectField, HiddenField, BooleanField, DateField
 from wtforms.validators import InputRequired, ValidationError, Length
 
 
@@ -62,3 +62,9 @@ class AddCreditCardForm(FlaskForm):
 class ConfirmForm(FlaskForm):
     hidden = HiddenField()
 
+class CreatePromoForm(FlaskForm): 
+    promoId = StringField('Promo ID', validators = [InputRequired(message = 'Input is required')])
+    promoCode = StringField('Promo Code', validators = [InputRequired(message = 'Input is required')])
+    start_date = DateField('Start Date')
+    end_date = DateField('End Date')
+    promoName = StringField("Promo Name", validators = [InputRequired(message = 'Input is required')])

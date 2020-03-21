@@ -4,7 +4,7 @@ import psycopg2
 from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
-ConfirmForm, AddAddressForm, CreditCardForm
+ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
@@ -241,6 +241,24 @@ def managePromo():
 		promo_list.append(promo)
 
 	return render_template('managePromo.html', promo_list = promo_list)
+
+@view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) # not working idk why cant update DB and redirect :(
+def createPromo():
+	username = current_user.username
+
+	form = CreatePromoForm()
+	if form.validate_on_submit() and request.method == "POST":
+		promoid = form.promoId.data
+		code = form.promoCode.data
+		startdate = form.start_date.data
+		enddate = form.end_date.data
+		promoname = form.promoName.data
+		query = "INSERT INTO FDS_Promo VALUES (%s,%s,%s,%s,%s %s)"
+		cur.execute(query, (promoid, code, startdate, enddate, promoname, username))
+		conn.commit() 
+		flash('New promotion added!')
+		return redirect("/adminManager/managePromo")
+	return render_template('createPromo.html', form = form)
 
 # END OF MANAGER VIEW ROUTES
 
