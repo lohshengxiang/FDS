@@ -67,4 +67,11 @@ class CreatePromoForm(FlaskForm):
     promoCode = StringField('Promo Code', validators = [InputRequired(message = 'Input is required')])
     start_date = DateField('Start Date')
     end_date = DateField('End Date')
-    promoName = StringField("Promo Name", validators = [InputRequired(message = 'Input is required')])
+    name = StringField("Promo Name", validators = [InputRequired(message = 'Input is required')])
+
+class CreateRestaurantForm(FlaskForm):
+    uname = StringField('uname',validators = [InputRequired(message = 'Input is required')])
+    password = StringField('password', validators = [InputRequired(message = 'Input is required')])
+    rname = StringField('rname',validators = [InputRequired(message = 'Input is required')])
+    address = StringField('address',validators = [InputRequired(message = 'Input is required')])
+    min_amt = StringField('min_amt',validators = [InputRequired(message = 'Input is required')])

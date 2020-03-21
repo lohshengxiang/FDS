@@ -7,6 +7,7 @@
 <table class="table" style="margin-left:auto;margin-right:auto;">
     <thead class="thead">
         <tr>
+            <th>Restaurant Username</th>
             <th>Restaurant Name</th>
             <th>Address</th>
             <th>Delete?</th>
@@ -15,12 +16,14 @@
     <tbody>
         {% for restaurant in restaurant_list %}
         <tr>
+            <td>{{restaurant.runame}}</td>
             <td>{{restaurant.restaurantName}}</td>
             <td>{{restaurant.restaurantAddress}}</td>
             <td style="text-align: center;">
-                <div class= "buttons has-addons is-centered">
-                    <button class="button is-block is-info is-small" type = "submit">Delete</button>
-                </div>
+                <form action="{{url_for('view.delete_restaurant', runame=restaurant.runame)}}" method="post"> 
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="button is-block is-info is-small">
+                </form>
             </td>
         </tr>
         {% endfor %}
@@ -30,7 +33,9 @@
 
             
 <div class= "buttons has-addons is-centered">
-    <button class="button is-block is-info is-small" type = "submit">Create New Restaurant</button>
+    <a class="button is-block is-info is-small" href="/adminManager/manageRestaurants/createRestaurant">
+        Create New Restaurant
+    </a>
 </div>
 
 {% endblock %}

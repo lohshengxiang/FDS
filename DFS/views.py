@@ -4,7 +4,7 @@ import psycopg2
 from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
-ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm
+ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
@@ -50,6 +50,7 @@ class FoodItem():
 	availability = None
 
 class Restaurant():
+	runame = None 
 	restaurantName = None
 	restaurantaddress = None
 
@@ -173,29 +174,40 @@ def managerAdmin():
 	return render_template('adminManager.html')
 
 @view.route("/adminManager/manageRestaurants", methods = ["GET", "POST"])
-def manageRestuarants():
+def manageRestaurants():
 	restaurant_list = []
 	restaurantQuery = "SELECT * from Restaurant"
 	cur.execute(restaurantQuery)
 	restaurants = cur.fetchall()
+	runame_rows = []
 	rname_rows = []
 	address_rows = []
 	for row in restaurants:
+		runame_rows.append(row[0])
 		rname_rows.append(row[1])
 		address_rows.append(row[2])
 
 	for x in range(len(rname_rows)):
 		restaurant = Restaurant()
+		restaurant.runame = runame_rows[x]
 		restaurant.restaurantName = rname_rows[x]
 		restaurant.restaurantAddress = address_rows[x]
 		restaurant_list.append(restaurant)
 
 	return render_template('manageRestaurants.html', restaurant_list = restaurant_list)
 
+@view.route("/delete_restaurant/<string:runame>", methods=["POST"])
+def delete_restaurant(runame): 
+	cur.execute("DELETE FROM Restaurant WHERE uname = %s", [runame])
+	conn.commit()
+	cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
+	conn.commit()
+	return redirect(url_for('view.manageRestaurants'))
+
 @view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
 def manageDeliveryStaff():
 	dstaff_list = []
-	dstaffQuery = "SELECT * from Delivery_Staff"
+	dstaffQuery = "SELECT * from Delivery_Staff" #avg rating need to query from delivers not dstaff
 	cur.execute(dstaffQuery)
 	dstaff = cur.fetchall()
 	dname_rows = []
@@ -242,23 +254,45 @@ def managePromo():
 
 	return render_template('managePromo.html', promo_list = promo_list)
 
-@view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) # not working idk why cant update DB and redirect :(
-def createPromo():
-	username = current_user.username
+@view.route("/delete_promo/<string:id>", methods=["POST"])
+def delete_promo(id): 
+	cur.execute("DELETE FROM FDS_Promo WHERE promoId = %s", [id])
+	conn.commit()
+	return redirect(url_for('view.managePromo'))
 
+@view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) 
+def createPromo():
 	form = CreatePromoForm()
 	if form.validate_on_submit() and request.method == "POST":
-		promoid = form.promoId.data
-		code = form.promoCode.data
-		startdate = form.start_date.data
-		enddate = form.end_date.data
-		promoname = form.promoName.data
-		query = "INSERT INTO FDS_Promo VALUES (%s,%s,%s,%s,%s %s)"
-		cur.execute(query, (promoid, code, startdate, enddate, promoname, username))
+		promoId = form.promoId.data
+		promoCode = form.promoCode.data
+		start_date = form.start_date.data
+		end_date = form.end_date.data
+		name = form.name.data
+		query = "INSERT INTO FDS_Promo VALUES (%s,%s,%s,%s,%s, %s)"
+		cur.execute(query, (promoId, promoCode, start_date, end_date, name, current_user.username,))
 		conn.commit() 
 		flash('New promotion added!')
 		return redirect("/adminManager/managePromo")
 	return render_template('createPromo.html', form = form)
+
+@view.route("/adminManager/manageRestaurants/createRestaurant", methods =["GET", "POST"])
+def createRestaurant():
+	form = CreateRestaurantForm()
+	if form.validate_on_submit() and request.method == "POST":
+		uname = form.uname.data
+		rname = form.rname.data
+		address = form.address.data
+		min_amt = form.min_amt.data
+		password = form.password.data
+		query1 = "INSERT INTO Users VALUES(%s,%s)"
+		cur.execute(query1, (uname, password))
+		conn.commit()
+		query2 = "INSERT INTO Restaurant VALUES(%s,%s,%s,%s)"
+		cur.execute(query2, (uname, rname, address, min_amt))
+		conn.commit()
+		return redirect("/adminManager/manageRestaurants")
+	return render_template('createRestaurant.html', form = form)
 
 # END OF MANAGER VIEW ROUTES
 
