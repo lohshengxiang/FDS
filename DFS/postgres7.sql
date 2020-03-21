@@ -72,7 +72,7 @@ INSERT INTO Food values
 	('Restaurant1','Sushi',true,20,10,'Japanese'),('Restaurant1','Ramen',true,30,5,'Japanese'), ('Restaurant1','Mochi',true,10,10,'Dessert'),
 	('Restaurant2','Chicken Rice',true,10,10,'Chinese'), ('Restaurant2','Dim Sum',true,30,10,'Chinese'), ('Restaurant2','Hokkien Mee',true,40,10,'Chinese'), 
 	('Restaurant2','Chicken Chop',true,50,10,'Western'), ('Restaurant2','Nasi Lemak',true,20,10,'Malay'),
-	('Restaurant3','Roti Prata',true,10,10,'Indian');
+	('Restaurant3','Roti Prata',true,10,5,'Indian');
 
 CREATE TABLE Customer (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
