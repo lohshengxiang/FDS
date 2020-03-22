@@ -245,9 +245,8 @@ def managePromo():
 @view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) # not working idk why cant update DB and redirect :(
 def createPromo():
 	username = current_user.username
-
 	form = CreatePromoForm()
-	if form.validate_on_submit() and request.method == "POST":
+	if form.validate_on_submit() :
 		promoid = form.promoId.data
 		code = form.promoCode.data
 		startdate = form.start_date.data

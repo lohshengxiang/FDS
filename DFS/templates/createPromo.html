@@ -6,40 +6,42 @@
 </h1>
 
 <form method="POST">
+    {{ form.csrf_token }}
     <table class="table" style="margin-left:auto;margin-right:auto;">
         <tbody class="tbody">
+
             <tr>
                 <td><b> Promotion ID </b></td>
                 <td>
-                    <input class="input" type="number" placeholder="1" name="Promotion ID"
+                    <input class="input" type="number" placeholder="1" name="promoId"
                         value="{{ request.form.promoId }}">
                 </td>
             </tr>
             <tr>
                 <td><b> Promotion Name </b></td>
                 <td>
-                    <input class="input" type="text" placeholder="eg. 10% off" name="Promotion Name"
+                    <input class="input" type="text" placeholder="eg. 10% off" name="promoName"
                         value="{{ request.form.promoName }}">
                 </td>
             </tr>
             <tr>
                 <td><b> Promotion Code </b></td>
                 <td>
-                    <input class="input" type="text" placeholder="eg. 10OFF" name="Promotion Code"
+                    <input class="input" type="text" placeholder="eg. 10OFF" name="promoCode"
                         value="{{ request.form.promoCode }}">
                 </td>
             </tr>
             <tr>
                 <td><b> Start Date </b></td>
                 <td>
-                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="Start Date"
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="start_date"
                         value="{{ request.form.start_date }}">
                 </td>
             </tr>
             <tr>
                 <td><b> End Date </b></td>
                 <td>
-                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="End Date"
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="end_date"
                         value="{{ request.form.end_date }}">
                 </td>
             </tr>
