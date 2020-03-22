@@ -36,6 +36,7 @@ class PaymentForm(FlaskForm):  # Create Order Form
     # address = SelectField('Address', choices = [])
     payment_method = SelectField('Payment Method', choices = [('Credit Card','Credit Card'),('Cash On Delivery','Cash On Delivery')])
     points = BooleanField('Use points to offset delivery fee?', default = False)
+    promo = StringField('Promo')
     # address = StringField('Address', validators = [InputRequired(message = 'A username is required')])
 
 class CreditCardForm(FlaskForm):

@@ -77,6 +77,15 @@
 
                         </div>
                         <br>
+                    
+                        <font size="5"><b>Add a promo:</b></font><input class="input" type="text" style="width: 23%;" placeholder= "Promo Code" name = "promo" value = "{{ request.form.promo }}">
+                        <ul>
+                            {% for error in form.promo.errors %}
+                                <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                            {% endfor %}
+                        </ul>
+                       
+                        <br>
                         <label class="checkbox is-medium">
                             {{ form.points }}
                             Use points to offset delivery fee? 
