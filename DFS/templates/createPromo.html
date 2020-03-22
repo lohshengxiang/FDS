@@ -9,7 +9,6 @@
     {{ form.csrf_token }}
     <table class="table" style="margin-left:auto;margin-right:auto;">
         <tbody class="tbody">
-
             <tr>
                 <td><b> Promotion ID </b></td>
                 <td>
@@ -20,8 +19,8 @@
             <tr>
                 <td><b> Promotion Name </b></td>
                 <td>
-                    <input class="input" type="text" placeholder="eg. 10% off" name="promoName"
-                        value="{{ request.form.promoName }}">
+                    <input class="input" type="text" placeholder="eg. 10% off" name="name"
+                        value="{{ request.form.name }}">
                 </td>
             </tr>
             <tr>
