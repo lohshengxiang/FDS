@@ -14,18 +14,31 @@
             <th>Price</th>
             <th>Category</th>
             <th>Availability</th>
+            <th>Delete?</th>
         </tr>
     </thead>
     <tbody>
         {% for item in foodItem_list %}
         <tr>
-            <td>{{item.foodName}}</td>
+            <td>{{item.fname}}</td>
             <td>{{item.price}}</td>
             <td>{{item.category}}</td>
             <td>{{item.availability}}</td>
+            <td style="text-align: center;">
+                <form action="{{url_for('view.delete_foodItem', fname=item.foodName)}}" method="post"> 
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="button is-block is-info is-small">
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<form action="/addFoodItem" method="post">
+    <div class= "buttons has-addons is-centered">
+        <button class="button is-block is-info is-medium button-padding-horizontal:2em" name="addButton" type="submit">Add Item</button>
+    </div>
+</form>
 
 {% endblock %}

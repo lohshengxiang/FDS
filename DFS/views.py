@@ -4,7 +4,7 @@ import psycopg2
 from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
-ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm
+ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, CreateFoodItemForm
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
@@ -24,7 +24,8 @@ promo_used = ""
 
 view = Blueprint("view", __name__)
 
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+#change password before running
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -45,7 +46,7 @@ class User():
 		return self.username
 
 class FoodItem():
-	foodName = None
+	fname = None
 	price = None
 	category = None
 	availability = None
@@ -65,6 +66,12 @@ class FDSPromotion():
 	startDate = None 
 	endDate = None
 	name = None
+
+class Promotion():
+	promoId = None
+	start_date = None
+	end_date = None
+	message = None
 
 @login_manager.user_loader
 def load_user(username):
@@ -135,33 +142,92 @@ def homePage():
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
 	username = current_user.username
-	#create empty list to store all food items of restaurant
 	foodItem_list = []
-	nameQuery = "SELECT distinct fname from Food where runame = %s"
-	cur.execute(nameQuery,(username,)) 
-	nameList = cur.fetchall()
+	foodItemQuery = "SELECT * from Food where runame = %s"
+	cur.execute(foodItemQuery,(username,)) 
+	food = cur.fetchall()
+	fname_rows = []
+	price_rows = []
+	category_rows = []
+	availability_rows = []
 
-	priceQuery = "SELECT price from Food where runame = %s"
-	cur.execute(priceQuery,(username,)) 
-	priceList = cur.fetchall()
+	for row in food:
+		fname_rows.append(row[1])
+		price_rows.append(row[3])
+		category_rows.append(row[5])
+		availability_rows.append(row[2])
 
-	categoryQuery = "SELECT category from Food where runame = %s"
-	cur.execute(categoryQuery,(username,)) 
-	categoryList = cur.fetchall()
-
-	availabilityQuery = "SELECT availability from Food where runame = %s"
-	cur.execute(availabilityQuery,(username,)) 
-	availabilityList = cur.fetchall()
-
-	for x in range(len(nameList)):
-		item = FoodItem()
-		item.foodName = nameList[x]
-		item.price = priceList[x]
-		item.category = categoryList[x]
-		item.availability = availabilityList[x]
-		foodItem_list.append(item)
+	for x in range(len(fname_rows)):
+		foodItem = FoodItem()
+		foodItem.fname = fname_rows[x]
+		foodItem.price = price_rows[x]
+		foodItem.category = category_rows[x]
+		foodItem.availability = availability_rows[x]
+		foodItem_list.append(foodItem)
 
 	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
+
+@view.route("/addFoodItem", methods = ["POST"])
+def addFoodItem():
+	form = CreateFoodItemForm()
+	if form.validate_on_submit() and request.method == "POST":
+		fname = form.fname.data
+		price = form.price.data
+		order_limit = form.order_limit.data
+		category = form.category.data
+		runame = current_user.username
+		availability = form.availability.data
+		query = "INSERT INTO Food VALUES (%s,%s,%s,%s,%s, %s)"
+		cur.execute(query, (runame, fname, availability, price, order_limit, category,))
+
+		conn.commit() 
+		#flash('New food item added!')
+		return redirect("/menuRestaurant")
+	return render_template('addFoodItem.html', form = form)
+
+@view.route("/delete_foodItem/<string:fname>", methods=["POST"])
+def delete_foodItem(fname): 
+	cur.execute("DELETE FROM Food WHERE fname = %s", [fname])
+	conn.commit()
+	return redirect("/menuRestaurant")
+
+@view.route("/adminRestaurant", methods = ["GET", 'POST'])
+def adminRestaurant(): 
+	return render_template('adminRestaurant.html')
+
+@view.route("/adminRestaurant/managePromotions", methods = ["GET", "POST"])
+def manageRestaurantPromotions():
+	username = current_user.username
+	promos_list = []
+	promoQuery = "SELECT * from Promotion WHERE runame = %s"
+	cur.execute(promoQuery,(username,)) 
+	promos = cur.fetchall()
+	promoid_rows = []
+	start_date_rows = []
+	end_date_rows = []
+	message_rows = []
+
+	for row in promos:
+		promoid_rows.append(row[0])
+		start_date_rows.append(row[1])
+		end_date_rows.append(row[2])
+		message_rows.append(row[3])
+
+	for x in range(len(promoid_rows)):
+		promotion = Promotion()
+		promotion.promoId = promoid_rows[x]
+		promotion.start_date = start_date_rows[x]
+		promotion.end_date = end_date_rows[x]
+		promotion.message = message_rows[x]
+		promos_list.append(promotion)
+
+	return render_template('managePromotions.html', promos_list = promos_list)
+
+@view.route("/delete_restaurant_promo/<string:id>", methods=["POST"])
+def delete_restaurant_promo(id): 
+	cur.execute("DELETE FROM Promotion WHERE uname = %s", [id])
+	conn.commit()
+	return redirect(url_for('view.managePromotions'))
 
 # END OF RESTAURANT VIEW ROUTES
 

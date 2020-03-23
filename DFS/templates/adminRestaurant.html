@@ -1,0 +1,21 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Restaurant Admin Page
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}! What would you like to do?
+</h2>
+
+    <div class="card">
+        <div class="card-content">
+            <h5 class="card-title"><b> Manage Promotions </b></h5>
+            <p class="card-text">Create and Delete Promotions</p>
+            <br>
+            <a href="/adminRestaurant/managePromotions" class="btn btn-primary">Go</a>
+        </div>
+    </div>
+
+
+{% endblock %}

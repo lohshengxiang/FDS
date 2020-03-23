@@ -1,0 +1,43 @@
+{% extends "adminRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  Manage Restaurant Promotions
+</h1>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Promotion ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Message</th>
+            <th>Delete?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for promo in promos_list %}
+        <tr>
+            <td>{{promo.promoId}}</td>
+            <td>{{promo.start_date}}</td>
+            <td>{{promo.end_date}}</td>
+            <td>{{promo.message}}</td>
+            <td style="text-align: center;">
+                <form action="{{url_for('view.delete_restaurant_promo', id=promo.promoId)}}" method="post"> 
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="button is-block is-info is-small">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+            
+<div class= "buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/adminRestaurant/managePromotions/createPromotion">
+        Create New Promotion
+    </a>
+</div>
+
+{% endblock %}
