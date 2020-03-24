@@ -234,6 +234,6 @@ CREATE TABLE FDS_Promo (
 );
 
 INSERT INTO FDS_Promo values
-	(1, '10OFF', '2020-01-01', '2020-02-01', '10% off', 'Manager'),
-	(2, '50OFF', '2020-01-01', '2020-2-10', '50% off', 'Manager'),
+	(1, '20OFF', '2020-01-01', '2020-02-01', '20% off', 'Manager'),
+	(2, '50OFF', '2020-01-01', '2020-02-01', '50% off', 'Manager'),
 	(3, '15OFF', '2020-02-01', '2020-03-01', '15% off', 'Manager');

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<h3 class="title">Select your rating for {{ dname }}</h3>
+	<section class="section">
+	    <form method="POST">
+                {{ form.csrf_token }}
+                    <font size="5"><b>Rating:</b></font>
+                    <div class = "select"> 
+                      {{ form.rating }}
+                    </div>
+                    <br>
+                    <br>
+                    <div class= "buttons has-addons is-centered">
+                        <button class="button is-block is-info" type = "submit">Submit</button>
+                    </div>
+        </form>
+	</section>
+</body>
+{% endblock %}
