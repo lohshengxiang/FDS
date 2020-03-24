@@ -75,3 +75,10 @@ class CreateRestaurantForm(FlaskForm):
     rname = StringField('rname',validators = [InputRequired(message = 'Input is required')])
     address = StringField('address',validators = [InputRequired(message = 'Input is required')])
     min_amt = StringField('min_amt',validators = [InputRequired(message = 'Input is required')])
+
+class CreateDeliveryStaffForm(FlaskForm): 
+    uname = StringField('uname',validators = [InputRequired(message = 'Input is required')])
+    password = StringField('password', validators = [InputRequired(message = 'Input is required')])
+    dname = StringField('dname', validators = [InputRequired(message = 'Input is required')])
+    flatRate = StringField('flatRate', validators = [InputRequired(message = 'Input is required')])
+    staffType = StringField('staffTpe', validators = [InputRequired(message = 'Input is required')])

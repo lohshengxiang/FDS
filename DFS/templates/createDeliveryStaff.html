@@ -1,0 +1,58 @@
+{% extends "manageRestaurants.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    Create New Delivery Staff
+</h1>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <td><b> Delivery Staff Username </b></td>
+                <td>
+                    <input class="input" type="text" placeholder="Eg. PartTime1" name="uname"
+                        value="{{ request.form.uname }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Account Password </b></td>
+                <td>
+                    <input class="input" type="password" name="password"
+                        value="{{ request.form.password }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Delivery Staff Name </b></td>
+                <td>
+                    <input class="input" type="text" placeholder="eg. Jack" name="dname"
+                        value="{{ request.form.dname }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Flat Rate </b></td>
+                <td>
+                    <input class="input" type="number" placeholder="3 / 4" name="flatRate"
+                        value="{{ request.form.flatRate }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Delivery Staff Type (Part Time / Full Time) </b></td>
+                <td>
+                    <input class="input" type="text" name="staffType" placeholder="eg. Full Time"
+                        value="{{ request.form.staffType }}">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+        <div class="buttons has-addons is-centered">
+            <button type="submit" class="button is-block is-danger is-normal">
+                Create
+            </button>
+        </div>
+
+</form>
+
+{% endblock %}
