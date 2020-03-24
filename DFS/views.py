@@ -5,7 +5,7 @@ from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
-CreateDeliveryStaffForm
+CreateDeliveryStaffForm, CreateFoodItemForm
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
@@ -21,9 +21,11 @@ payment_type = ""
 fixed_delivery_fee = 5
 card_used = ""
 points_used = 0
+promo_used = ""
 
 view = Blueprint("view", __name__)
 
+#change password before running
 conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
@@ -45,7 +47,7 @@ class User():
 		return self.username
 
 class FoodItem():
-	foodName = None
+	fname = None
 	price = None
 	category = None
 	availability = None
@@ -66,6 +68,12 @@ class FDSPromotion():
 	startDate = None 
 	endDate = None
 	name = None
+
+class Promotion():
+	promoId = None
+	start_date = None
+	end_date = None
+	message = None
 
 @login_manager.user_loader
 def load_user(username):
@@ -136,33 +144,92 @@ def homePage():
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
 	username = current_user.username
-	#create empty list to store all food items of restaurant
 	foodItem_list = []
-	nameQuery = "SELECT distinct fname from Food where runame = %s"
-	cur.execute(nameQuery,(username,)) 
-	nameList = cur.fetchall()
+	foodItemQuery = "SELECT * from Food where runame = %s"
+	cur.execute(foodItemQuery,(username,)) 
+	food = cur.fetchall()
+	fname_rows = []
+	price_rows = []
+	category_rows = []
+	availability_rows = []
 
-	priceQuery = "SELECT price from Food where runame = %s"
-	cur.execute(priceQuery,(username,)) 
-	priceList = cur.fetchall()
+	for row in food:
+		fname_rows.append(row[1])
+		price_rows.append(row[3])
+		category_rows.append(row[5])
+		availability_rows.append(row[2])
 
-	categoryQuery = "SELECT category from Food where runame = %s"
-	cur.execute(categoryQuery,(username,)) 
-	categoryList = cur.fetchall()
-
-	availabilityQuery = "SELECT availability from Food where runame = %s"
-	cur.execute(availabilityQuery,(username,)) 
-	availabilityList = cur.fetchall()
-
-	for x in range(len(nameList)):
-		item = FoodItem()
-		item.foodName = nameList[x]
-		item.price = priceList[x]
-		item.category = categoryList[x]
-		item.availability = availabilityList[x]
-		foodItem_list.append(item)
+	for x in range(len(fname_rows)):
+		foodItem = FoodItem()
+		foodItem.fname = fname_rows[x]
+		foodItem.price = price_rows[x]
+		foodItem.category = category_rows[x]
+		foodItem.availability = availability_rows[x]
+		foodItem_list.append(foodItem)
 
 	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
+
+@view.route("/addFoodItem", methods = ["POST"])
+def addFoodItem():
+	form = CreateFoodItemForm()
+	if form.validate_on_submit() and request.method == "POST":
+		fname = form.fname.data
+		price = form.price.data
+		order_limit = form.order_limit.data
+		category = form.category.data
+		runame = current_user.username
+		availability = form.availability.data
+		query = "INSERT INTO Food VALUES (%s,%s,%s,%s,%s, %s)"
+		cur.execute(query, (runame, fname, availability, price, order_limit, category,))
+
+		conn.commit() 
+		#flash('New food item added!')
+		return redirect("/menuRestaurant")
+	return render_template('addFoodItem.html', form = form)
+
+@view.route("/delete_foodItem/<string:fname>", methods=["POST"])
+def delete_foodItem(fname): 
+	cur.execute("DELETE FROM Food WHERE fname = %s", [fname])
+	conn.commit()
+	return redirect("/menuRestaurant")
+
+@view.route("/adminRestaurant", methods = ["GET", 'POST'])
+def adminRestaurant(): 
+	return render_template('adminRestaurant.html')
+
+@view.route("/adminRestaurant/managePromotions", methods = ["GET", "POST"])
+def manageRestaurantPromotions():
+	username = current_user.username
+	promos_list = []
+	promoQuery = "SELECT * from Promotion WHERE runame = %s"
+	cur.execute(promoQuery,(username,)) 
+	promos = cur.fetchall()
+	promoid_rows = []
+	start_date_rows = []
+	end_date_rows = []
+	message_rows = []
+
+	for row in promos:
+		promoid_rows.append(row[0])
+		start_date_rows.append(row[1])
+		end_date_rows.append(row[2])
+		message_rows.append(row[3])
+
+	for x in range(len(promoid_rows)):
+		promotion = Promotion()
+		promotion.promoId = promoid_rows[x]
+		promotion.start_date = start_date_rows[x]
+		promotion.end_date = end_date_rows[x]
+		promotion.message = message_rows[x]
+		promos_list.append(promotion)
+
+	return render_template('managePromotions.html', promos_list = promos_list)
+
+@view.route("/delete_restaurant_promo/<string:id>", methods=["POST"])
+def delete_restaurant_promo(id): 
+	cur.execute("DELETE FROM Promotion WHERE uname = %s", [id])
+	conn.commit()
+	return redirect(url_for('view.managePromotions'))
 
 # END OF RESTAURANT VIEW ROUTES
 
@@ -257,6 +324,7 @@ def managePromo():
 
 	return render_template('managePromo.html', promo_list = promo_list)
 
+
 @view.route("/delete_promo/<string:id>", methods=["POST"])
 def delete_promo(id): 
 	cur.execute("DELETE FROM FDS_Promo WHERE promoId = %s", [id])
@@ -274,6 +342,7 @@ def createPromo():
 		name = form.name.data
 		query = "INSERT INTO FDS_Promo VALUES (%s,%s,%s,%s,%s, %s)"
 		cur.execute(query, (promoId, promoCode, start_date, end_date, name, current_user.username,))
+
 		conn.commit() 
 		flash('New promotion added!')
 		return redirect("/adminManager/managePromo")
@@ -506,7 +575,10 @@ def order_food(rname):
 		quantity_choices.append((str(i),i)) #id has to be string
 	form.quantity.choices = quantity_choices
 
-	
+	query = "SELECT min_amt from Restaurant where uname = %s"
+	cur.execute(query,(runame,))
+	min_amt = int(cur.fetchone()[0])
+
 	
 	if cart_list != []:
 		if cart_list[0]["rname"] != rname:
@@ -527,7 +599,7 @@ def order_food(rname):
 			food_cost = int(cur.fetchone()[0]) 
 			food_cost *= int(form.quantity.data) #subject to promotion
 
-			order_date = datetime.now().strftime("%m/%d/%Y")
+			order_date = datetime.now().strftime("%d/%m/%Y")
 			
 			item_dict = {'username': username,
 						'rname' : rname,
@@ -543,9 +615,29 @@ def order_food(rname):
 	total_cost = 0
 	for i in cart_list:
 		total_cost += i["food_cost"]
+
+	#get reviews
+	query = ''' WITH restaurant_orderids as(
+		select orderId from Contain c1 join Restaurant r1 on c1.runame = r1.uname where r1.rname = %s
+		)
+		SELECT cuname,review from Reviews join Orders using (orderId) where orderId in (select orderId from restaurant_orderids) '''
+	cur.execute(query,(rname,))
+	review_list = cur.fetchall()
+	if not review_list:
+		review_list = []
 			
 	return render_template('order_food.html', form = form, rname = rname,  current_order_len = len(cart_list), 
-	 runame = runame, total_cost = total_cost, cart_list = cart_list, delivery_fee = delivery_fee)
+	 runame = runame, total_cost = total_cost, cart_list = cart_list, delivery_fee = delivery_fee, min_amt = min_amt, review_list = review_list)
+
+@view.route("/order/<rname>/<fname>/<quantity>", methods = ["GET","POST"])
+def order_delete(rname,fname, quantity):
+	global cart_list
+	for i in cart_list:
+		if i["fname"] == fname and i["quantity"] == quantity:
+			cart_list.remove(i)
+			break
+	return redirect("/order/" + rname)
+
 
 @view.route("/order/<rname>/address", methods = ["GET","POST"])
 def order_address(rname):
@@ -601,6 +693,7 @@ def order_payment(rname):
 	global payment_type
 	global fixed_delivery_fee
 	global points_used
+	global promo_used
 
 	delivery_fee = fixed_delivery_fee
 	form = PaymentForm()
@@ -609,9 +702,18 @@ def order_payment(rname):
 	cur.execute(query,(current_user.username,))
 	points = cur.fetchone()[0]
 
+	query = "SELECT distinct uname from Restaurant where rname = %s"
+	try:
+		cur.execute(query,(rname,))
+	except:
+		conn.rollback()	
+
+	runame = cur.fetchone()[0]
+
 	if form.validate_on_submit(): 
 		payment_type = form.payment_method.data
 		fee_boolean = form.points.data
+		promo = form.promo.data
 
 		if fee_boolean:
 			if points >= delivery_fee:
@@ -621,13 +723,39 @@ def order_payment(rname):
 				delivery_fee -= points
 				after_points = 0
 			points_used = points - after_points
+
+		if promo:
+			query = '''SELECT name,start_date,end_date from Promotion where promoCode = %s and runame = %s union
+			SELECT name, start_date,end_date from FDS_Promo where promoCode = %s'''
+			cur.execute(query,(promo,runame,promo))
+			exist = cur.fetchone()
+			if exist:
+				name = exist[0]
+				start_date = exist[1] #exist[1] is a datetime.date 
+				end_date = exist[2]
+
+				now = datetime.date(datetime.now())
+				if start_date <= now and now <= end_date:
+					promo_used = promo
+					if payment_type == "Credit Card":
+						return redirect("/order/" + rname + "/payment/cc")
+					else:
+						return redirect("/order/" + rname + "/confirm")
+				else:
+					form.promo.errors.append("Invalid Promo Code")
+					redirect(url_for('view.order_payment', rname = rname))
+
+			else:
+				form.promo.errors.append("Invalid Promo Code")
+				redirect(url_for('view.order_payment', rname = rname))
+		else:
+			if payment_type == "Credit Card":
+				return redirect("/order/" + rname + "/payment/cc")
+			else:
+				return redirect("/order/" + rname + "/confirm")
 			
 
-
-		if payment_type == "Credit Card":
-			return redirect("/order/" + rname + "/payment/cc")
-		else:
-			return redirect("/order/" + rname + "/confirm")
+		
 
 	total_cost = 0
 	for i in cart_list:
@@ -665,6 +793,7 @@ def order_confirm(rname):
 	global payment_type
 	global fixed_delivery_fee
 	global points_used
+	global promo_used
 
 	delivery_fee = fixed_delivery_fee - points_used
 
@@ -675,8 +804,10 @@ def order_confirm(rname):
 	if form.validate_on_submit():
 
 		#settle Orders start
-
-		address = new_address[0]
+		try:
+			address = new_address[0]
+		except:
+			return redirect("/")
 		order_date = datetime.now().strftime("%m/%d/%Y")
 		order_time = datetime.now().strftime("%H:%M:%S")
 		query = "SELECT max(orderid) from Orders"
@@ -687,9 +818,9 @@ def order_confirm(rname):
 		else:
 			newid = 0
 		food_cost = total_cost - delivery_fee
-		query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress,order_date,order_time,deliveryFee,foodCost) 
-					VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'''
-		cur.execute(query,(newid,current_user.username,payment_type,address,order_date,order_time,delivery_fee,food_cost))
+		query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress,order_date,order_time,deliveryFee,foodCost,promoCode) 
+					VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+		cur.execute(query,(newid,current_user.username,payment_type,address,order_date,order_time,delivery_fee,food_cost,promo_used))
 		conn.commit()
 
 		#settle Orders end
@@ -726,8 +857,9 @@ def order_confirm(rname):
 
 		return redirect("/done")
 
-	return render_template("order_confirm.html", form = form, rame = rname, cart_list = cart_list, new_address = new_address[0],
-		total_cost = total_cost, delivery_fee = delivery_fee, points_used = points_used, payment_type = payment_type) 
+	return render_template("order_confirm.html", form = form, rname = rname, cart_list = cart_list, new_address = new_address[0],
+		total_cost = total_cost, delivery_fee = delivery_fee, points_used = points_used, payment_type = payment_type, 
+		promo_used = promo_used) 
 
 
 
@@ -738,11 +870,13 @@ def order_done():
 	global payment_type
 	global fixed_delivery_fee
 	global points_used
+	global promo_used
 	cart_list = []
 	new_address = []
 	payment_type = ""
 	card_used = ""
 	points_used = 0
+	promo_used = ""
 	return render_template('order_done.html')
 
 
@@ -831,7 +965,7 @@ def orders():
 	query = '''WITH new_contains as(
 	select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
 	)
-	select * from Orders join (select distinct orderid, rname from new_contains) c2 using (orderid) where cuname = %s order by orderid DESC'''
+	select * from Orders join (select distinct orderid, rname from new_contains) c2 using (orderid) where cuname = %s and is_delivered = False order by orderid DESC'''
 
 	# query = "SELECT * from get_orders(%s)"
 	try: 
@@ -860,6 +994,7 @@ def orders():
 	else:
 		return render_template('orders.html', status = [])
 		
+# START OF PROFILE
 
 @view.route("/profile", methods = ["GET","POST"])
 @login_required
@@ -919,8 +1054,22 @@ def profile_nav(nav):
 			one_order_dict["foodCost"] = i[8]
 			one_order_dict["promoCode"] = i[9]
 			one_order_dict["rname"] = i[10]
+
+			query = '''SELECT review from Reviews 
+			join (select orderid, cuname from Orders where cuname = %s) c using(orderid) 
+			where orderid = %s'''
+			cur.execute(query,(current_user.username,i[0]))
+			exist = cur.fetchone()
+
+			if exist:
+				one_order_dict["reviewed"] = True
+			else:
+				one_order_dict["reviewed"] = False
+
 			order_list.append(one_order_dict)
+
 		return render_template("profile_pastOrders.html", status = order_list)
+
 	elif nav == "currentOrders":
 		query = '''WITH new_contains as(
 		select * from Contain c1 join Restaurant r1 on c1.runame = r1.uname
@@ -948,6 +1097,7 @@ def profile_nav(nav):
 			one_order_dict["foodCost"] = i[8]
 			one_order_dict["promoCode"] = i[9]
 			one_order_dict["rname"] = i[10]
+
 			order_list.append(one_order_dict)
 		return render_template("profile_currentOrders.html", status = order_list)
 	elif nav == "reviews":
@@ -1021,7 +1171,7 @@ def review(rname,orderid):
 		query = "INSERT INTO Reviews VALUES (%s,%s)"
 		cur.execute(query,(orderid,review))
 		conn.commit()
-		return redirect("/")
+		return redirect("/profile/pastOrders")
 	return render_template("review.html", form = form, rname = rname)
 
 @view.route("/deleteCard/<ccNumber>", methods = ["GET","POST"])
@@ -1041,6 +1191,8 @@ def deleteCard(ccNumber):
 	restrict = 'xxxxxxxxxxxx' + ccNumber[-4:]
 	return render_template('profile_deleteCard.html',form = form, ccNumber = restrict)
 	# return redirect("/profile/viewCards")
+
+# END OF PROFILE
 
 @view.route("/logout", methods = ["GET"])
 @login_required

@@ -9,6 +9,7 @@
                     <h1 class="title" style = "font-size: 200%;">
                         Welcome to {{ rname }}
                     </h1>
+                    <font size = "4">Click <a id = "btn" style="color:white;"><b>here</b></a> to see our reviews!</font>
                 </div>
             </div>
         </section>
@@ -16,6 +17,7 @@
         <br>
         <br>
         <div class="columns">
+
             <div class="column is-3 ">
                 <aside class="menu is-hidden-mobile">
                     <ul class="menu-list">
@@ -28,6 +30,12 @@
                         <li><a class="is-static">4. Order Confirmation</a><li>
                     </ul>
                 </aside>
+                <br>
+
+                <!-- <div class="buttons">
+                  <font size="2"><b>Check out food reviews here:</b></font>
+                  <button class="button is-success is-light" id = "btn">Reviews</button>
+                </div> -->
             </div>
             <div id = 'profile' class="column is-9">
                 <section class="hero is-small">
@@ -42,6 +50,7 @@
                                 <th>Food Item</th>
                                 <th>Quantity</th>
                                 <th>Cost</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,6 +59,13 @@
                             <td>{{item.fname}}</td>
                             <td>{{item.quantity}}</td>
                             <td>{{item.food_cost}}</td>
+                            <td>
+                            <div class= "buttons has-addons is-centered">
+                              <a href="/order/{{item.rname}}/{{item.fname}}/{{item.quantity}}">
+                                    <button class="button is-block is-danger is-small button-padding-horizontal:2em">Delete</button>
+                                </a>
+                            </div>
+                          </td>
                         </tr>
                         {% endfor %}
                         <tr>
@@ -114,11 +130,110 @@
                       </div>
                     </form>
                     <br>
+                    {% if total_cost >= min_amt %}
                     <div class= "buttons has-addons is-centered">
                       <a href = "/order/{{rname}}/address">
                             <button class="button is-block is-light is-medium button-padding-horizontal:2em">Next</button>
                         </a>
                     </div>
+                    {% endif %}
+                    {% if total_cost < min_amt %}
+                    <sup>*</sup>Minimum order for {{ rname }} is ${{ min_amt }}.
+                    {% endif %}
+                    <div class="modal" id="myModal">
+                      <div class="modal-background"></div>
+                      <div class="modal-card">
+                        <header class="modal-card-head">
+                          <p class="modal-card-title">Reviews</p>
+                          <button class="delete" aria-label="close" data-bulma-modal="close"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <div class = "content">
+                            {% if not review_list == [] %}
+                                {% for i in review_list %}
+                                  <h4 align = "left">{{i[0]}}:</h4>
+                                  <p style="word-wrap: break-word;" align = "left">{{i[1]}}</p>
+                                  <br>
+                                {% endfor %}
+                            {% endif %}
+                            {% if review_list == [] %}
+                            <p> No reviews available :( </p>
+                            {% endif %}
+                            </div>
+
+                        </section>
+                        <footer class="modal-card-foot">
+                          <button class="button" data-bulma-modal="close">Back</button>
+                        </footer>
+                      </div>
+                    </div>
+
+                    
+
+                    <script>
+                    class BulmaModal {
+                        constructor(selector) {
+                            this.elem = document.querySelector(selector)
+                            this.close_data()
+                        }
+                        
+                        show() {
+                            this.elem.classList.toggle('is-active')
+                            this.on_show()
+                        }
+                        
+                        close() {
+                            this.elem.classList.toggle('is-active')
+                            this.on_close()
+                        }
+                        
+                        close_data() {
+                            var modalClose = this.elem.querySelectorAll("[data-bulma-modal='close'], .modal-background")
+                            var that = this
+                            modalClose.forEach(function(e) {
+                                e.addEventListener("click", function() {
+                                    
+                                    that.elem.classList.toggle('is-active')
+
+                                    var event = new Event('modal:close')
+
+                                    that.elem.dispatchEvent(event);
+                                })
+                            })
+                        }
+                        
+                        on_show() {
+                            var event = new Event('modal:show')
+                        
+                            this.elem.dispatchEvent(event);
+                        }
+                        
+                        on_close() {
+                            var event = new Event('modal:close')
+                        
+                            this.elem.dispatchEvent(event);
+                        }
+                        
+                        addEventListener(event, callback) {
+                            this.elem.addEventListener(event, callback)
+                        }
+                    }
+
+                    var btn = document.querySelector("#btn")
+                    var mdl = new BulmaModal("#myModal")
+
+                    btn.addEventListener("click", function () {
+                        mdl.show()
+                    })
+
+                    mdl.addEventListener('modal:show', function() {
+                        console.log("opened")
+                    })
+
+                    mdl.addEventListener("modal:close", function() {
+                        console.log("closed")
+                    })
+                    </script>
                 </section>                
             </div>
         </div>

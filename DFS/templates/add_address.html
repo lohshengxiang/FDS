@@ -2,23 +2,30 @@
 
 {% block content %}
 <body>
-	<section class="section">
-	    <form method="POST">
-	    	<div class = "field">
-	      	{{ form.csrf_token }}
-	      		<font size="5"><b>Add an address:</b></font>
-			  	{{ form.address }}
-			  	<ul>
-                    {% for error in form.address.errors %}
-                        <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
-                        <!--for each error, output the error string -->
-                    {% endfor %}
-                </ul>
-	        </div>
-		    <div class= "buttons is-centered">
-                <button class="button is-info is-centered" type = "submit">Add address</button>
-            </div>
-	    </form>
-	</section>
+	<div class="columns">
+		<div class="column is-one-third">
+		</div>
+		<div class="column is-one-third">
+		    <form method="POST">
+		    	<div class = "field">
+		      	{{ form.csrf_token }}
+		      		<font size="5"><b>Add an address:</b></font>
+				  	<div class="field-label is-normal">
+	                    <input class="input" type="text" placeholder= "Address" name = "address" value = "{{ request.form.address }}">
+
+	                    <ul>
+	                        {% for error in form.address.errors %}
+	                            <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+
+	                        {% endfor %}
+	                    </ul>
+
+	                </div>
+		        </div>
+			    <div class= "buttons is-centered">
+	                <button class="button is-info is-centered" type = "submit">Add address</button>
+	            </div>
+		    </form>
+	</div>
 </body>
 {% endblock %}

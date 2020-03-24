@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, HiddenField, BooleanField, DateField
+from wtforms import StringField, PasswordField, SelectField, HiddenField, BooleanField, DateField, DecimalField
 from wtforms.validators import InputRequired, ValidationError, Length
 
 
@@ -36,6 +36,7 @@ class PaymentForm(FlaskForm):  # Create Order Form
     # address = SelectField('Address', choices = [])
     payment_method = SelectField('Payment Method', choices = [('Credit Card','Credit Card'),('Cash On Delivery','Cash On Delivery')])
     points = BooleanField('Use points to offset delivery fee?', default = False)
+    promo = StringField('Promo')
     # address = StringField('Address', validators = [InputRequired(message = 'A username is required')])
 
 class CreditCardForm(FlaskForm):
@@ -82,3 +83,10 @@ class CreateDeliveryStaffForm(FlaskForm):
     dname = StringField('dname', validators = [InputRequired(message = 'Input is required')])
     flatRate = StringField('flatRate', validators = [InputRequired(message = 'Input is required')])
     staffType = StringField('staffTpe', validators = [InputRequired(message = 'Input is required')])
+    
+class CreateFoodItemForm(FlaskForm):
+    fname = StringField('Food Name', validators = [InputRequired(message = 'Input is required')])
+    price = DecimalField('Price ($)', places=2, rounding=None, validators = [InputRequired(message = 'Input is required')])
+    order_limit = StringField('order_limit',validators = [InputRequired(message = 'Input is required')])
+    category = SelectField('Category', choices = [('Chinese','Chinese'),('Indian','Indian'), ('Japanese','Japanese'), ('Malay','Malay'), ('Western','Western'), ('Dessert','Dessert')])
+    availability = SelectField('Availability', choices = [('True','Available'),('False','Not Available')])

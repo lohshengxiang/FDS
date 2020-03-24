@@ -78,6 +78,7 @@
                               <td>{{item.foodCost}}</td>
                               <td>{{item.promoCode}}</td>
                               <td>Yes</td>
+                              {% if item.reviewed == False %}
                               <td>
                                 <div class= "buttons has-addons is-centered">
                                   <a href = "/review/{{item.rname}}/{{item.orderid}}">
@@ -85,6 +86,11 @@
                                     </a>
                                 </div>
                               </td>
+                              {% endif %}
+                              {% if item.reviewed == True %}
+                              <td>{{item.revied}}</td>
+                              {% endif %}
+
                           </tr>
                           {% endfor %}
 
