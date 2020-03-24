@@ -1,0 +1,94 @@
+{% extends "baseDeliveryStaff.html" %}
+
+{% block content %}
+<h3 class="title" style = "font-size: 300%;  ">
+  Current Deliveries
+</h3>
+
+<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+    <thead class="thead">
+        <tr>
+            <th>Order ID</th>
+			<th>Restaurant</th>
+			<th>Restaurant Address</th>
+            <th>Customer Username</th>
+			<th>Order Date</th>
+            <th>Order Time</th>
+			<th>Delivery Address</th>
+            <th>Payment Type</th>
+			<th>Total Payment</th>
+            <th>Depart for Restaurant</th>
+			<th>Arrive at Restaurant</th>
+			<th>Depart for Customer</th>
+			<th>Arrive at Customer</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for deliveries in current_list %}
+        <tr>
+            <td>{{deliveries.orderId}}</td>
+            <td>{{deliveries.rname}}</td>
+			<td>{{deliveries.restaurantAddress}}</td>
+            <td>{{deliveries.cuname}}</td>
+			<td>{{deliveries.order_date}}</td>
+            <td>{{deliveries.order_time}}</td>
+			<td>{{deliveries.deliveryAddress}}</td>
+            <td>{{deliveries.payment_type}}</td>
+			<td>{{deliveries.total_payment}}</td>
+			
+			{% if deliveries.depart_restaurant==none %}
+			<td style="text-align: center;">
+			<form action="{{url_for('view.update_departRestaurant', orderId=deliveries.orderId)}}" method="post"> 
+				<input type="hidden" name="_method" value="UPDATE">
+				<input type="submit" value="Update" class="button is-block is-info is-small">
+			</form>
+            </td>
+			{% else %}
+			<td>{{deliveries.depart_restaurant}}</td>
+			{% endif %}
+			
+			{% if deliveries.arrive_restaurant==none %}
+			<td style="text-align: center;">
+			<form action="{{url_for('view.update_arriveRestaurant', orderId=deliveries.orderId)}}" method="post"> 
+				<input type="hidden" name="_method" value="UPDATE">
+				<input type="submit" value="Update" class="button is-block is-info is-small">
+			</form>
+            </td>
+			{% else %}
+			<td>{{deliveries.arrive_restaurant}}</td>
+			{% endif %}
+			
+			{% if deliveries.depart_customer==none %}
+			<td style="text-align: center;">
+			<form action="{{url_for('view.update_departCustomer', orderId=deliveries.orderId)}}" method="post"> 
+				<input type="hidden" name="_method" value="UPDATE">
+				<input type="submit" value="Update" class="button is-block is-info is-small">
+			</form>
+            </td>
+			{% else %}
+			<td>{{deliveries.depart_customer}}</td>
+			{% endif %}
+			
+			{% if deliveries.arrive_customer==none %}
+			<td style="text-align: center;">
+			<form action="{{url_for('view.update_arriveCustomer', orderId=deliveries.orderId)}}" method="post"> 
+				<input type="hidden" name="_method" value="UPDATE">
+				<input type="submit" value="Update" class="button is-block is-info is-small">
+			</form>
+            </td>
+			{% else %}
+			<td>{{deliveries.arrive_customer}}</td>
+			{% endif %}
+			
+			<td style="text-align: center;">
+                <form action="{{url_for('view.complete_delivery', orderId=deliveries.orderId)}}" method="post"> 
+                    <input type="hidden" name="_method" value="COMPLETE">
+                    <input type="submit" value="Complete" class="button is-block is-info is-small">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

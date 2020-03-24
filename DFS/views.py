@@ -371,8 +371,12 @@ def createRestaurant():
 def deliveryStaffHome(): 
 	return render_template('homeDeliveryStaff.html')
 
-@view.route("/deliveriesDeliveryStaff", methods = ["GET", 'POST'])
+@view.route("/deliveriesDeliveryStaff", methods = ["GET", "POST"])
 def deliveryStaffDeliveries(): 
+	return render_template('deliveriesDeliveryStaff.html')
+
+@view.route("/deliveriesDeliveryStaff/currentDeliveries", methods = ["GET", 'POST'])
+def deliveryStaffCurrentDeliveries(): 
 	username = current_user.username
 
 	#current deliveries
@@ -408,6 +412,42 @@ def deliveryStaffDeliveries():
 		current_dict["arrive_customer"] = i[16]
 		current_list.append(current_dict)
 
+	return render_template('currentDeliveries.html', current_list = current_list)
+
+@view.route("/update_departRestaurant/<string:orderId>", methods=["POST"])
+def update_departRestaurant(orderId): 
+	cur.execute("UPDATE Delivers SET depart_restaurant = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+	conn.commit()
+	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
+
+@view.route("/update_arriveRestaurant/<string:orderId>", methods=["POST"])
+def update_arriveRestaurant(orderId): 
+	cur.execute("UPDATE Delivers SET arrive_restaurant = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+	conn.commit()
+	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
+
+@view.route("/update_departCustomer/<string:orderId>", methods=["POST"])
+def update_departCustomer(orderId): 
+	cur.execute("UPDATE Delivers SET depart_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+	conn.commit()
+	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
+
+@view.route("/update_arriveCustomer/<string:orderId>", methods=["POST"])
+def update_arriveCustomer(orderId): 
+	cur.execute("UPDATE Delivers SET arrive_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+	conn.commit()
+	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))		
+
+@view.route("/complete_delivery/<string:orderId>", methods=["POST"])
+def complete_delivery(orderId): 
+	cur.execute("UPDATE Orders SET is_delivered = true WHERE orderId = %s", [orderId])
+	conn.commit()
+	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
+
+@view.route("/deliveriesDeliveryStaff/completedDeliveries", methods = ["GET", 'POST'])
+def deliveryStaffCompletedDeliveries(): 
+	username = current_user.username
+
 	#completed deliveries
 	completedQuery = '''WITH temp AS(
 					SELECT DISTINCT orderId, runame FROM Contain
@@ -440,15 +480,76 @@ def deliveryStaffDeliveries():
 		completed_dict["depart_customer"] = i[15]
 		completed_dict["arrive_customer"] = i[16]
 		completed_dict["rating"] = i[12]
-		current_list.append(current_dict)	
+		completed_list.append(completed_dict)	
 		
-	return render_template('deliveriesDeliveryStaff.html', current_list = current_list)
+	return render_template('completedDeliveries.html', completed_list = completed_list)
 
 @view.route("/scheduleDeliveryStaff", methods = ["GET", 'POST'])
-def deliveryStaffSchedule(): 
-	
+def deliveryStaffWorkSchedules(): 
+	username = current_user.username
+	staffType = ""
 
-	return render_template('scheduleDeliveryStaff.html')
+	#if part time
+	checkPartTime = "SELECT * FROM Part_Time WHERE duname = %s"
+	cur.execute(checkPartTime, (username,))
+	if len(cur.fetchall()) != 0:
+		staffType = "Part_Time"
+		scheduleQuery = "SELECT * FROM WWS WHERE duname = %s"
+		cur.execute(scheduleQuery, (username,))
+		schedules = cur.fetchall()
+		schedules_list = []
+		for row in schedules:
+			schedules_dict = {}
+			schedules_dict["wws_serialNum"] = row[0]
+			schedules_dict["shift_date"] = row[2]
+			schedules_dict["shift_day"] = row[3]
+			schedules_dict["start_hour"] = row[4]
+			schedules_dict["end_hour"] = row[5]
+			
+			numDeliveriesQuery = '''SELECT count(*) FROM Orders O JOIN Delivers D ON O.orderId = D.orderId 
+								WHERE O.order_date = %s AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s'''
+			cur.execute(numDeliveriesQuery, (row[2], row[4], row[5], username))
+			numDeliveries = cur.fetchone()[0]
+			schedules_dict["num_deliveries"] = numDeliveries
+
+			flatRateQuery = "SELECT flatRate FROM Delivery_Staff WHERE uname = %s"
+			cur.execute(flatRateQuery, (username,))
+			flatRate = cur.fetchone()[0]
+			schedules_dict["salary_this_shift"] = numDeliveries*flatRate
+
+			schedules_list.append(schedules_dict)
+
+	#if full time
+	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
+	cur.execute(checkFullTime, (username,))
+	if len(cur.fetchall()) != 0:
+		staffType = "Full_Time"
+		scheduleQuery = "SELECT * FROM MWS WHERE duname = %s"
+		cur.execute(scheduleQuery, (username,))
+		schedules = cur.fetchall()
+		schedules_list = []
+		for row in schedules:
+			schedules_dict = {}
+			schedules_dict["mws_serialNum"] = row[0]
+			schedules_dict["work_month"] = row[2]
+			schedules_dict["day_option"] = row[3]
+			schedules_dict["shift"] = row[4]
+			schedules_dict["work_year"] = row[5]
+
+			# numDeliveriesQuery = '''SELECT count(*) FROM Orders O JOIN Delivers D ON O.orderId = D.orderId 
+			# 					WHERE O.order_date = %s AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s'''
+			# cur.execute(numDeliveriesQuery, (row[2], row[4], row[5], username))
+			# numDeliveries = cur.fetchone()[0]
+			# schedules_dict["num_deliveries"] = numDeliveries
+
+			# flatRateQuery = "SELECT flatRate FROM Delivery_Staff WHERE uname = %s"
+			# cur.execute(flatRateQuery, (username,))
+			# flatRate = cur.fetchone()[0]
+			# schedules_dict["salary_this_shift"] = numDeliveries*flatRate
+
+			schedules_list.append(schedules_dict)
+
+	return render_template('scheduleDeliveryStaff.html', staffType = staffType, schedules_list = schedules_list)
 
 @view.route("/ratingsDeliveryStaff", methods = ["GET", 'POST'])
 def deliveryStaffRatings(): 

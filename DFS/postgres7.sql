@@ -112,8 +112,9 @@ CREATE TABLE Orders (
 );
 
 INSERT INTO Orders values
-	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,10, null),
-	(2,'Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,20, null);
+	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,60, null),
+	(2,'Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,30, null),
+	(3,'Customer3', 'Cash', 'Blk 789 Serangoon Ave 7 #01-01', false, '2020-03-01', '12:01:01', 5,30, null);
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -135,7 +136,8 @@ INSERT INTO Contain values
 	(1,'Restaurant1', 'Sushi', '1'),
 	(1,'Restaurant1', 'Mochi', '1'),
 	(1,'Restaurant1', 'Ramen', '1'),
-	(2,'Restaurant2', 'Dim Sum', '1');
+	(2,'Restaurant2', 'Dim Sum', '1'),
+	(3,'Restaurant2', 'Dim Sum', '1');
 
 CREATE TABLE Delivery_Staff (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
@@ -163,7 +165,9 @@ CREATE TABLE Delivers (
 
 INSERT INTO Delivers values
 	(1,'PartTime1', 5.0, '09:10:00', '09:20:00', '09:25:00', '09:35:00'), 
-	(2,'PartTime2', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00');
+	(2,'PartTime2', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00'),
+	(3,'PartTime1', null, null , null, null, null);
+	
 	
 CREATE TABLE Part_Time (
 	duname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff(uname) ON DELETE CASCADE
