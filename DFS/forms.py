@@ -83,6 +83,13 @@ class CreateRestaurantForm(FlaskForm):
     address = StringField('address',validators = [InputRequired(message = 'Input is required')])
     min_amt = StringField('min_amt',validators = [InputRequired(message = 'Input is required')])
 
+class CreateDeliveryStaffForm(FlaskForm): 
+    uname = StringField('uname',validators = [InputRequired(message = 'Input is required')])
+    password = StringField('password', validators = [InputRequired(message = 'Input is required')])
+    dname = StringField('dname', validators = [InputRequired(message = 'Input is required')])
+    flatRate = SelectField('flatRate', choices = [('3', '3'),('4','4')])
+    staffType = SelectField('staffType', choices = [('PartTime', 'PartTime'),('FullTime', 'FullTime')])
+
 class CreateFoodItemForm(FlaskForm):
     fname = StringField('Food Name', validators = [InputRequired(message = 'Input is required')])
     price = DecimalField('Price ($)', places=2, rounding=None, validators = [InputRequired(message = 'Input is required')])

@@ -4,8 +4,9 @@ import psycopg2
 from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
-ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, CreateFoodItemForm, \
-PromoForm, RateForm
+ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
+CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm
+>>>>>>> 479f9de41b8e3c0642731cf066384a4608f49127
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
@@ -59,6 +60,7 @@ class Restaurant():
 	restaurantaddress = None
 
 class DeliveryStaff():
+	duname = None
 	dName = None
 	dRating = None
 
@@ -267,8 +269,6 @@ def manageRestaurants():
 
 @view.route("/delete_restaurant/<string:runame>", methods=["POST"])
 def delete_restaurant(runame): 
-	cur.execute("DELETE FROM Restaurant WHERE uname = %s", [runame])
-	conn.commit()
 	cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
 	conn.commit()
 	return redirect(url_for('view.manageRestaurants'))
@@ -279,14 +279,17 @@ def manageDeliveryStaff():
 	dstaffQuery = "SELECT * from Delivery_Staff" #avg rating need to query from delivers not dstaff
 	cur.execute(dstaffQuery)
 	dstaff = cur.fetchall()
+	duname_rows = []
 	dname_rows = []
 	rating_rows = []
 	for row in dstaff:
+		duname_rows.append(row[0])
 		dname_rows.append(row[1])
 		rating_rows.append(row[2])
 
 	for x in range(len(dname_rows)):
 		dstaff = DeliveryStaff()
+		dstaff.duname = duname_rows[x]
 		dstaff.dName = dname_rows[x]
 		dstaff.dRating = rating_rows[x]
 		dstaff_list.append(dstaff)
@@ -364,6 +367,39 @@ def createRestaurant():
 		conn.commit()
 		return redirect("/adminManager/manageRestaurants")
 	return render_template('createRestaurant.html', form = form)
+
+@view.route("/adminManager/manageDeliveryStaff/createDeliveryStaff", methods=["GET", "POST"])
+def createDeliveryStaff(): 
+	form = CreateDeliveryStaffForm()
+	if form.validate_on_submit() and request.method == "POST":
+		uname = form.uname.data
+		password = form.password.data
+		dname = form.dname.data
+		flatRate = form.flatRate.data
+		staffType = form.staffType.data
+		avgRating = 0
+		query1 = "INSERT INTO Users VALUES(%s, %s)"
+		cur.execute(query1, (uname, password))
+		conn.commit()
+		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s, %s)"
+		cur.execute(query2, (uname, dname, avgRating, flatRate))
+		conn.commit()
+		if staffType.lower() == "Full Time".lower(): 
+			query3 = "INSERT INTO Full_Time VALUES(%s)"
+			cur.execute(query3, (uname,))
+			conn.commit()
+		else: 
+			query3 = "INSERT INTO Part_Time VALUES(%s)"
+			cur.execute(query3, (uname,))
+			conn.commit()
+		return redirect("/adminManager/manageDeliveryStaff")
+	return render_template('createDeliveryStaff.html', form = form)
+
+@view.route("/delete_deliveryStaff/<string:duname>", methods=["POST"])
+def delete_DeliveryStaff(duname): 
+	cur.execute("DELETE FROM Users WHERE uname = %s", [duname])
+	conn.commit()
+	return redirect(url_for('view.manageDeliveryStaff'))
 
 # END OF MANAGER VIEW ROUTES
 

@@ -7,6 +7,7 @@
 <table class="table" style="margin-left:auto;margin-right:auto;">
     <thead class="thead">
         <tr>
+            <th>Delivery Staff Username</th>
             <th>Delivery Staff Name</th>
             <th>Rating</th>
             <th>Delete?</th>
@@ -15,12 +16,14 @@
     <tbody>
         {% for dstaff in dstaff_list %}
         <tr>
+            <td>{{dstaff.duname}}</td>
             <td>{{dstaff.dName}}</td>
             <td>{{dstaff.dRating}}</td>
             <td style="text-align: center;">
-                <div class= "buttons has-addons is-centered">
-                    <button class="button is-block is-info is-small" type = "submit">Delete</button>
-                </div>
+                <form action="{{url_for('view.delete_DeliveryStaff', duname=dstaff.duname)}}" method="post"> 
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="button is-block is-info is-small">
+                </form>
             </td>
         </tr>
         {% endfor %}
@@ -30,7 +33,9 @@
 
             
 <div class= "buttons has-addons is-centered">
-    <button class="button is-block is-info is-small" type = "submit">Create New Delivery Staff</button>
+    <a class="button is-block is-info is-small" href="/adminManager/manageDeliveryStaff/createDeliveryStaff">
+        Create New Delivery Staff
+    </a>
 </div>
 
 {% endblock %}
