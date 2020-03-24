@@ -32,11 +32,14 @@ class OrderForm(FlaskForm):
     fname = SelectField('fname', choices = [])
     quantity = SelectField('quantity', choices=[])
 
+class PromoForm(FlaskForm):
+    promo = StringField('Promo')
+
 class PaymentForm(FlaskForm):  # Create Order Form
     # address = SelectField('Address', choices = [])
     payment_method = SelectField('Payment Method', choices = [('Credit Card','Credit Card'),('Cash On Delivery','Cash On Delivery')])
     points = BooleanField('Use points to offset delivery fee?', default = False)
-    promo = StringField('Promo')
+    # promo = StringField('Promo')
     # address = StringField('Address', validators = [InputRequired(message = 'A username is required')])
 
 class CreditCardForm(FlaskForm):
@@ -55,6 +58,9 @@ class ChangePasswordForm(FlaskForm):
 
 class ReviewForm(FlaskForm):
     review = StringField('Review',validators = [Length(min=10, message = "Message must be more than 10 characters")])
+
+class RateForm(FlaskForm):
+    rating = SelectField('Rating', choices = [('1',1),('2',2),('3',3),('4',4),('5',5)])
 
 class AddCreditCardForm(FlaskForm):
     cc = StringField('CC',validators = [Length(min=16, message = "Card number should have 16 digits"),Length(max=16, message = "Card number should have 16 digits") ])

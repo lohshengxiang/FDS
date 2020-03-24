@@ -58,11 +58,10 @@
                               <th>Address</th>
                               <th>Order Date</th>
                               <th>Order Time</th>
-                              <th>Delivery Fee</th>
-                              <th>Food Cost</th>
+                              <th>Cost</th>
                               <th>Promo Code</th>
-                              <th>Delivered</th>
-                              <th></th>
+                              <th>Review Restaurant</th>
+                              <th>Rate Delivery</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -74,10 +73,9 @@
                               <td>{{item.address}}</td>
                               <td>{{item.order_date}}</td>
                               <td>{{item.order_time}}</td>
-                              <td>{{item.deliveryFee}}</td>
-                              <td>{{item.foodCost}}</td>
+                              <!-- <td>{{item.deliveryFee}}</td> -->
+                              <td>{{item.foodCost + item.deliveryFee}}</td>
                               <td>{{item.promoCode}}</td>
-                              <td>Yes</td>
                               {% if item.reviewed == False %}
                               <td>
                                 <div class= "buttons has-addons is-centered">
@@ -88,7 +86,19 @@
                               </td>
                               {% endif %}
                               {% if item.reviewed == True %}
-                              <td>{{item.revied}}</td>
+                              <td></td>
+                              {% endif %}
+                              {% if item.rated == False %}
+                              <td>
+                                <div class= "buttons has-addons is-centered">
+                                  <a href = "/rate/{{item.orderid}}">
+                                        <button class="button is-block is-danger is-small button-padding-horizontal:2em">Rate</button>
+                                    </a>
+                                </div>
+                              </td>
+                              {% endif %}
+                              {% if item.rated == True %}
+                              <td></td>
                               {% endif %}
 
                           </tr>

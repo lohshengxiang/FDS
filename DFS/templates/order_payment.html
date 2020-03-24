@@ -54,8 +54,14 @@
                         {% endfor %}
                         <tr>
                             <td></td>
+                            {% if discount == 0 %}
                             <td>Delivery Cost:</br>Total Cost:</td>
-                            <td>{{delivery_fee}}</br>{{total_cost + delivery_fee}}</td>
+                            <td>{{delivery_fee}}</br>{{food_cost + delivery_fee-discount}}</td>
+                            {% endif %}
+                            {% if discount != 0 %}
+                            <td>Delivery Cost:</br>Discount:</br>Total Cost:</td>
+                            <td>{{delivery_fee}}</br>-{{discount}}</br>{{food_cost + delivery_fee-discount}}</td>
+                            {% endif %}
                         </tr>
 
                         </tbody>
@@ -77,14 +83,28 @@
 
                         </div>
                         <br>
-                    
-                        <font size="5"><b>Add a promo:</b></font><input class="input" type="text" style="width: 23%;" placeholder= "Promo Code" name = "promo" value = "{{ request.form.promo }}">
-                        <ul>
-                            {% for error in form.promo.errors %}
-                                <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
-                            {% endfor %}
-                        </ul>
-                       
+                        <form action = "" method = "POST">
+                            {{ form2.csrf_token }}
+                            <div class="field has-addons has-addons-centered">
+                                <font size="5"><b>Add a promo:</b></font><input class="input" type="text" style="width: 23%;" placeholder= "Promo Code" name = "promo" value = "{{ request.form.promo }}">
+                                
+                                <div class= "buttons has-addons">
+                                    <button class="button is-block is-info" type = "submit" name="action" value="promo">Add</button>
+                                </div>
+                            </div>
+                            <ul>
+                                {% for error in form2.promo.errors %}
+                                    <li style = "color: red; font-style: courier; font-size: 80%;  ">{{ error }}</li> 
+                                {% endfor %}
+                            </ul>
+                        </form>  
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <font color="red">{{message}}</font>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}                     
                         <br>
                         <label class="checkbox is-medium">
                             {{ form.points }}
@@ -94,7 +114,7 @@
                         <br>
                         <br>
                         <div class= "buttons has-addons is-centered">
-                            <button class="button is-block is-light is-medium button-padding-horizontal:2em" type = "submit">Pay</button>
+                            <button class="button is-block is-light is-medium" type = "submit" name="action" value="pay">Pay</button>
                         </div>
                       </div>
                     </form>

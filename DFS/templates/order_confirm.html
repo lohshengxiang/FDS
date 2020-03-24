@@ -54,8 +54,14 @@
                         {% endfor %}
                         <tr>
                             <td></td>
+                            {% if discount == 0 %}
                             <td>Delivery Cost:</br>Total Cost:</td>
-                            <td>{{delivery_fee}}</br>{{total_cost + delivery_fee}}</td>
+                            <td>{{delivery_fee}}</br>{{food_cost + delivery_fee-discount}}</td>
+                            {% endif %}
+                            {% if discount != 0 %}
+                            <td>Delivery Cost:</br>Discount:</br>Total Cost:</td>
+                            <td>{{delivery_fee}}</br>-{{discount}}</br>{{food_cost + delivery_fee-discount}}</td>
+                            {% endif %}
                         </tr>
 
                         </tbody>
