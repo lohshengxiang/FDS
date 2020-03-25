@@ -43,18 +43,19 @@ INSERT INTO Restaurant values
 
 
 CREATE TABLE Promotion (
-	promoid varchar(10) PRIMARY KEY,
+	promoId numeric PRIMARY KEY,
 	start_date date NOT NULL,
 	end_date date NOT NULL,
-	message varchar,
+	name varchar,
+	promoCode varchar,
 	runame varchar(100),
 	FOREIGN KEY(runame) REFERENCES Restaurant(uname) ON DELETE CASCADE
 );
 
 INSERT INTO Promotion values
-	('promo1', '2020-01-01', '2020-01-02', 'free delivery', 'Restaurant1'),
-	('promo2', '2020-01-02', '2020-01-03', '10% off', 'Restaurant2'),
-	('promo3', '2020-01-03', '2020-01-04', '20% off', 'Restaurant3');
+	(1, '2020-01-01', '2020-01-02', 'free delivery', 'FREEDELIVERY','Restaurant1'),
+	(2, '2020-01-02', '2020-01-03', '10% off', '10OFF','Restaurant2'),
+	(3, '2020-01-03', '2020-01-04', '20% off', '20OFF','Restaurant3');
 
 CREATE TABLE Food (
 	runame varchar(100),
@@ -71,18 +72,19 @@ INSERT INTO Food values
 	('Restaurant1','Sushi',true,20,10,'Japanese'),('Restaurant1','Ramen',true,30,5,'Japanese'), ('Restaurant1','Mochi',true,10,10,'Dessert'),
 	('Restaurant2','Chicken Rice',true,10,10,'Chinese'), ('Restaurant2','Dim Sum',true,30,10,'Chinese'), ('Restaurant2','Hokkien Mee',true,40,10,'Chinese'), 
 	('Restaurant2','Chicken Chop',true,50,10,'Western'), ('Restaurant2','Nasi Lemak',true,20,10,'Malay'),
-	('Restaurant3','Roti Prata',true,10,10,'Indian');
+	('Restaurant3','Roti Prata',true,10,5,'Indian');
 
 CREATE TABLE Customer (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
 	cname varchar(100) NOT NULL,
-	points numeric
+	points numeric,
+	date_created date
 );
 
 INSERT INTO Customer values 
-	('Customer1', 'Abby', 10),
-	('Customer2', 'Bob', 20),
-	('Customer3', 'Cassey', 5);
+	('Customer1', 'Abby', 10, '2020-01-01'),
+	('Customer2', 'Bob', 20, '2020-01-01'),
+	('Customer3', 'Cassey', 5, '2020-01-01');
 
 CREATE TABLE CreditCard (
 	uname varchar(100),
@@ -93,15 +95,16 @@ CREATE TABLE CreditCard (
 );
 
 INSERT INTO CreditCard values
-	('Customer1', '123456789', 'POSB'),
-	('Customer1', '999999999', 'DBS'),
-	('Customer2', '000000000', 'DBS');
+	('Customer1', '1234567890123456', 'POSB'),
+	('Customer1', '9999999999999999', 'DBS'),
+	('Customer2', '0000000000000000', 'DBS');
 
 CREATE TABLE Orders (
 	orderId numeric PRIMARY KEY,
 	cuname varchar(100) REFERENCES Customer(uname) ON DELETE CASCADE,
 	payment_type varchar NOT NULL,
 	deliveryAddress varchar NOT NULL,
+	deliveryPostalCode varchar(6) NOT NULL,
 	is_delivered boolean DEFAULT false,
 	order_date date,
 	order_time time,
@@ -111,8 +114,9 @@ CREATE TABLE Orders (
 );
 
 INSERT INTO Orders values
-	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', true, '2020-01-01', '09:01:01', 5,10, null),
-	(2,'Customer2', 'Credit Card', 'Blk 456 Serangoon Ave 10 #01-01', true, '2020-02-01', '10:01:01', 5,20, null);
+	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123', true, '2020-01-01', '09:01:01', 5,60, null),
+	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', true, '2020-02-01', '10:01:01', 5,30, null),
+	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', false, '2020-03-01', '12:01:01', 5,30, null);
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -134,20 +138,21 @@ INSERT INTO Contain values
 	(1,'Restaurant1', 'Sushi', '1'),
 	(1,'Restaurant1', 'Mochi', '1'),
 	(1,'Restaurant1', 'Ramen', '1'),
-	(2,'Restaurant2', 'Dim Sum', '1');
+	(2,'Restaurant2', 'Dim Sum', '1'),
+	(3,'Restaurant2', 'Dim Sum', '1');
 
 CREATE TABLE Delivery_Staff (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
 	dname varchar(100) NOT NULL,
 	avg_rating numeric,
-	flatRate numeric
+	is_delivering boolean default false
 );
 
 INSERT INTO Delivery_Staff values
-	('PartTime1', 'Don', 5.0,'3'),
-	('PartTime2', 'Esther', 4.5,'3'),
-	('FullTime1', 'Faith', 4.0,'4'),
-	('FullTime2', 'Glenn', 4.7,'4');
+	('PartTime1', 'Don', 0),
+	('PartTime2', 'Esther', 0),
+	('FullTime1', 'Faith', 0),
+	('FullTime2', 'Glenn', 0);
 
 CREATE TABLE Delivers ( 
 	orderId numeric PRIMARY KEY,
@@ -162,20 +167,26 @@ CREATE TABLE Delivers (
 
 INSERT INTO Delivers values
 	(1,'PartTime1', 5.0, '09:10:00', '09:20:00', '09:25:00', '09:35:00'), 
-	(2,'PartTime2', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00');
+	(2,'PartTime2', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00'),
+	(3,'PartTime1', null, null , null, null, null);
+	
 	
 CREATE TABLE Part_Time (
-	duname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff(uname) ON DELETE CASCADE
+	duname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff(uname) ON DELETE CASCADE,
+	base_salary numeric default 100,
+	flat_rate numeric default 3
 );
 
-INSERT INTO Part_Time values
+INSERT INTO Part_Time(duname) values
 	('PartTime1'), ('PartTime2'); 
 	
 CREATE TABLE Full_Time (
-	duname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff(uname) ON DELETE CASCADE
+	duname varchar(100) PRIMARY KEY REFERENCES Delivery_Staff(uname) ON DELETE CASCADE,
+	base_salary numeric default 1000,
+	flat_rate numeric default 4
 );
 
-INSERT INTO Full_Time values
+INSERT INTO Full_Time(duname) values
 	('FullTime1'), ('FullTime2');
 
 CREATE TABLE WWS (
@@ -217,3 +228,18 @@ CREATE TABLE FDS_Manager (
 
 INSERT INTO FDS_Manager values
 	('Manager', 'Bob'); 
+
+CREATE TABLE FDS_Promo (
+	promoId numeric PRIMARY KEY, 
+	promoCode varchar, 
+	start_date date NOT NULL, 
+	end_date date NOT NULL, 
+	name varchar,
+	muname varchar(100), 
+	FOREIGN KEY(muname) REFERENCES FDS_Manager(uname) ON DELETE CASCADE
+);
+
+INSERT INTO FDS_Promo values
+	(1, '20OFF', '2020-01-01', '2020-02-01', '20% off', 'Manager'),
+	(2, '50OFF', '2020-01-01', '2020-02-01', '50% off', 'Manager'),
+	(3, '15OFF', '2020-02-01', '2020-03-01', '15% off', 'Manager');
