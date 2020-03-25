@@ -74,7 +74,7 @@ class Promotion():
 	promoId = None
 	start_date = None
 	end_date = None
-	message = None
+	message = None	
 
 @login_manager.user_loader
 def load_user(username):
