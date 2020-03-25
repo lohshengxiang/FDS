@@ -1,161 +1,38 @@
 {% extends "baseDeliveryStaff.html" %}
 
 {% block content %}
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-* {box-sizing: border-box}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Delivery Staff Deliveries Page
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.firstName }}! What would you like to do?
+</h2>
 
-/* Set height of body and the document to 100% */
-body, html {
-  height: 100%;
-  margin: 0;
-  font-family: Arial;
-}
-
-/* Style tab links */
-.tablink {
-  background-color: white;
-  color: black;
-  float: left;
-  border: none;
-  outline: solid;
-  cursor: pointer;
-  padding: 14px 16px;
-  font-size: 17px;
-  width: 50%;
-}
-
-.tablink:hover {
-  background-color: #777;
-}
-
-/* Style the tab content (and add height:100% for full page content) */
-.tabcontent {
-  color: black;
-  display: none;
-  padding: 100px 20px;
-  font-size: 14px;
-  height: 100%;
-}
-
-#Home {background-color: white;}
-#News {background-color: white;}
-</style>
-</head>
-<body>
-
-<button class="tablink" onclick="openPage('Current', this, '#f2f2f2')" id="defaultOpen">Current Orders</button>
-<button class="tablink" onclick="openPage('Completed', this, '#f2f2f2')">Completed Orders</button>
-
-<div id="Current" class="tabcontent" style=>
-  <table class="table" style="margin-left:auto;margin-right:auto;">
-    <thead class="thead">
-        <tr>
-            <th>Order ID</th>
-			<th>Restaurant</th>
-			<th>Restaurant Address</th>
-            <th>Customer Username</th>
-			<th>Order Date</th>
-            <th>Order Time</th>
-			<th>Delivery Address</th>
-            <th>Payment Type</th>
-			<th>Total Payment</th>
-            <th>Depart for Restaurant</th>
-			<th>Arrive at Restaurant</th>
-			<th>Depart for Customer</th>
-			<th>Arrive at Customer</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for deliveries in current_list %}
-        <tr>
-            <td>{{deliveries.orderId}}</td>
-            <td>{{deliveries.rname}}</td>
-			<td>{{deliveries.restaurantAddress}}</td>
-            <td>{{deliveries.cuname}}</td>
-			<td>{{deliveries.order_date}}</td>
-            <td>{{deliveries.order_time}}</td>
-			<td>{{deliveries.deliveryAddress}}</td>
-            <td>{{deliveries.payment_type}}</td>
-			<td>{{deliveries.total_payment}}</td>
-			<td>{{deliveries.depart_restaurant}}</td>
-            <td>{{deliveries.arrive_restaurant}}</td>
-			<td>{{deliveries.depart_customer}}</td>
-            <td>{{deliveries.arrive_customer}}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="columns">
+    <div class="column is-half">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> Current Deliveries </b></h5>
+                    <p class="card-text">View and Update Current Deliveries</p>
+                    <br>
+                    <a href="/deliveriesDeliveryStaff/currentDeliveries" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "column is-half">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> Completed Deliveries </b></h5>
+                    <p class="card-text">View Completed Delieveries</p>
+                    <br>
+                    <a href="/deliveriesDeliveryStaff/completedDeliveries" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-<div id="Completed" class="tabcontent">
-  <table class="table" style="margin-left:auto;margin-right:auto;">
-    <thead class="thead">
-        <tr>
-            <th>Order ID</th>
-			<th>Restaurant</th>
-			<th>Restaurant Address</th>
-            <th>Customer Username</th>
-			<th>Order Date</th>
-            <th>Order Time</th>
-			<th>Delivery Address</th>
-            <th>Payment Type</th>
-			<th>Total Payment</th>
-            <th>Depart for Restaurant</th>
-			<th>Arrive at Restaurant</th>
-			<th>Depart for Customer</th>
-			<th>Arrive at Customer</th>
-			<th>Rating</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for deliveries in completed_list %}
-        <tr>
-            <td>{{deliveries.orderId}}</td>
-            <td>{{deliveries.rname}}</td>
-			<td>{{deliveries.restaurantAddress}}</td>
-            <td>{{deliveries.cuname}}</td>
-			<td>{{deliveries.order_date}}</td>
-            <td>{{deliveries.order_time}}</td>
-			<td>{{deliveries.deliveryAddress}}</td>
-            <td>{{deliveries.payment_type}}</td>
-			<td>{{deliveries.total_payment}}</td>
-			<td>{{deliveries.depart_restaurant}}</td>
-            <td>{{deliveries.arrive_restaurant}}</td>
-			<td>{{deliveries.depart_customer}}</td>
-            <td>{{deliveries.arrive_customer}}</td>
-			<td>{{deliveries.rating}}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
-
-<script>
-function openPage(pageName,elmnt,color) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  tablinks = document.getElementsByClassName("tablink");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].style.backgroundColor = "";
-  }
-  document.getElementById(pageName).style.display = "block";
-  elmnt.style.backgroundColor = color;
-}
-
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
-</script>
-   
-</body>
-</html> 
-
-
 
 {% endblock %}
