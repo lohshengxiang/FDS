@@ -24,6 +24,7 @@ points_used = 0
 promo_used = ""
 promo_action = ""
 
+
 view = Blueprint("view", __name__)
 
 #change password before running
@@ -75,6 +76,37 @@ class Promotion():
 	start_date = None
 	end_date = None
 	message = None
+
+class Shift():
+	shift_a_start = None
+	shift_a_end = None
+	shift_b_start = None
+	shift_b_end = None
+
+shift1 = Shift()
+shift1.shift_a_start = '10:00:00'
+shift1.shift_a_end = '14:00:00'
+shift1.shift_b_start = '15:00:00'
+shift1.shift_b_end = '19:00:00'
+
+shift2 = Shift()
+shift2.shift_a_start = '11:00:00'
+shift2.shift_a_end = '15:00:00'
+shift2.shift_b_start = '16:00:00'
+shift2.shift_b_end = '20:00:00'
+
+shift3 = Shift()
+shift3.shift_a_start = '12:00:00'
+shift3.shift_a_end = '16:00:00'
+shift3.shift_b_start = '17:00:00'
+shift3.shift_b_end = '21:00:00'
+
+shift4 = Shift()
+shift3.shift_a_start = '13:00:00'
+shift3.shift_a_end = '17:00:00'
+shift3.shift_b_start = '18:00:00'
+shift3.shift_b_end = '22:00:00'
+
 
 @login_manager.user_loader
 def load_user(username):
