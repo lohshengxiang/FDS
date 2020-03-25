@@ -51,6 +51,7 @@ class AddressForm(FlaskForm):
 
 class AddAddressForm(FlaskForm):
     address = StringField('Address', validators = [InputRequired(message = 'An address is required')])
+    postal = StringField('Postal', validators = [Length(6, message = "Postal Code must have 6 numbers")])
 
 class ChangePasswordForm(FlaskForm):
     oldPassword = PasswordField('Password', validators = [InputRequired(message = 'A password is required')])

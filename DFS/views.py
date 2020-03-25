@@ -7,8 +7,9 @@ PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
 CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
+import calendar
 
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)
@@ -24,11 +25,12 @@ points_used = 0
 promo_used = ""
 promo_action = ""
 
+# available_FT_list = []
 
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -77,35 +79,49 @@ class Promotion():
 	end_date = None
 	message = None	
 
-class Shift():
-	shift_a_start = None
-	shift_a_end = None
-	shift_b_start = None
-	shift_b_end = None
+# class Shift():
+# 	shift_a_start = None
+# 	shift_a_end = None
+# 	shift_b_start = None
+# 	shift_b_end = None
 
-shift1 = Shift()
-shift1.shift_a_start = '10:00:00'
-shift1.shift_a_end = '14:00:00'
-shift1.shift_b_start = '15:00:00'
-shift1.shift_b_end = '19:00:00'
+# shift1 = Shift()
+# shift1.shift_a_start = '10:00:00'
+# shift1.shift_a_end = '14:00:00'
+# shift1.shift_b_start = '15:00:00'
+# shift1.shift_b_end = '19:00:00'
 
-shift2 = Shift()
-shift2.shift_a_start = '11:00:00'
-shift2.shift_a_end = '15:00:00'
-shift2.shift_b_start = '16:00:00'
-shift2.shift_b_end = '20:00:00'
+# shift2 = Shift()
+# shift2.shift_a_start = '11:00:00'
+# shift2.shift_a_end = '15:00:00'
+# shift2.shift_b_start = '16:00:00'
+# shift2.shift_b_end = '20:00:00'
 
-shift3 = Shift()
-shift3.shift_a_start = '12:00:00'
-shift3.shift_a_end = '16:00:00'
-shift3.shift_b_start = '17:00:00'
-shift3.shift_b_end = '21:00:00'
+# shift3 = Shift()
+# shift3.shift_a_start = '12:00:00'
+# shift3.shift_a_end = '16:00:00'
+# shift3.shift_b_start = '17:00:00'
+# shift3.shift_b_end = '21:00:00'
 
-shift4 = Shift()
-shift3.shift_a_start = '13:00:00'
-shift3.shift_a_end = '17:00:00'
-shift3.shift_b_start = '18:00:00'
-shift3.shift_b_end = '22:00:00'
+# shift4 = Shift()
+# shift3.shift_a_start = '13:00:00'
+# shift3.shift_a_end = '17:00:00'
+# shift3.shift_b_start = '18:00:00'
+# shift3.shift_b_end = '22:00:00'
+
+shift_dict = { "shift1" : ['10:00:00','14:00:00','15:00:00','19:00:00'],
+				"shift2" : ['11:00:00','15:00:00','16:00:00','20:00:00'],
+				"shift3" : ['12:00:00', '16:00:00', '17:00:00','21:00:00'],
+				"shift4" : ['13:00:00', '17:00:00', '18:00:00', '22:00:00']}
+
+
+day_option_dict = { 1 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], 
+					2 : ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+					3 : ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+					4 : ["Monday", "Thursday", "Friday", "Saturday", "Sunday"],
+					5 : ["Monday", "Tuesday", "Friday", "Saturday", "Sunday"],
+					6 : ["Monday", "Tuesday", "Wednesday", "Saturday", "Sunday"],
+					7 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"]}
 
 
 @login_manager.user_loader
@@ -790,7 +806,7 @@ def order_address(rname):
 		for i in new_address:
 			addresses.append(i)
 
-	query = "SELECT distinct deliveryAddress from orders where cuname = %s limit 5" #change this to order by
+	query = "SELECT distinct deliveryAddress || ', ' || deliveryPostalCode from orders where cuname = %s limit 5" #change this to order by
 	cur.execute(query,(current_user.username,))
 	address_rows = cur.fetchall()
 
@@ -820,7 +836,8 @@ def add_address(rname):
 	global new_address
 	form = AddAddressForm()
 	if form.validate_on_submit(): 
-		new_address.append(form.address.data)
+		new_address.append(form.address.data + ', ' + form.postal.data)
+
 		return redirect("/order/" + rname + "/address")
 
 	return render_template("add_address.html", form = form)
@@ -916,12 +933,6 @@ def order_payment(rname):
 			return redirect("/order/" + rname + "/confirm")
 			
 
-		
-
-
-
-
-
 	return render_template("order_payment.html", form = form, form2 = form2, cart_list = cart_list, new_address = new_address, 
 		food_cost = food_cost, rname = rname, delivery_fee = delivery_fee, points = points, discount = discount)
 
@@ -971,14 +982,15 @@ def order_confirm(rname):
 			discount = int(discount_perc * food_cost)
 
 	if form.validate_on_submit():
+		today_now = datetime.now() #+ timedelta(hours = 14) #use this if u doing this at night lol
 
 		#settle Orders start
 		try:
 			address = new_address[0]
 		except:
 			return redirect("/")
-		order_date = datetime.now().strftime("%m/%d/%Y")
-		order_time = datetime.now().strftime("%H:%M:%S")
+		order_date = today_now.strftime("%m/%d/%Y")
+		order_time = today_now.strftime("%H:%M:%S")
 		query = "SELECT max(orderid) from Orders"
 		cur.execute(query)
 		maxid = int(cur.fetchone()[0])
@@ -986,12 +998,107 @@ def order_confirm(rname):
 			newid = maxid + 1
 		else:
 			newid = 0
-		query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress,order_date,order_time,deliveryFee,foodCost,promoCode) 
-					VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-		cur.execute(query,(newid,current_user.username,payment_type,address,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
-		conn.commit()
+
+		deliveryAddress = new_address[0][:-8] 
+		deliveryPostalCode = new_address[0][-6:]
+
+		first2 = deliveryPostalCode[:2]
+
+		if int(first2) in [11,12,13,60,61,62,63,64,65,66,67,68]:
+			area = 'West'
+		elif int(first2) in [42,43,44,45,46,47,48,49,50,81,51,52]:
+			area = 'East'
+		elif int(first2) in [53,54,55,56,57,79,80]:
+			area = 'North-East'
+		elif int(first2) in [69,70,71,72,73,75,76]:
+			area = 'North'
+		else:
+			area = 'Central'
+
+		#settle insert into Delivery start
+
+		
+		today_day = calendar.day_name[today_now.weekday()]
+		today_month = calendar.month_name[today_now.month]
+		today_year = today_now.year
+		today_date = today_now.date()
+		today_time = today_now.time()
+
+		available_list = []
+		#get part-timers start
+		query = '''WITH working_PT as (SELECT distinct duname from WWS where shift_date = %s and start_hour < %s and end_hour > %s)
+					SELECT uname from Delivery_Staff where uname in (select duname from working_PT) and is_delivering = false'''
+		cur.execute(query,(today_date,today_time, today_time))
+		exist = cur.fetchall()
+		if exist:
+			for tup in exist:
+				if tup[0] not in available_list:
+					available_list.append(tup[0])
+
+
+		#get part-timers end
+
+
+		#get full-timers start 
+		
+		shift_list = [] #possible shifts
+		shift = 1
+
+		global shift_dict
+		for i in ['shift1','shift2','shift3','shift4']:
+			if (order_time >= shift_dict[i][0] and order_time < shift_dict[i][1]) or (order_time >= shift_dict[i][2] and order_time < shift_dict[i][3]):
+				shift_list.append(shift)
+			shift += 1
+
+		day_option_list = [] #possible day options
+		global day_option_dict
+		for i in [1,2,3,4,5,6,7]:
+			if today_day in day_option_dict[i]:
+				day_option_list.append(i)
+
+		
+		for i in shift_list:
+			for j in day_option_list:
+				query = '''WITH working_FT as 
+							(SELECT duname from MWS where work_month = %s and work_year = %s and day_option = %s and shift = %s) 
+							select uname from Delivery_Staff where uname in (select duname from working_FT) and is_delivering = false
+							'''
+				cur.execute(query,(today_month,today_year,j,i))
+				exist = cur.fetchall()
+				if exist: #list of tuples
+					for tup in exist:
+						if tup[0] not in available_list:
+							available_list.append(tup[0])
+
+		#get full-timers end
+
+		if len(available_list) > 0:
+
+			query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
+					VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+			cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
+			conn.commit()
+
+			query = '''INSERT INTO Delivers(orderId,duname) VALUES (%s,%s)'''
+			cur.execute(query, (newid, available_list[0]))
+			conn.commit()
+
+			query = '''UPDATE Delivery_Staff SET is_delivering = True where uname = %s'''
+			cur.execute(query, (available_list[0],))
+		else:
+			return render_template("order_failed.html")
+
+		#settle insert into Deliver end
+
+
+		# query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
+		# 			VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+		# cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
+		# conn.commit()
 
 		#settle Orders end
+
+
 
 		#settle points start
 		query = '''SELECT points from Customer where uname = %s'''
@@ -1046,6 +1153,10 @@ def order_done():
 	card_used = ""
 	points_used = 0
 	promo_used = ""
+
+	# global available_FT_list
+	# test = available_FT_list
+	# available_FT_list = []
 	return render_template('order_done.html')
 
 
@@ -1146,17 +1257,17 @@ def orders():
 	for i in order_table:
 		one_order_dict = {}
 	
-		#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+		#(orderId, cuname, payment_type, deliveryAddress, deliveryPostalCode, area, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
 		one_order_dict["orderid"] = i[0]
 		one_order_dict["payment_type"] = i[2]
-		one_order_dict["address"] = i[3]
-		one_order_dict["is_delivered"] = i[4]
-		one_order_dict["order_date"] = i[5]
-		one_order_dict["order_time"] = i[6]
-		one_order_dict["deliveryFee"] = i[7]
-		one_order_dict["foodCost"] = i[8]
-		one_order_dict["promoCode"] = i[9]
-		one_order_dict["rname"] = i[10]
+		one_order_dict["address"] = i[3] + ', ' + i[4]
+		one_order_dict["is_delivered"] = i[6]
+		one_order_dict["order_date"] = i[7]
+		one_order_dict["order_time"] = i[8]
+		one_order_dict["deliveryFee"] = i[9]
+		one_order_dict["foodCost"] = i[10]
+		one_order_dict["promoCode"] = i[11]
+		one_order_dict["rname"] = i[12]
 		order_list.append(one_order_dict)
 	if order_list:  
 		return render_template('orders.html', status = order_list)
@@ -1212,17 +1323,17 @@ def profile_nav(nav):
 		for i in order_table:
 			one_order_dict = {}
 		
-			#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+			#(orderId, cuname, payment_type, deliveryAddress, deliveryPostalCode, area, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname)  
 			one_order_dict["orderid"] = i[0]
 			one_order_dict["payment_type"] = i[2]
-			one_order_dict["address"] = i[3]
-			one_order_dict["is_delivered"] = i[4]
-			one_order_dict["order_date"] = i[5]
-			one_order_dict["order_time"] = i[6]
-			one_order_dict["deliveryFee"] = i[7]
-			one_order_dict["foodCost"] = i[8]
-			one_order_dict["promoCode"] = i[9]
-			one_order_dict["rname"] = i[10]
+			one_order_dict["address"] = i[3] + ', ' + i[4]
+			one_order_dict["is_delivered"] = i[6]
+			one_order_dict["order_date"] = i[7]
+			one_order_dict["order_time"] = i[8]
+			one_order_dict["deliveryFee"] = i[9]
+			one_order_dict["foodCost"] = i[10]
+			one_order_dict["promoCode"] = i[11]
+			one_order_dict["rname"] = i[12]
 
 			query = '''SELECT review from Reviews 
 			join (select orderid, cuname from Orders where cuname = %s) c using(orderid) 
@@ -1267,17 +1378,17 @@ def profile_nav(nav):
 		for i in order_table:
 			one_order_dict = {}
 		
-			#(orderId, cuname, payment_type, deliveryAddress, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname) 
+			#(orderId, cuname, payment_type, deliveryAddress, deliveryPostalCode, area, is_delivered, order_date, order_time, deliveryFee, foodCost, promoCode, rname)
 			one_order_dict["orderid"] = i[0]
 			one_order_dict["payment_type"] = i[2]
-			one_order_dict["address"] = i[3]
-			one_order_dict["is_delivered"] = i[4]
-			one_order_dict["order_date"] = i[5]
-			one_order_dict["order_time"] = i[6]
-			one_order_dict["deliveryFee"] = i[7]
-			one_order_dict["foodCost"] = i[8]
-			one_order_dict["promoCode"] = i[9]
-			one_order_dict["rname"] = i[10]
+			one_order_dict["address"] = i[3] + ', ' + i[4]
+			one_order_dict["is_delivered"] = i[6]
+			one_order_dict["order_date"] = i[7]
+			one_order_dict["order_time"] = i[8]
+			one_order_dict["deliveryFee"] = i[9]
+			one_order_dict["foodCost"] = i[10]
+			one_order_dict["promoCode"] = i[11]
+			one_order_dict["rname"] = i[12]
 
 			order_list.append(one_order_dict)
 		return render_template("profile_currentOrders.html", status = order_list)

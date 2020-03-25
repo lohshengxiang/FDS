@@ -105,6 +105,7 @@ CREATE TABLE Orders (
 	payment_type varchar NOT NULL,
 	deliveryAddress varchar NOT NULL,
 	deliveryPostalCode varchar(6) NOT NULL,
+	area varchar(20) NOT NULL,
 	is_delivered boolean DEFAULT false,
 	order_date date,
 	order_time time,
@@ -114,9 +115,9 @@ CREATE TABLE Orders (
 );
 
 INSERT INTO Orders values
-	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123', true, '2020-01-01', '09:01:01', 5,60, null),
-	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', true, '2020-02-01', '10:01:01', 5,30, null),
-	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', false, '2020-03-01', '12:01:01', 5,30, null);
+	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-01', '09:01:01', 5,60, null),
+	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', 'West', true, '2020-02-01', '10:01:01', 5,30, null),
+	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', false, '2020-03-01', '12:01:01', 5,30, null);
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -207,6 +208,13 @@ INSERT INTO WWS values
 	(2,'PartTime2', '2020-02-01', 'Thursday', '14:00:00', '18:00:00'),
 	(3,'PartTime2', '2020-02-01', 'Thursday', '19:00:00', '23:00:00'); 
 
+insert into wws values (4,'PartTime1','2020-03-25','Wednesday','09:00:00','13:00:00');
+insert into wws values (5,'PartTime1', '2020-03-26', 'Thursday', '14:00:00', '18:00:00');
+insert into wws values (6,'PartTime1', '2020-03-27', 'Friday', '19:00:00', '23:00:00');
+insert into wws values (4,'PartTime2', '2020-03-25', 'Wednesday', '10:00:00', '13:00:00');
+insert into wws values (5,'PartTime2', '2020-03-26', 'Thursday', '14:00:00', '18:00:00');
+insert into wws values (6,'PartTime2', '2020-03-27', 'Friday', '19:00:00', '23:00:00');
+
 CREATE TABLE MWS (
 	mws_serialNum numeric NOT NULL,
 	duname varchar(100) REFERENCES Full_Time ON DELETE CASCADE,
@@ -219,7 +227,9 @@ CREATE TABLE MWS (
 
 INSERT INTO MWS values
 	(1,'FullTime1', 'January', 1, 4, 2020),
-	(2,'FullTime2', 'January', 4, 1, 2020);
+	(2,'FullTime2', 'January', 4, 1, 2020),
+	(3,'FullTime1', 'March', 1, 4, 2020),
+	(4,'FullTime2', 'March', 4, 1, 2020);
 
 CREATE TABLE FDS_Manager (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
@@ -240,6 +250,6 @@ CREATE TABLE FDS_Promo (
 );
 
 INSERT INTO FDS_Promo values
-	(1, '20OFF', '2020-01-01', '2020-02-01', '20% off', 'Manager'),
-	(2, '50OFF', '2020-01-01', '2020-02-01', '50% off', 'Manager'),
-	(3, '15OFF', '2020-02-01', '2020-03-01', '15% off', 'Manager');
+	(1, '20OFF', '2020-01-01', '2020-05-01', '20% off', 'Manager'),
+	(2, '50OFF', '2020-01-01', '2020-05-01', '50% off', 'Manager'),
+	(3, '15OFF', '2020-02-01', '2020-05-01', '15% off', 'Manager');
