@@ -6,7 +6,6 @@ from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
 CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm
->>>>>>> 479f9de41b8e3c0642731cf066384a4608f49127
 import base64
 from datetime import datetime
 from cryptography.fernet import Fernet
