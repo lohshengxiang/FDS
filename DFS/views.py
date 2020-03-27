@@ -1223,11 +1223,13 @@ def registration():
 		if exists_user:
 			form.username.errors.append("{} is already in use.".format(username))
 		else:
+			today_now = datetime.now()
+			today_date = today_now.strftime("%Y-%m-%d")
 			query = "INSERT INTO Users VALUES (%s,%s)"
 			cur.execute(query,(username,password))
 			conn.commit()
-			query = "INSERT INTO Customer VALUES (%s,%s,0)"
-			cur.execute(query,(username,firstName))
+			query = "INSERT INTO Customer VALUES (%s,%s,0,%s)"
+			cur.execute(query,(username,firstName,today_date))
 			conn.commit()
 			user = User()
 			user.username = form.username.data
