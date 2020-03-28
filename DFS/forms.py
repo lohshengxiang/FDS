@@ -97,3 +97,8 @@ class CreateFoodItemForm(FlaskForm):
     order_limit = StringField('order_limit',validators = [InputRequired(message = 'Input is required')])
     category = SelectField('Category', choices = [('Chinese','Chinese'),('Indian','Indian'), ('Japanese','Japanese'), ('Malay','Malay'), ('Western','Western'), ('Dessert','Dessert')])
     availability = SelectField('Availability', choices = [('True','Available'),('False','Not Available')])
+
+class ScheduleFormPT(FlaskForm):
+    date = SelectField('date', choices = [])
+    start = SelectField('start', choices = [])
+    end = SelectField('end', choices = [])
