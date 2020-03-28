@@ -459,11 +459,35 @@ def delete_DeliveryStaff(duname):
 @view.route("/homeManager/generalSummary", methods =["GET", "POST"])
 def generalSummary():
 	form = FilterGeneralSummaryForm()
+
+	totalCustomers = 0
+	totalOrders = 0
+	totalCost = 0 #food cost + delivery fee
+
 	if form.validate_on_submit() and request.method == "POST":
 		month = form.month.data
-		year = form.month.data
+		year = form.year.data
+		query = "SELECT count(uname) FROM Customer WHERE EXTRACT(YEAR FROM date_created) = %s and EXTRACT(MONTH FROM date_created) = %s"
+		cur.execute(query, (year, month))
+		totalCustomers = cur.fetchone()[0]
 
-	return render_template('Manager/generalSummary.html', form = form)
+		query1 = "SELECT count(orderId) from Orders WHERE EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query1, (year, month))
+		totalOrders = cur.fetchone()[0]
+
+		query2 = "SELECT sum(foodCost) FROM Orders WHERE EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query2, (year, month))
+		foodCost = cur.fetchone()[0]
+		if foodCost is not None: 
+			totalCost = foodCost
+		query3 = "SELECT sum(deliveryFee) FROM Orders WHERE EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query3, (year, month))
+		dFee = cur.fetchone()[0]
+		if dFee is not None: 
+			totalCost += dFee
+		return render_template('Manager/generalSummary.html', form = form, totalCustomers = totalCustomers, totalOrders = totalOrders, totalCost = totalCost)
+
+	return render_template('Manager/generalSummary.html', form = form, totalCustomers = totalCustomers, totalOrders = totalOrders, totalCost = totalCost)
 
 @view.route("/homeManager/customerSummary", methods =["GET", "POST"])
 def customerSummary():
