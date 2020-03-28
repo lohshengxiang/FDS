@@ -1,0 +1,64 @@
+{% extends "/Manager/homeManager.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    FDS Delivery Summary
+</h1>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <th style="vertical-align : middle;"> Filter By: </th>
+                <td>
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="date"
+                        value="{{ request.form.date }}">
+                </td>
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th rowspan="2" style="vertical-align : middle;text-align:center;">Hour</th>
+            <th colspan="5" style="text-align:center;">Total Number of Orders Placed</th>
+        </tr>
+        <th>North</th>
+        <th>North-East</th>
+        <th>East</th>
+        <th>West</th>
+        <th>Central</th>
+    </thead>
+    <tbody>
+        {% for summary in summary_list %}
+        <tr>
+            <td style="text-align:center;">{{summary.time}}</td>
+            <td style="text-align:center;">{{summary.north}}</td>
+            <td style="text-align:center;">{{summary.north_east}}</td>
+            <td style="text-align:center;">{{summary.east}}</td>
+            <td style="text-align:center;">{{summary.west}}</td>
+            <td style="text-align:center;">{{summary.central}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeManager">
+        Back
+    </a>
+</div>
+
+{% endblock %}

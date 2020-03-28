@@ -1,0 +1,57 @@
+{% extends "/Manager/homeManager.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    FDS Delivery Staff Summary
+</h1>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <th style="vertical-align : middle;"> Filter By: </th>
+                <td>
+                    <div class="select">
+                        {{ form.rider }}
+                    </div>
+                </td>
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Year</th>
+            <th>Month</th>
+            <th>Total Number of Orders Delivered</th>
+            <th>Total Number of Hours Worked</th>
+            <th>Total Salary Earned</th>
+            <th>Average Delivery Time</th>
+            <th>Number of Ratings Received</th>
+            <th>Average Rating Received</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+
+</table>
+
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeManager">
+        Back
+    </a>
+</div>
+
+{% endblock %}

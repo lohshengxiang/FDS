@@ -5,7 +5,8 @@ from __init__ import login_manager
 from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
-CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm, ScheduleFormPT
+CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm, FilterGeneralSummaryForm, \
+FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT
 import base64
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
@@ -80,6 +81,14 @@ class Promotion():
 	start_date = None
 	end_date = None
 	message = None	
+
+class DeliverySummary(): 
+	north = None
+	north_east = None
+	east = None 
+	west = None
+	central = None
+	time = None
 
 # class Shift():
 # 	shift_a_start = None
@@ -287,11 +296,11 @@ def delete_restaurant_promo(id):
 # START OF MANAGER VIEW ROUTES
 @view.route("/homeManager", methods = ["GET", "POST"])
 def managerHome(): 
-	return render_template('homeManager.html')
+	return render_template('Manager/homeManager.html')
 
 @view.route("/adminManager", methods = ["GET", 'POST'])
 def managerAdmin(): 
-	return render_template('adminManager.html')
+	return render_template('Manager/adminManager.html')
 
 @view.route("/adminManager/manageRestaurants", methods = ["GET", "POST"])
 def manageRestaurants():
@@ -314,7 +323,7 @@ def manageRestaurants():
 		restaurant.restaurantAddress = address_rows[x]
 		restaurant_list.append(restaurant)
 
-	return render_template('manageRestaurants.html', restaurant_list = restaurant_list)
+	return render_template('Manager/manageRestaurants.html', restaurant_list = restaurant_list)
 
 @view.route("/delete_restaurant/<string:runame>", methods=["POST"])
 def delete_restaurant(runame): 
@@ -343,7 +352,7 @@ def manageDeliveryStaff():
 		dstaff.dRating = rating_rows[x]
 		dstaff_list.append(dstaff)
 
-	return render_template('manageDeliveryStaff.html', dstaff_list = dstaff_list)
+	return render_template('Manager/manageDeliveryStaff.html', dstaff_list = dstaff_list)
 
 @view.route("/adminManager/managePromo", methods = ["GET", "POST"]) 
 def managePromo():
@@ -373,7 +382,7 @@ def managePromo():
 		promo.name = names_rows[x]
 		promo_list.append(promo)
 
-	return render_template('managePromo.html', promo_list = promo_list)
+	return render_template('Manager/managePromo.html', promo_list = promo_list)
 
 
 @view.route("/delete_promo/<string:id>", methods=["POST"])
@@ -395,9 +404,8 @@ def createPromo():
 		cur.execute(query, (promoId, promoCode, start_date, end_date, name, current_user.username,))
 
 		conn.commit() 
-		flash('New promotion added!')
 		return redirect("/adminManager/managePromo")
-	return render_template('createPromo.html', form = form)
+	return render_template('Manager/createPromo.html', form = form)
 
 @view.route("/adminManager/manageRestaurants/createRestaurant", methods =["GET", "POST"])
 def createRestaurant():
@@ -415,7 +423,7 @@ def createRestaurant():
 		cur.execute(query2, (uname, rname, address, min_amt))
 		conn.commit()
 		return redirect("/adminManager/manageRestaurants")
-	return render_template('createRestaurant.html', form = form)
+	return render_template('Manager/createRestaurant.html', form = form)
 
 @view.route("/adminManager/manageDeliveryStaff/createDeliveryStaff", methods=["GET", "POST"])
 def createDeliveryStaff(): 
@@ -442,13 +450,111 @@ def createDeliveryStaff():
 			cur.execute(query3, (uname,))
 			conn.commit()
 		return redirect("/adminManager/manageDeliveryStaff")
-	return render_template('createDeliveryStaff.html', form = form)
+	return render_template('Manager/createDeliveryStaff.html', form = form)
 
 @view.route("/delete_deliveryStaff/<string:duname>", methods=["POST"])
 def delete_DeliveryStaff(duname): 
 	cur.execute("DELETE FROM Users WHERE uname = %s", [duname])
 	conn.commit()
 	return redirect(url_for('view.manageDeliveryStaff'))
+
+@view.route("/homeManager/generalSummary", methods =["GET", "POST"])
+def generalSummary():
+	form = FilterGeneralSummaryForm()
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.month.data
+
+	return render_template('Manager/generalSummary.html', form = form)
+
+@view.route("/homeManager/customerSummary", methods =["GET", "POST"])
+def customerSummary():
+	form = FilterCustomerSummaryForm()
+	customer_list = []
+	customers = []
+	customerQuery = "SELECT uname from Customer"
+	cur.execute(customerQuery)
+	customers = cur.fetchall()
+	for row in customers: 
+		customer_list.append(row[0])
+
+	form.customer.choices = [(c, c) for c in customer_list]
+
+	total_orders = 0
+	total_cost = 0 #food cost + delivery fee from Orders
+
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.year.data
+		uname = form.customer.data
+		query = "SELECT count(orderId) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query, (uname,year,month))
+		total_orders = cur.fetchone()[0]
+		query1 = "SELECT sum(foodCost) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query1, (uname,year,month))
+		foodCost = cur.fetchone()[0]
+		if foodCost is not None: 
+			total_cost = foodCost 
+		query2 = "SELECT sum(deliveryFee) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query2, (uname,year,month))
+		deliveryFee = cur.fetchone()[0]
+		if deliveryFee is not None: 
+			total_cost += deliveryFee
+		return render_template('Manager/customerSummary.html', form = form, total_orders = total_orders, total_cost = total_cost)
+
+	return render_template('Manager/customerSummary.html', form = form, total_orders = total_orders, total_cost = total_cost)
+
+@view.route("/homeManager/deliverySummary", methods =["GET", "POST"])
+def deliverySummary():
+	form = FilterDeliverySummaryForm()
+	summary_list = []
+	summary = DeliverySummary()
+	time_list = (('00:00:00', '01:00:00'), ('01:00:00', '02:00:00'), ('02:00:00', '03:00:00'), ('03:00:00', '04:00:00'), ('04:00:00', '05:00:00'), 
+		('05:00:00', '06:00:00'), ('06:00:00', '07:00:00'), ('07:00:00', '08:00:00'), ('08:00:00', '09:00:00'), ('09:00:00', '10:00:00'), ('10:00:00', '11:00:00'), 
+		('11:00:00', '12:00:00'), ('12:00:00', '13:00:00'), ('13:00:00', '14:00:00'), ('14:00:00', '15:00:00'), ('15:00:00', '16:00:00'), ('16:00:00', '17:00:00'), 
+		('17:00:00', '18:00:00'), ('18:00:00', '19:00:00'), ('19:00:00', '20:00:00'), ('20:00:00', '21:00:00'), ('21:00:00', '22:00:00'), ('22:00:00', '23:00:00'), ('23:00:00', '24:00:00'))
+
+	if form.validate_on_submit() and request.method == "POST":
+		date = form.date.data
+		for x, y in time_list: 
+			summary = DeliverySummary() 
+			summary.time = x
+			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date =%s and order_time >= %s and order_time < %s"
+			cur.execute(query1, (date,x,y))
+			summary.west = cur.fetchone()[0]
+			query2 = "SELECT count(orderId) FROM Orders WHERE area ='East' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query2, (date,x,y))
+			summary.east = cur.fetchone()[0]
+			query3 = "SELECT count(orderId) FROM Orders WHERE area ='North' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query3, (date,x,y))
+			summary.north = cur.fetchone()[0]
+			query4 = "SELECT count(orderId) FROM Orders WHERE area ='Central' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query4, (date,x,y))
+			summary.central = cur.fetchone()[0]
+			query5 = "SELECT count(orderId) FROM Orders WHERE area ='North-East' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query5, (date,x,y))
+			summary.north_east = cur.fetchone()[0]
+			summary_list.append(summary)
+		return render_template('Manager/deliverySummary.html', form = form, summary_list = summary_list)
+	return render_template('Manager/deliverySummary.html', form = form, summary = summary)
+
+@view.route("/homeManager/deliveryStaffSummary", methods =["GET", "POST"])
+def deliveryStaffSummary():
+	form = FilterDeliveryStaffSummaryForm() 
+	dstaff_list = []
+	riders = []
+	dstaffQuery = "SELECT uname from Delivery_Staff"
+	cur.execute(dstaffQuery)
+	riders = cur.fetchall()
+	for row in riders: 
+		dstaff_list.append(row[0])
+
+	form.rider.choices = [(r, r) for r in dstaff_list]
+
+	if form.validate_on_submit() and request.method == "POST":
+		uname = form.year.rider
+
+	return render_template('Manager/deliveryStaffSummary.html', form = form)
 
 # END OF MANAGER VIEW ROUTES
 
@@ -457,7 +563,7 @@ def delete_DeliveryStaff(duname):
 @view.route("/homeDeliveryStaff", methods = ["GET", "POST"])
 def deliveryStaffHome(): 
 
-	
+
 	return render_template('homeDeliveryStaff.html')
 
 @view.route("/deliveriesDeliveryStaff", methods = ["GET", "POST"])
