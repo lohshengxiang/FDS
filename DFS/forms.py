@@ -112,3 +112,8 @@ class FilterDeliverySummaryForm(FlaskForm):
 
 class FilterDeliveryStaffSummaryForm(FlaskForm): 
     rider = SelectField('rider')
+
+class ScheduleFormPT(FlaskForm):
+    date = SelectField('date', choices = [])
+    start = SelectField('start', choices = [])
+    end = SelectField('end', choices = [])
