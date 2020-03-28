@@ -31,7 +31,7 @@ promo_action = ""
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -79,6 +79,14 @@ class Promotion():
 	start_date = None
 	end_date = None
 	message = None
+
+class DeliverySummary(): 
+	north = None
+	north_east = None
+	east = None 
+	west = None
+	central = None
+	time = None
 
 # class Shift():
 # 	shift_a_start = None
@@ -451,6 +459,9 @@ def delete_DeliveryStaff(duname):
 @view.route("/homeManager/generalSummary", methods =["GET", "POST"])
 def generalSummary():
 	form = FilterGeneralSummaryForm()
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.month.data
 
 	return render_template('Manager/generalSummary.html', form = form)
 
@@ -467,13 +478,63 @@ def customerSummary():
 
 	form.customer.choices = [(c, c) for c in customer_list]
 
-	return render_template('Manager/customerSummary.html', form = form)
+	total_orders = 0
+	total_cost = 0 #food cost + delivery fee from Orders
+
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.year.data
+		uname = form.customer.data
+		query = "SELECT count(orderId) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query, (uname,year,month))
+		total_orders = cur.fetchone()[0]
+		query1 = "SELECT sum(foodCost) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query1, (uname,year,month))
+		foodCost = cur.fetchone()[0]
+		if foodCost is not None: 
+			total_cost = foodCost 
+		query2 = "SELECT sum(deliveryFee) FROM Orders WHERE cuname =%s and EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s"
+		cur.execute(query2, (uname,year,month))
+		deliveryFee = cur.fetchone()[0]
+		if deliveryFee is not None: 
+			total_cost += deliveryFee
+		return render_template('Manager/customerSummary.html', form = form, total_orders = total_orders, total_cost = total_cost)
+
+	return render_template('Manager/customerSummary.html', form = form, total_orders = total_orders, total_cost = total_cost)
 
 @view.route("/homeManager/deliverySummary", methods =["GET", "POST"])
 def deliverySummary():
 	form = FilterDeliverySummaryForm()
+	summary_list = []
+	summary = DeliverySummary()
+	time_list = (('00:00:00', '01:00:00'), ('01:00:00', '02:00:00'), ('02:00:00', '03:00:00'), ('03:00:00', '04:00:00'), ('04:00:00', '05:00:00'), 
+		('05:00:00', '06:00:00'), ('06:00:00', '07:00:00'), ('07:00:00', '08:00:00'), ('08:00:00', '09:00:00'), ('09:00:00', '10:00:00'), ('10:00:00', '11:00:00'), 
+		('11:00:00', '12:00:00'), ('12:00:00', '13:00:00'), ('13:00:00', '14:00:00'), ('14:00:00', '15:00:00'), ('15:00:00', '16:00:00'), ('16:00:00', '17:00:00'), 
+		('17:00:00', '18:00:00'), ('18:00:00', '19:00:00'), ('19:00:00', '20:00:00'), ('20:00:00', '21:00:00'), ('21:00:00', '22:00:00'), ('22:00:00', '23:00:00'), ('23:00:00', '24:00:00'))
 
-	return render_template('Manager/deliverySummary.html', form = form)
+	if form.validate_on_submit() and request.method == "POST":
+		date = form.date.data
+		for x, y in time_list: 
+			summary = DeliverySummary() 
+			summary.time = x
+			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date =%s and order_time >= %s and order_time < %s"
+			cur.execute(query1, (date,x,y))
+			summary.west = cur.fetchone()[0]
+			query2 = "SELECT count(orderId) FROM Orders WHERE area ='East' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query2, (date,x,y))
+			summary.east = cur.fetchone()[0]
+			query3 = "SELECT count(orderId) FROM Orders WHERE area ='North' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query3, (date,x,y))
+			summary.north = cur.fetchone()[0]
+			query4 = "SELECT count(orderId) FROM Orders WHERE area ='Central' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query4, (date,x,y))
+			summary.central = cur.fetchone()[0]
+			query5 = "SELECT count(orderId) FROM Orders WHERE area ='North-East' and order_date = %s and order_time >= %s and order_time < %s"
+			cur.execute(query5, (date,x,y))
+			summary.north_east = cur.fetchone()[0]
+			summary_list.append(summary)
+		return render_template('Manager/deliverySummary.html', form = form, summary_list = summary_list)
+	return render_template('Manager/deliverySummary.html', form = form, summary = summary)
 
 @view.route("/homeManager/deliveryStaffSummary", methods =["GET", "POST"])
 def deliveryStaffSummary():
@@ -487,6 +548,9 @@ def deliveryStaffSummary():
 		dstaff_list.append(row[0])
 
 	form.rider.choices = [(r, r) for r in dstaff_list]
+
+	if form.validate_on_submit() and request.method == "POST":
+		uname = form.year.rider
 
 	return render_template('Manager/deliveryStaffSummary.html', form = form)
 
