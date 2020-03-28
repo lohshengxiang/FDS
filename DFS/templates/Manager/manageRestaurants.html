@@ -1,0 +1,42 @@
+{% extends "/Manager/adminManager.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Manage Restaurants
+</h1>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Restaurant Username</th>
+            <th>Restaurant Name</th>
+            <th>Address</th>
+            <th>Delete?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for restaurant in restaurant_list %}
+        <tr>
+            <td>{{restaurant.runame}}</td>
+            <td>{{restaurant.restaurantName}}</td>
+            <td>{{restaurant.restaurantAddress}}</td>
+            <td style="text-align: center;">
+                <form action="{{url_for('view.delete_restaurant', runame=restaurant.runame)}}" method="post"> 
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="button is-block is-info is-small">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+            
+<div class= "buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/adminManager/manageRestaurants/createRestaurant">
+        Create New Restaurant
+    </a>
+</div>
+
+{% endblock %}
+

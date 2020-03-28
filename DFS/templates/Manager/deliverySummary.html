@@ -1,0 +1,46 @@
+{% extends "/Manager/homeManager.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    FDS Delivery Summary
+</h1>
+
+<form>
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <th style="vertical-align : middle;"> Filter By: </th>
+                <td>
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="date"
+                        value="{{ request.form.date }}">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th rowspan="2" style="vertical-align : middle;text-align:center;">Hour</th>
+            <th colspan="5" style="text-align:center;">Total Number of Orders Placed</th>
+        </tr>
+        <td>North</td>
+        <td>North-East</td>
+        <td>East</td>
+        <td>West</td>
+        <td>Central</td>
+    </thead>
+    <tbody>
+    </tbody>
+
+</table>
+
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeManager">
+        Back
+    </a>
+</div>
+
+{% endblock %}
