@@ -96,3 +96,18 @@ class CreateFoodItemForm(FlaskForm):
     order_limit = StringField('order_limit',validators = [InputRequired(message = 'Input is required')])
     category = SelectField('Category', choices = [('Chinese','Chinese'),('Indian','Indian'), ('Japanese','Japanese'), ('Malay','Malay'), ('Western','Western'), ('Dessert','Dessert')])
     availability = SelectField('Availability', choices = [('True','Available'),('False','Not Available')])
+
+class FilterGeneralSummaryForm(FlaskForm):
+    month = SelectField('month', choices = [("01", "Jan"),("02","Feb"),("03","Mar"),("04","Apr"),("05","May"),("06","June"),("07","July"),("08","Aug"),("09","Sept"),("10","Oct"),("11","Nov"),("12","Dec")])
+    year = SelectField('year', choices = [('2019', '2019'), ('2020', '2020'), ('2021', '2021'), ('2022', '2022'), ('2023', '2023'), ('2024', '2024'), ('2025', '2025')])
+
+class FilterCustomerSummaryForm(FlaskForm):
+    month = SelectField('month', choices = [("01", "Jan"),("02","Feb"),("03","Mar"),("04","Apr"),("05","May"),("06","June"),("07","July"),("08","Aug"),("09","Sept"),("10","Oct"),("11","Nov"),("12","Dec")])
+    year = SelectField('year', choices = [('2019', '2019'), ('2020', '2020'), ('2021', '2021'), ('2022', '2022'), ('2023', '2023'), ('2024', '2024'), ('2025', '2025')])
+    customer = SelectField('customer')
+
+class FilterDeliverySummaryForm(FlaskForm): 
+    date = DateField('date')
+
+class FilterDeliveryStaffSummaryForm(FlaskForm): 
+    rider = SelectField('rider')
