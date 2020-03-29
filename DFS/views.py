@@ -851,25 +851,27 @@ def deliveryStaffPastWorkSchedules():
 		schedules = cur.fetchall()
 		schedules_list = []
 		for row in schedules:
-			schedules_dict = {}
-			schedules_dict["wws_serialNum"] = row[0]
-			schedules_dict["shift_date"] = row[2]
-			schedules_dict["shift_day"] = row[3]
-			schedules_dict["start_hour"] = row[4]
-			schedules_dict["end_hour"] = row[5]
-			
-			numDeliveriesQuery = '''SELECT count(*) FROM Orders O JOIN Delivers D ON O.orderId = D.orderId 
-								WHERE O.order_date = %s AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s'''
-			cur.execute(numDeliveriesQuery, (row[2], row[4], row[5], username))
-			numDeliveries = cur.fetchone()[0]
-			schedules_dict["num_deliveries"] = numDeliveries
 
-			flatRateQuery = "SELECT flat_rate FROM Part_Time WHERE duname = %s"
-			cur.execute(flatRateQuery, (username,))
-			flatRate = cur.fetchone()[0]
-			schedules_dict["salary_this_shift"] = "$" + str(numDeliveries*flatRate)
+			if row[2].strftime("%Y-%m-%d") < datetime.now().strftime("%Y-%m-%d"):
+				schedules_dict = {}
+				schedules_dict["wws_serialNum"] = row[0]
+				schedules_dict["shift_date"] = row[2]
+				schedules_dict["shift_day"] = row[3]
+				schedules_dict["start_hour"] = row[4]
+				schedules_dict["end_hour"] = row[5]
+				
+				numDeliveriesQuery = '''SELECT count(*) FROM Orders O JOIN Delivers D ON O.orderId = D.orderId 
+									WHERE O.order_date = %s AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s'''
+				cur.execute(numDeliveriesQuery, (row[2], row[4], row[5], username))
+				numDeliveries = cur.fetchone()[0]
+				schedules_dict["num_deliveries"] = numDeliveries
 
-			schedules_list.append(schedules_dict)
+				flatRateQuery = "SELECT flat_rate FROM Part_Time WHERE duname = %s"
+				cur.execute(flatRateQuery, (username,))
+				flatRate = cur.fetchone()[0]
+				schedules_dict["salary_this_shift"] = "$" + str(numDeliveries*flatRate)
+
+				schedules_list.append(schedules_dict)
 
 	#if full time
 	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
@@ -896,7 +898,7 @@ def deliveryStaffPastWorkSchedules():
 				if i !=0:
 					date += timedelta(days=1)
 				
-				if date.weekday() != (row[3]+4)%7 and date.weekday() != (row[3]+5)%7 :
+				if date.weekday() != (row[3]+4)%7 and date.weekday() != (row[3]+5)%7 and date < datetime.now():
 					schedules_dict = {}
 					schedules_dict["mws_serialNum"] = row[0]
 					schedules_dict['date'] = date.strftime("%Y-%m-%d")
