@@ -232,9 +232,9 @@ CREATE TABLE MWS (
 
 INSERT INTO MWS values
 	(1,'FullTime1', 'January', 1, 1, 2020),
-	(2,'FullTime2', 'January', 4, 1, 2020),
-	(3,'FullTime1', 'March', 1, 4, 2020),
-	(4,'FullTime2', 'March', 4, 3, 2020);
+	(1,'FullTime2', 'January', 4, 1, 2020),
+	(2,'FullTime1', 'March', 1, 4, 2020),
+	(2,'FullTime2', 'March', 4, 3, 2020);
 
 CREATE TABLE FDS_Manager (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
