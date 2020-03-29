@@ -6,10 +6,11 @@ from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
 CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm, FilterGeneralSummaryForm, \
-FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT
+FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT, ScheduleFormFT
 import base64
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
+from decimal import Decimal
 import calendar
 
 key = Fernet.generate_key()
@@ -586,7 +587,133 @@ def deliveryStaffSummary():
 
 @view.route("/homeDeliveryStaff", methods = ["GET", "POST"])
 def deliveryStaffHome(): 
-	return render_template('homeDeliveryStaff.html')
+	username = current_user.username
+	form = FilterGeneralSummaryForm()
+	weeksOfMonth_list = []
+	lineOfMonth_list = []
+
+	# if part time
+	checkPartTime = "SELECT * FROM Part_Time WHERE duname = %s"
+	cur.execute(checkPartTime, (username,))
+	if len(cur.fetchall()) != 0:
+
+		if form.validate_on_submit() and request.method == "POST":
+			month = (int)(form.month.data)
+			year = (int)(form.year.data)
+			num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+			
+			#first week
+			start_of_week = datetime(year, month, 1) - timedelta(days=datetime(year, month, 1).weekday())  # Monday
+			end_of_week = start_of_week + timedelta(days=6)  # Sunday
+			
+			for i in range(5):
+				#havent display all dates of week
+				if datetime(year, month, num_days_in_month) > end_of_week:
+					#second week to forth/fifth week
+					if i != 0:
+						start_of_week = end_of_week + timedelta(days=1) #monday
+						end_of_week = start_of_week + timedelta(days=6) #sunday
+					
+					numQuery ='''SELECT count(*) FROM Delivers d JOIN Orders o ON o.orderId = d.orderId WHERE
+									o.order_date >= %s and o.order_date <= %s and is_delivered = %s GROUP BY d.duname HAVING d.duname = %s '''
+					cur.execute(numQuery, (start_of_week, end_of_week, True, username))
+					numDeliveries = cur.fetchone()
+					if numDeliveries == None:
+						numDeliveries = 0
+					else:
+						numDeliveries = numDeliveries[0]
+
+					totalHoursQuery = '''SELECT start_hour, end_hour FROM wws WHERE duname = %s and shift_date>= %s and shift_date <= %s'''
+					cur.execute(totalHoursQuery, (username, start_of_week, end_of_week))
+					start_end = cur.fetchall()
+					numHours = 0
+					for row in start_end:
+						numHours += (int)(row[1].strftime("%H:%M:%S")[:2]) - (int)(row[0].strftime("%H:%M:%S")[:2])
+					
+					flatRateQuery = "SELECT flat_rate FROM Part_Time WHERE duname = %s"
+					cur.execute(flatRateQuery, (username,))
+					flatRate = cur.fetchone()[0]
+					
+					baseSalaryQuery = "SELECT base_salary FROM Part_Time WHERE duname = %s"
+					cur.execute(baseSalaryQuery, (username,))
+					baseSalary = cur.fetchone()[0]
+					
+					if datetime.now().strftime("%Y-%m-%d") < end_of_week.strftime("%Y-%m-%d") or numHours == 0 :
+						baseSalary = 0
+
+					totalSalary = (numDeliveries* flatRate) + baseSalary
+					
+					weeksOfMonth_dict = {'start': start_of_week.strftime("%Y-%m-%d"),
+										'end': end_of_week.strftime("%Y-%m-%d"),
+										'numDeliveries': numDeliveries,
+										'totalHours': numHours,
+										'totalSalary': totalSalary}
+					weeksOfMonth_list.append(weeksOfMonth_dict)
+
+		return render_template('homeDeliveryStaff.html', form=form, weeksOfMonth_list = weeksOfMonth_list, staffType = "PartTime")
+
+	# if full time
+	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
+	cur.execute(checkFullTime, (username,))
+	if len(cur.fetchall()) != 0:
+
+		if form.validate_on_submit() and request.method == "POST":
+			month = (int)(form.month.data)
+			obj_month = datetime.strptime(form.month.data, "%m")
+			year = (int)(form.year.data)
+			num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+
+			ifExistQuery = "SELECT * FROM MWS WHERE duname = %s and work_month = %s and work_year = %s"
+			cur.execute(ifExistQuery, (username, obj_month.strftime("%B"), Decimal(str(year))))
+			
+			start_of_month = datetime(year, month, 1)
+			end_of_month = datetime(year, month, num_days_in_month)
+			
+			#means you work that month
+			if cur.fetchone() is not None and datetime.now().strftime("%Y-%m-%d") > end_of_month.strftime("%Y-%m-%d"):
+				
+				numQuery ='''SELECT count(*) FROM Delivers d JOIN Orders o ON o.orderId = d.orderId WHERE
+								o.order_date >= %s and o.order_date <= %s GROUP BY d.duname HAVING d.duname = %s '''
+				cur.execute(numQuery, (start_of_month, end_of_month, username))
+				numDeliveries = cur.fetchone()
+				if numDeliveries == None:
+					numDeliveries = 0
+				else:
+					numDeliveries = numDeliveries[0]
+
+				totalDays = 0
+
+				dayOptionQuery = "SELECT day_option FROM MWS WHERE duname = %s and work_month = %s and work_year = %s"
+				cur.execute(dayOptionQuery, (username, obj_month.strftime("%B") , Decimal(str(year))))
+				option = cur.fetchone()[0]
+
+				for i in range(num_days_in_month):
+					#increase day
+					if i !=0:
+						start_of_month += timedelta(days=1)
+					
+					if start_of_month.weekday() != (option+4)%7 and start_of_month.weekday() != (option+5)%7 :
+						totalDays += 1
+
+				numHours = 8 * totalDays
+				
+				flatRateQuery = "SELECT flat_rate FROM Full_Time WHERE duname = %s"
+				cur.execute(flatRateQuery, (username,))
+				flatRate = cur.fetchone()[0]
+				
+				baseSalaryQuery = "SELECT base_salary FROM Full_Time WHERE duname = %s"
+				cur.execute(baseSalaryQuery, (username,))
+				baseSalary = cur.fetchone()[0]
+
+				totalSalary = (numDeliveries * flatRate) + baseSalary
+				
+				lineOfMonth_dict = {'month': obj_month.strftime("%B"),
+									'numDeliveries': numDeliveries,
+									'totalHours': numHours,
+									'totalSalary': totalSalary}
+				lineOfMonth_list.append(lineOfMonth_dict)
+				
+		return render_template('homeDeliveryStaff.html', form=form, lineOfMonth_list = lineOfMonth_list, staffType = "FullTime")
 
 @view.route("/deliveriesDeliveryStaff", methods = ["GET", "POST"])
 def deliveryStaffDeliveries(): 
@@ -754,46 +881,65 @@ def deliveryStaffPastWorkSchedules():
 		schedules_list = []
 		for row in schedules:
 
-			ordersDateQuery = '''WITH temp1 AS (SELECT O.order_date, count(*) as num1 FROM Orders O 
-								JOIN Delivers D ON O.orderId = D.orderId
-								WHERE (select extract(month from O.order_date)) = %s
-								AND O.order_time > %s AND O.order_time < %s AND D.duname = %s
-								GROUP BY O.order_date),
+			month = datetime.strptime(row[2], "%B").month
+			year = (int)(row[5])
+			num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+
+			start_of_month = datetime(year, month, 1)
+			end_of_month = datetime(year, month, num_days_in_month)
+			date = start_of_month
+			
+			for i in range(num_days_in_month):
+				
+				#increase day
+				if i !=0:
+					date += timedelta(days=1)
+				
+				if date.weekday() != (row[3]+4)%7 and date.weekday() != (row[3]+5)%7 :
+					schedules_dict = {}
+					schedules_dict["mws_serialNum"] = row[0]
+					schedules_dict['date'] = date.strftime("%Y-%m-%d")
+					schedules_dict["day"] = datetime.strptime(date.strftime("%Y-%m-%d"), "%Y-%m-%d").strftime("%A")
+					schedules_dict["start_a"] = shift_dict['shift' + str(row[4])][0]
+					schedules_dict["end_a"] = shift_dict['shift' + str(row[4])][1]
+					schedules_dict["start_b"] = shift_dict['shift' + str(row[4])][2]
+					schedules_dict["end_b"] = shift_dict['shift' + str(row[4])][3]
+
+					ordersDateQuery = '''WITH temp1 AS (SELECT O.order_date, count(*) as num1 FROM Orders O 
+										JOIN Delivers D ON O.orderId = D.orderId
+										WHERE (select extract(month from O.order_date)) = %s
+										AND O.order_time > %s AND O.order_time < %s AND D.duname = %s
+										GROUP BY O.order_date),
+										
+										temp2 AS(SELECT order_date, count(*) AS num2 FROM Orders O 
+										JOIN Delivers D ON O.orderId = D.orderId 
+										WHERE (select extract(month from O.order_date)) = %s
+										AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s
+										GROUP BY O.order_date)
+
+										SELECT temp1.order_date, temp1.num1, temp2.num2
+										FROM temp1 FULL OUTER JOIN temp2 ON temp1.order_date = temp2.order_date'''
+
+					cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], username, 
+													datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
+					ordersDateQuery = cur.fetchall()
+
+					schedules_dict["num_deliveries_a"] = 0
+					schedules_dict["num_deliveries_b"] = 0
+					schedules_dict["salary_this_shift"] = "$0"
+
+					if ordersDateQuery != None:
+						for i in ordersDateQuery:
+							if i[0].strftime("%Y-%m-%d") == date.strftime("%Y-%m-%d"):
+								schedules_dict["num_deliveries_a"] = i[1]
+								schedules_dict["num_deliveries_b"] = i[2]
 								
-								temp2 AS(SELECT order_date, count(*) AS num2 FROM Orders O 
-								JOIN Delivers D ON O.orderId = D.orderId 
-								WHERE (select extract(month from O.order_date)) = %s
-								AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s
-								GROUP BY O.order_date)
+								flatRateQuery = "SELECT flat_rate FROM Full_Time WHERE duname = %s"
+								cur.execute(flatRateQuery, (username,))
+								flatRate = cur.fetchone()[0]
+								schedules_dict["salary_this_shift"] = "$" + str((i[1] + i[2] )*flatRate)
 
-								SELECT temp1.order_date, temp1.num1, temp2.num2
-								FROM temp1 FULL OUTER JOIN temp2 ON temp1.order_date = temp2.order_date'''
-
-			cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], username, 
-											datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
-			ordersDateQuery = cur.fetchall()
-
-			for i in ordersDateQuery:
-				schedules_dict = {}
-				schedules_dict["mws_serialNum"] = row[0]
-				
-				schedules_dict["date"] = i[0]
-				schedules_dict["day"] = datetime.strptime(i[0].strftime("%Y-%m-%d"), "%Y-%m-%d").strftime("%A")
-
-				schedules_dict["start_a"] = shift_dict['shift' + str(row[4])][0]
-				schedules_dict["end_a"] = shift_dict['shift' + str(row[4])][1]
-				schedules_dict["num_deliveries_a"] = i[1]
-
-				schedules_dict["start_b"] = shift_dict['shift' + str(row[4])][2]
-				schedules_dict["end_b"] = shift_dict['shift' + str(row[4])][3]
-				schedules_dict["num_deliveries_b"] = i[2]
-				
-				flatRateQuery = "SELECT flat_rate FROM Full_Time WHERE duname = %s"
-				cur.execute(flatRateQuery, (username,))
-				flatRate = cur.fetchone()[0]
-				schedules_dict["salary_this_shift"] = "$" + str((i[1] + i[2] )*flatRate)
-
-				schedules_list.append(schedules_dict)
+					schedules_list.append(schedules_dict)
 
 	return render_template('pastWorkScheduleDeliveryStaff.html', staffType = staffType, schedules_list = schedules_list)
 
@@ -913,15 +1059,109 @@ def deliveryStaffManageWorkSchedule():
 		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
 		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list)
 
+	#if full time
 	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
 	cur.execute(checkFullTime, (username,))
 	if len(cur.fetchall()) != 0:
 		staffType = "Full_Time"
 
-		return render_template('manageWorkScheduleFullTime.html')
+		date_obj = datetime.now()
+		
+		#this month's schedule
+		month = date_obj.month
+		year = date_obj.year
+		num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+
+		start_of_month = datetime(year, month, 1)
+		end_of_month = datetime(year, month, num_days_in_month)
+
+		thisMonthQuery = "SELECT * FROM MWS WHERE duname = %s AND work_month = %s AND work_year = %s"
+		cur.execute(thisMonthQuery, (username, date_obj.strftime("%B"), year))
+		thisMonthSchedules = cur.fetchall()
+		thisMonthSchedules_list = []
+
+		for row in thisMonthSchedules:
+			schedules_dict = {}
+			schedules_dict["mws_serialNum"] = row[0]
+			schedules_dict["work_month"] = row[2]
+			schedules_dict["work_year"] = row[5]
+			schedules_dict["day_option"] = row[3]
+			schedules_dict["start_hour_a"] = shift_dict['shift' + str(row[4])][0]
+			schedules_dict["end_hour_a"] = shift_dict['shift' + str(row[4])][1]
+			schedules_dict["start_hour_b"] = shift_dict['shift' + str(row[4])][2]
+			schedules_dict["end_hour_b"] = shift_dict['shift' + str(row[4])][3]
+
+			thisMonthSchedules_list.append(schedules_dict)
+
+		#next month's schedule
+		form = ScheduleFormFT()
+		mws_list = []
+		submitted_list = []
+		nextMonth = month+1%12
+		obj_month = datetime.strptime((str)(nextMonth), "%m")
+
+		if month == 12:
+			nextMonthYear = year+1
+		else:
+			nextMonthYear = year
+
+		if form.validate_on_submit() and request.method == "POST":
+			day_option = form.day_option.data
+			shift_option = form.shift_option.data
+
+			mws_dict = {}
+			mws_dict['username'] =  username
+			mws_dict['work_month'] =  obj_month.strftime("%B")
+			mws_dict['work_year'] = nextMonthYear
+			mws_dict['day_option'] = form.day_option.data
+			mws_dict["start_hour_a"] = shift_dict['shift' + str(form.shift_option.data)][0]
+			mws_dict["end_hour_a"] = shift_dict['shift' + str(form.shift_option.data)][1]
+			mws_dict["start_hour_b"] = shift_dict['shift' + str(form.shift_option.data)][2]
+			mws_dict["end_hour_b"] = shift_dict['shift' + str(form.shift_option.data)][3]
+			
+			if mws_dict not in mws_list:
+				mws_list.append(mws_dict)
+
+				serialNumQuery = "SELECT COUNT(*) FROM MWS GROUP BY duname HAVING duname = %s"
+				cur.execute(serialNumQuery, (username,))
+				serialNum = cur.fetchone()[0]
+
+				submitQuery = "INSERT INTO MWS(mws_serialNum, duname, work_month, day_option, shift, work_year) VALUES (%s,%s,%s,%s,%s,%s)"
+				cur.execute(submitQuery, (serialNum+1, username, obj_month.strftime("%B"), day_option, shift_option, nextMonthYear))
+				conn.commit()
+			
+			submittedSchedule = True
+
+			return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
+
+		# for when it is submitted
+		submittedQuery = "SELECT * FROM MWS WHERE work_month = %s and work_year = %s and duname = %s"
+		cur.execute(submittedQuery, (obj_month.strftime("%B"), nextMonthYear, username))
+		submittedList = cur.fetchall()
+
+		for row in submittedList:
+			submitted_dict = {}
+			submitted_dict["mws_serialNum"] = row[0]
+			submitted_dict["work_month"] = row[2]
+			submitted_dict["work_year"] = row[5]
+			submitted_dict["day_option"] = row[3]
+			submitted_dict["start_hour_a"] = shift_dict['shift' + str(row[4])][0]
+			submitted_dict["end_hour_a"] = shift_dict['shift' + str(row[4])][1]
+			submitted_dict["start_hour_b"] = shift_dict['shift' + str(row[4])][2]
+			submitted_dict["end_hour_b"] = shift_dict['shift' + str(row[4])][3]
+
+			submitted_list.append(submitted_dict)
+
+		if len(submitted_list) == 0:
+			submittedSchedule = False
+		else:
+			submittedSchedule = True
+
+		return render_template('manageWorkScheduleFullTime.html', form = form, thisMonthSchedules_list = thisMonthSchedules_list, 
+		mws_list = mws_list, submittedSchedule = submittedSchedule, submitted_list = submitted_list)
 
 @view.route("/schedulePT/<shift_date>/<shift_start>/<shift_end>", methods = ["GET","POST"])
-def schedule_delete(shift_date, shift_start, shift_end):
+def schedule_deletePT(shift_date, shift_start, shift_end):
 	global nextWeekSchedules_list
 	for i in nextWeekSchedules_list:
 		if i["shift_date"] == shift_date and i["shift_start"] == shift_start and i["shift_end"] == shift_end:
@@ -929,8 +1169,8 @@ def schedule_delete(shift_date, shift_start, shift_end):
 			break
 	return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
 
-@view.route("/submitSchedule", methods=["GET", 'POST'])
-def insertSchedule(): 
+@view.route("/submitSchedulePT", methods=["GET", 'POST'])
+def insertSchedulePT(): 
 	username = current_user.username
 	global nextWeekSchedules_list
 	global submittedSchedule 

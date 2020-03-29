@@ -86,7 +86,7 @@
 	</p>
 	
 	{% if overlapCheck == True and hourIntervalCheck == True and 10 <= totalHours and totalHours <= 48%}
-		<form action="{{url_for('view.insertSchedule')}}" method="post"> 
+		<form action="{{url_for('view.insertSchedulePT')}}" method="post"> 
 			<div class= "buttons has-addons is-centered">
 				<button class="button is-block is-info is-small" type = "submit">Submit Schedule</button>
 			</div>

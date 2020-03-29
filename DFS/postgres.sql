@@ -118,7 +118,7 @@ INSERT INTO Orders values
 	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-01', '09:01:01', 5,60, null),
 	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', 'West', true, '2020-01-01', '10:01:01', 5,30, null),
 	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', true, '2020-01-01', '17:01:01', 5,30, null),
-	(4,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', false, '2020-03-01', '12:01:01', 5,30, null);
+	(4,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', false, '2020-03-25', '12:01:01', 5,30, null);
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -206,7 +206,7 @@ CREATE TABLE WWS (
 INSERT INTO WWS values
 	(1,'PartTime1', '2020-01-01', 'Wednesday', '09:00:00', '13:00:00'), 
 	(2,'PartTime1', '2020-01-01', 'Wednesday', '14:00:00', '18:00:00'), 
-	(3,'PartTime1', '2020-01-01', 'Thursday', '19:00:00', '23:00:00'), 
+	(3,'PartTime1', '2020-01-02', 'Thursday', '19:00:00', '23:00:00'), 
 	(1,'PartTime2', '2020-02-01', 'Thursday', '10:00:00', '13:00:00'), 
 	(2,'PartTime2', '2020-02-01', 'Thursday', '14:00:00', '18:00:00'),
 	(3,'PartTime2', '2020-02-01', 'Thursday', '19:00:00', '23:00:00'); 
@@ -230,9 +230,9 @@ CREATE TABLE MWS (
 
 INSERT INTO MWS values
 	(1,'FullTime1', 'January', 1, 1, 2020),
-	(2,'FullTime2', 'January', 4, 1, 2020),
-	(3,'FullTime1', 'March', 1, 4, 2020),
-	(4,'FullTime2', 'March', 4, 1, 2020);
+	(1,'FullTime2', 'January', 4, 1, 2020),
+	(2,'FullTime1', 'March', 1, 4, 2020),
+	(2,'FullTime2', 'March', 4, 1, 2020);
 
 CREATE TABLE FDS_Manager (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
