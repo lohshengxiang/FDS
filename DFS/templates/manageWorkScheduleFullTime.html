@@ -1,0 +1,106 @@
+{% extends "baseDeliveryStaff.html" %}
+
+{% block content %}
+<h3 class="title" style = "font-size: 300%;  ">
+  This Month's Schedule
+</h3>
+
+<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+    <thead class="thead">
+        <tr>
+			<th>Serial Num</th>
+            <th>Month</th>
+			<th>Year</th>
+			<th>Day Option <br>(Start Day) </th>
+			<th>Start Hour</th>
+			<th>End Hour</th>
+			<th>Start Hour</th>
+			<th>End Hour</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for schedules in thisMonthSchedules_list %}
+			<tr>
+				<td>{{schedules.mws_serialNum}}</td>
+				<td>{{schedules.work_month}}</td>
+				<td>{{schedules.work_year}}</td>
+				<td>{{schedules.day_option}}</td>
+				<td>{{schedules.start_hour_a}}</td>
+				<td>{{schedules.end_hour_a}}</td>
+				<td>{{schedules.start_hour_b}}</td>
+				<td>{{schedules.end_hour_b}}</td>
+			</tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3 class="title" style = "font-size: 300%;  ">
+  Next Month's Schedule
+</h3>
+	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+		<thead class="thead">
+			<tr>
+				<th>Serial Num</th>
+				<th>Month</th>
+				<th>Year</th>
+				<th>Day Option <br>(Start Day) </th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for mws in submitted_list %}
+			<tr>
+				<td>{{mws.mws_serialNum}}</td>
+				<td>{{mws.work_month}}</td>
+				<td>{{mws.work_year}}</td>
+				<td>{{mws.day_option}}</td>
+				<td>{{mws.start_hour_a}}</td>
+				<td>{{mws.end_hour_a}}</td>
+				<td>{{mws.start_hour_b}}</td>
+				<td>{{mws.end_hour_b}}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	
+	
+	{% if submittedSchedule == False %}
+	<section class="section">
+		<form method="POST">
+		{{ form.csrf_token }}
+			<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+			<thead class="thead">
+			<tr>
+				<th>Day Option</th>
+				<th>Shift Option</th>
+			</tr>
+		</thead>
+			<tbody>
+				<tr>
+					<td>
+					  <div class = "select"> 
+					  {{ form.day_option }}
+					  </div>	
+					</td>
+					<td>
+					  <div class = "select"> 
+					  {{ form.shift_option }}
+					  </div>
+					</td>
+				</tr>
+			</tbody>
+			</table>
+			<div class= "buttons has-addons is-centered">
+				<button class="button is-block is-info is-small" type = "submit">Submit Schedule</button>
+			</div>
+			<font color="red"; size="2">No changes can be made after you submit your schedule. 
+					<br> Please submit your schedule before the month starts.</font>
+		</form>
+	</section>
+	{% endif %}
+	
+
+{% endblock %}

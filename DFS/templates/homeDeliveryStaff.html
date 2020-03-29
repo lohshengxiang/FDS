@@ -5,6 +5,101 @@
   FDS Delivery Staff Home Page
 </h1>
 <h2 class="subtitle" style = "font-size: 200%">
-    Hi {{ current_user.firstName }}!
+    Hi {{ current_user.firstName }}! View your general summary here.
 </h2>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <th style="vertical-align : middle;"> Filter By: </th>
+                <td>
+                    <div class="select">
+                        {{ form.month }}
+                    </div>
+                </td>
+                <td>
+                    <div class="select">
+                        {{ form.year }}
+                    </div>
+                </td>
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+{% if staffType == "PartTime" %}
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Start of Week</th>
+            <th>End of Week</th>
+            <th>No. of Deliveries</th>
+			<th>Total Hours</th>
+			<th>Total Salary</th>
+        </tr>
+    </thead>
+    <tbody>
+	{% for week in weeksOfMonth_list %}
+        <tr> 
+            <td style="text-align:center;"> 
+                {{week.start}}
+            </td>
+            <td style="text-align:center;"> 
+                {{week.end}}
+            </td>
+            <td style="text-align:center;"> 
+                {{week.numDeliveries}}
+            </td>
+			<td style="text-align:center;"> 
+                {{week.totalHours}}
+            </td>
+			<td style="text-align:center;"> 
+                ${{week.totalSalary}}
+            </td>
+        </tr>
+	{% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if staffType == "FullTime" %}
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Month</th>
+            <th>No. of Deliveries</th>
+			<th>Total Hours</th>
+			<th>Total Salary</th>
+        </tr>
+    </thead>
+    <tbody>
+	{% for line in lineOfMonth_list %}
+        <tr> 
+            <td style="text-align:center;"> 
+                {{line.month}}
+            </td>
+            <td style="text-align:center;"> 
+                {{line.numDeliveries}}
+            </td>
+			<td style="text-align:center;"> 
+                {{line.totalHours}}
+            </td>
+			<td style="text-align:center;"> 
+                ${{line.totalSalary}}
+            </td>
+        </tr>
+	{% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 {% endblock %}
