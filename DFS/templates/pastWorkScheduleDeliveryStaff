@@ -1,0 +1,68 @@
+{% extends "baseDeliveryStaff.html" %}
+
+{% block content %}
+<h3 class="title" style = "font-size: 300%;  ">
+  Work Schedules
+</h3>
+
+<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+    {% if staffType=="Part_Time" %}
+		<thead class="thead">
+			<tr>
+				<th>Serial Num</th>
+				<th>Shift Date</th>
+				<th>Shift Day</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Number of Deliveries</th>
+				<th>Delivery Fees Earned</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for schedules in schedules_list %}
+			<tr>
+				<td>{{schedules.wws_serialNum}}</td>
+				<td>{{schedules.shift_date}}</td>
+				<td>{{schedules.shift_day}}</td>
+				<td>{{schedules.start_hour}}</td>
+				<td>{{schedules.end_hour}}</td>
+				<td>{{schedules.num_deliveries}}</td>
+				<td>{{schedules.salary_this_shift}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	{% else %}
+		<thead class="thead">
+			<tr>
+				<th>Serial Num</th>
+				<th>Shift Date</th>
+				<th>Shift Day</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Number of Deliveries</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Number of Deliveries</th>
+				<th>Delivery Fees Earned</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for schedules in schedules_list %}
+			<tr>
+				<td>{{schedules.mws_serialNum}}</td>
+				<td>{{schedules.date}}</td>
+				<td>{{schedules.day}}</td>
+				<td>{{schedules.start_a}}</td>
+				<td>{{schedules.end_a}}</td>
+				<td>{{schedules.num_deliveries_a}}</td>
+				<td>{{schedules.start_b}}</td>
+				<td>{{schedules.end_b}}</td>
+				<td>{{schedules.num_deliveries_b}}</td>
+				<td>{{schedules.salary_this_shift}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	{% endif %}
+</table>
+
+{% endblock %}

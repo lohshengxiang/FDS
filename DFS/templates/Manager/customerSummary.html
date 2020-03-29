@@ -5,7 +5,8 @@
     FDS Customer Summary
 </h1>
 
-<form>
+<form method="POST">
+    {{ form.csrf_token }}
     <table class="table" style="margin-left:auto;margin-right:auto;">
         <tbody class="tbody">
             <tr>
@@ -25,6 +26,13 @@
                         {{ form.customer }}
                     </div>
                 </td>
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>
@@ -39,6 +47,14 @@
         </tr>
     </thead>
     <tbody>
+        <tr> 
+            <td style="text-align:center;"> 
+                {{total_orders}}
+            </td>
+            <td style="text-align:center;"> 
+                ${{total_cost}}
+            </td>
+        </tr>
     </tbody>
 
 </table>

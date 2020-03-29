@@ -116,8 +116,9 @@ CREATE TABLE Orders (
 
 INSERT INTO Orders values
 	(1,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-01', '09:01:01', 5,60, null),
-	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', 'West', true, '2020-02-01', '10:01:01', 5,30, null),
-	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', false, '2020-03-01', '12:01:01', 5,30, null);
+	(2,'Customer2', 'Credit Card', 'Blk 456 Jurong East 10 #01-01', '600456', 'West', true, '2020-01-01', '10:01:01', 5,30, null),
+	(3,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', true, '2020-01-01', '17:01:01', 5,30, null),
+	(4,'Customer3', 'Cash', 'Blk 789 Pasir Ris St 7 #01-01', '520789', 'East', false, '2020-03-01', '12:01:01', 5,30, null);
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -140,7 +141,8 @@ INSERT INTO Contain values
 	(1,'Restaurant1', 'Mochi', '1'),
 	(1,'Restaurant1', 'Ramen', '1'),
 	(2,'Restaurant2', 'Dim Sum', '1'),
-	(3,'Restaurant2', 'Dim Sum', '1');
+	(3,'Restaurant2', 'Dim Sum', '1'),
+	(4,'Restaurant2', 'Dim Sum', '1');
 
 CREATE TABLE Delivery_Staff (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
@@ -168,8 +170,9 @@ CREATE TABLE Delivers (
 
 INSERT INTO Delivers values
 	(1,'PartTime1', 5.0, '09:10:00', '09:20:00', '09:25:00', '09:35:00'), 
-	(2,'PartTime2', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00'),
-	(3,'PartTime1', null, null , null, null, null);
+	(2,'FullTime1', 5.0, '10:10:00', '10:20:00', '10:25:00', '10:35:00'),
+	(3,'FullTime1', 5.0, '17:10:00', '17:20:00', '17:25:00', '17:35:00'),
+	(4,'PartTime1', null, null , null, null, null);
 	
 	
 CREATE TABLE Part_Time (
@@ -228,7 +231,7 @@ CREATE TABLE MWS (
 );
 
 INSERT INTO MWS values
-	(1,'FullTime1', 'January', 1, 4, 2020),
+	(1,'FullTime1', 'January', 1, 1, 2020),
 	(2,'FullTime2', 'January', 4, 1, 2020),
 	(3,'FullTime1', 'March', 1, 4, 2020),
 	(4,'FullTime2', 'March', 4, 3, 2020);

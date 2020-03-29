@@ -5,7 +5,8 @@
     FDS Delivery Summary
 </h1>
 
-<form>
+<form method="POST">
+    {{ form.csrf_token }}
     <table class="table" style="margin-left:auto;margin-right:auto;">
         <tbody class="tbody">
             <tr>
@@ -13,6 +14,13 @@
                 <td>
                     <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="date"
                         value="{{ request.form.date }}">
+                </td>
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
                 </td>
             </tr>
         </tbody>
@@ -25,13 +33,23 @@
             <th rowspan="2" style="vertical-align : middle;text-align:center;">Hour</th>
             <th colspan="5" style="text-align:center;">Total Number of Orders Placed</th>
         </tr>
-        <td>North</td>
-        <td>North-East</td>
-        <td>East</td>
-        <td>West</td>
-        <td>Central</td>
+        <th>North</th>
+        <th>North-East</th>
+        <th>East</th>
+        <th>West</th>
+        <th>Central</th>
     </thead>
     <tbody>
+        {% for summary in summary_list %}
+        <tr>
+            <td style="text-align:center;">{{summary.time}}</td>
+            <td style="text-align:center;">{{summary.north}}</td>
+            <td style="text-align:center;">{{summary.north_east}}</td>
+            <td style="text-align:center;">{{summary.east}}</td>
+            <td style="text-align:center;">{{summary.west}}</td>
+            <td style="text-align:center;">{{summary.central}}</td>
+        </tr>
+        {% endfor %}
     </tbody>
 
 </table>
