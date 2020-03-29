@@ -586,8 +586,6 @@ def deliveryStaffSummary():
 
 @view.route("/homeDeliveryStaff", methods = ["GET", "POST"])
 def deliveryStaffHome(): 
-
-
 	return render_template('homeDeliveryStaff.html')
 
 @view.route("/deliveriesDeliveryStaff", methods = ["GET", "POST"])
