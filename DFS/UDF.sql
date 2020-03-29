@@ -19,6 +19,33 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_avgRating
 AFTER UPDATE ON Delivers
 FOR EACH ROW EXECUTE PROCEDURE calculate_avgRating();
+
+DROP FUNCTION if exists get_workers;
+CREATE OR REPLACE FUNCTION get_workers(today_date date, today_time time, today_month text, today_year numeric, day_option1 numeric,
+day_option2 numeric, day_option3 numeric, day_option4 numeric, day_option5 numeric, day_option6 numeric, day_option7 numeric, shift1 numeric,
+shift2 numeric, shift3 numeric, shift4 numeric)
+returns table(available varchar(100)) as $$
+	WITH working_pt as (
+		SELECT distinct duname from WWS where shift_date = today_date and start_hour < today_time and end_hour > today_time
+		), available_pt as (
+		SELECT uname from Delivery_Staff where uname in (select duname from working_PT) and is_delivering = false
+		), working_ft as (
+		SELECT distinct duname from MWS where work_month = today_month and work_year = today_year and day_option in (day_option1, day_option2, day_option3,
+		day_option4, day_option5, day_option6, day_option7) and shift in (shift1, shift2, shift3, shift4)
+		), available_ft as (
+		SELECT uname from Delivery_Staff where uname in (select duname from working_FT) and is_delivering = false
+		), available_union as (
+		SELECT uname, 1 as ord from available_pt union all SELECT uname, 2 as ord from available_ft
+		), orders_today as (
+		SELECT a.uname, a.ord , count(*) as order_count from available_union a join 
+		(select d.orderid, d.duname from Delivers d join Orders o using (orderId) where o.order_date = today_date) u
+		on a.uname = u.duname group by a.uname, a.ord
+		) select uname from orders_today order by order_count, ord
+
+$$ language sql;
+
+--select * from get_workers('2020-03-29','15:26:22','March',2020,0,0,3,4,5,6,7,1,0,3,4);
+
 -- UPDATE Delivers SET rating = 3.0 WHERE orderid = 1;
 -- SELECT * FROM Delivery_Staff;
 

@@ -211,9 +211,11 @@ INSERT INTO WWS values
 insert into wws values (4,'PartTime1','2020-03-25','Wednesday','09:00:00','13:00:00');
 insert into wws values (5,'PartTime1', '2020-03-26', 'Thursday', '14:00:00', '18:00:00');
 insert into wws values (6,'PartTime1', '2020-03-27', 'Friday', '19:00:00', '23:00:00');
+insert into wws values (7,'PartTime1', '2020-03-29', 'Sunday', '15:00:00', '20:00:00');
 insert into wws values (4,'PartTime2', '2020-03-25', 'Wednesday', '10:00:00', '13:00:00');
 insert into wws values (5,'PartTime2', '2020-03-26', 'Thursday', '14:00:00', '18:00:00');
 insert into wws values (6,'PartTime2', '2020-03-27', 'Friday', '19:00:00', '23:00:00');
+insert into wws values (7,'PartTime2', '2020-03-29', 'Sunday', '14:00:00', '18:00:00');
 
 CREATE TABLE MWS (
 	mws_serialNum numeric NOT NULL,
@@ -229,7 +231,7 @@ INSERT INTO MWS values
 	(1,'FullTime1', 'January', 1, 4, 2020),
 	(2,'FullTime2', 'January', 4, 1, 2020),
 	(3,'FullTime1', 'March', 1, 4, 2020),
-	(4,'FullTime2', 'March', 4, 1, 2020);
+	(4,'FullTime2', 'March', 4, 3, 2020);
 
 CREATE TABLE FDS_Manager (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
