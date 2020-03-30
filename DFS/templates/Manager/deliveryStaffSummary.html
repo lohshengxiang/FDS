@@ -13,6 +13,16 @@
                 <th style="vertical-align : middle;"> Filter By: </th>
                 <td>
                     <div class="select">
+                        {{ form.month }}
+                    </div>
+                </td>
+                <td>
+                    <div class="select">
+                        {{ form.year }}
+                    </div>
+                </td>
+                <td>
+                    <div class="select">
                         {{ form.rider }}
                     </div>
                 </td>
@@ -32,17 +42,35 @@
 <table class="table" style="margin-left:auto;margin-right:auto;">
     <thead class="thead">
         <tr>
-            <th>Year</th>
-            <th>Month</th>
             <th>Total Number of Orders Delivered</th>
             <th>Total Number of Hours Worked</th>
             <th>Total Salary Earned</th>
-            <th>Average Delivery Time</th>
+            <th>Average Delivery Time (min)</th>
             <th>Number of Ratings Received</th>
             <th>Average Rating Received</th>
         </tr>
     </thead>
     <tbody>
+        <tr> 
+            <td style="text-align:center;"> 
+                {{numOrders}}
+            </td>
+            <td style="text-align:center;"> 
+                {{totalHours}}
+            </td>
+            <td style="text-align:center;"> 
+                ${{totalSalary}}
+            </td>
+            <td style="text-align:center;"> 
+                {{avgDeliveryTime}}
+            </td>
+            <td style="text-align:center;"> 
+                {{numRatings}}
+            </td>
+            <td style="text-align:center;"> 
+                {{ "%.2f"|format(avgRating) }}
+            </td>
+        </tr>
     </tbody>
 
 </table>

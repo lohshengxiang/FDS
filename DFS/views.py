@@ -35,7 +35,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -577,10 +577,157 @@ def deliveryStaffSummary():
 
 	form.rider.choices = [(r, r) for r in dstaff_list]
 
-	if form.validate_on_submit() and request.method == "POST":
-		uname = form.year.rider
+	numOrders = 0 
+	totalHours = 0
+	totalSalary = 0 #num of orders x flat rate + base salary
+	avgDeliveryTime = 0 
+	numRatings = 0
+	avgRating = 0
 
-	return render_template('Manager/deliveryStaffSummary.html', form = form)
+	if form.validate_on_submit() and request.method == "POST":
+		uname = form.rider.data
+		month = form.month.data
+		year = form.year.data
+
+		#num of orders delivered  
+		query = '''SELECT count(*) FROM Delivers D join Orders O on D.orderId = O.orderId WHERE 
+					D.duname =%s and EXTRACT(YEAR FROM O.order_date) = %s and EXTRACT(MONTH FROM O.order_date) = %s'''
+		cur.execute(query, (uname,year,month))
+		numOrders = cur.fetchone()
+		if numOrders is None: 
+			numOrders = 0
+		else: 
+			numOrders = numOrders[0]
+
+		#average delivery time - but only works if arive customer time exists
+		queryTimeDiff = '''SELECT DATE_PART('hour', D.arrive_customer ::time - O.order_time::time) * 60 + DATE_PART('minute', D.arrive_customer ::time - O.order_time::time) FROM Orders O join Delivers D on O.orderId = D.orderId WHERE
+				D.duname = %s and EXTRACT(YEAR FROM O.order_date) = %s and EXTRACT(MONTH FROM O.order_date) = %s'''
+		cur.execute(queryTimeDiff, (uname, year, month))
+		timediff = cur.fetchall()
+		time_list = []
+		totalTime = 0
+
+		for row in timediff: 
+			time_list.append(row[0])
+
+		x = 0 
+		while x < len(time_list):
+			totalTime += time_list[x]
+			x += 1
+		
+		if numOrders != 0: 
+			avgDeliveryTime = totalTime / numOrders
+		else: 
+			avgDeliveryTime = 0 
+			
+		#total salary earned
+		if numOrders != 0:  
+			query2 = '''SELECT flat_rate FROM Part_Time WHERE duname =%s'''
+			cur.execute(query2, (uname,))
+			flat_rate = cur.fetchone()
+			if flat_rate is None: 
+				flat_rate = 4
+			else: 
+				flat_rate = flat_rate[0]
+			totalSalary = numOrders * flat_rate
+		query3 = '''SELECT base_salary FROM Part_Time WHERE duname =%s'''
+		cur.execute(query3, (uname,))
+		base_salary = cur.fetchone()
+		if base_salary is None: 
+			base_salary = 1000
+		else: 
+			base_salary = base_salary[0]
+		totalSalary += base_salary
+
+		#total hours worked
+		month = (int)(form.month.data)
+		year = (int)(form.year.data)
+		checkPartTime = "SELECT * FROM Part_Time WHERE duname = %s"
+		cur.execute(checkPartTime, (uname,))
+		if len(cur.fetchall()) != 0:
+			num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+			
+			#first week
+			start_of_week = datetime(year, month, 1) - timedelta(days=datetime(year, month, 1).weekday())  # Monday
+			end_of_week = start_of_week + timedelta(days=6)  # Sunday
+			
+			for i in range(5):
+				#havent display all dates of week
+				if datetime(year, month, num_days_in_month) > end_of_week:
+					#second week to forth/fifth week
+					if i != 0:
+						start_of_week = end_of_week + timedelta(days=1) #monday
+						end_of_week = start_of_week + timedelta(days=6) #sunday
+
+					totalHoursQuery = '''SELECT start_hour, end_hour FROM wws WHERE duname = %s and shift_date>= %s and shift_date <= %s'''
+					cur.execute(totalHoursQuery, (uname, start_of_week, end_of_week))
+					start_end = cur.fetchall()
+					numHours = 0
+					for row in start_end:
+						numHours += (int)(row[1].strftime("%H:%M:%S")[:2]) - (int)(row[0].strftime("%H:%M:%S")[:2])
+				totalHours += numHours
+
+		checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
+		cur.execute(checkFullTime, (uname,))
+		if len(cur.fetchall()) != 0:
+			obj_month = datetime.strptime(form.month.data, "%m")
+			num_days_in_month = calendar.monthrange((int)(year), (int)(month))[1]
+
+			ifExistQuery = "SELECT * FROM MWS WHERE duname = %s and work_month = %s and work_year = %s"
+			cur.execute(ifExistQuery, (uname, obj_month.strftime("%B"), Decimal(str(year))))
+				
+			start_of_month = datetime(year, month, 1)
+			end_of_month = datetime(year, month, num_days_in_month)
+				
+			#means you work that month
+			if cur.fetchone() is not None and datetime.now().strftime("%Y-%m-%d") > end_of_month.strftime("%Y-%m-%d"):
+					
+				numQuery ='''SELECT count(*) FROM Delivers d JOIN Orders o ON o.orderId = d.orderId WHERE
+								o.order_date >= %s and o.order_date <= %s GROUP BY d.duname HAVING d.duname = %s '''
+				cur.execute(numQuery, (start_of_month, end_of_month, uname))
+				numDeliveries = cur.fetchone()
+				if numDeliveries == None:
+					numDeliveries = 0
+				else:
+					numDeliveries = numDeliveries[0]
+
+				totalDays = 0
+
+				dayOptionQuery = "SELECT day_option FROM MWS WHERE duname = %s and work_month = %s and work_year = %s"
+				cur.execute(dayOptionQuery, (uname, obj_month.strftime("%B") , Decimal(str(year))))
+				option = cur.fetchone()[0]
+
+				for i in range(num_days_in_month):
+					#increase day
+					if i !=0:
+						start_of_month += timedelta(days=1)
+						
+					if start_of_month.weekday() != (option+4)%7 and start_of_month.weekday() != (option+5)%7 :
+						totalDays += 1
+
+				totalHours = 8 * totalDays
+
+		#num of ratings received
+		query5 = '''SELECT count(*) FROM Delivers D join Orders O on D.orderId = O.orderId WHERE D.duname =%s 
+						and EXTRACT(YEAR FROM O.order_date) = %s and EXTRACT(MONTH FROM O.order_date) = %s'''
+		cur.execute(query5, (uname,year,month))
+		numRatings = cur.fetchone()[0]
+		if numRatings is None: 
+			numRatings = 0 
+
+		#average rating for that month
+		query6 = '''SELECT avg(rating) FROM Delivers D join Orders O on D.orderId = O.orderId WHERE D.duname =%s 
+						and EXTRACT(YEAR FROM O.order_date) = %s and EXTRACT(MONTH FROM O.order_date) = %s'''
+		cur.execute(query6, (uname,year,month))
+		avgRating = cur.fetchone()[0]
+		if avgRating is None: 
+			avgRating = 0
+
+		return render_template('Manager/DeliveryStaffSummary.html', form = form, numOrders = numOrders, totalHours = totalHours, totalSalary = totalSalary, 
+				avgDeliveryTime = avgDeliveryTime, numRatings = numRatings, avgRating = avgRating)
+
+	return render_template('Manager/deliveryStaffSummary.html', form = form, numOrders = numOrders, totalHours = totalHours, totalSalary = totalSalary, 
+				avgDeliveryTime = avgDeliveryTime, numRatings = numRatings, avgRating = avgRating)
 
 # END OF MANAGER VIEW ROUTES
 
