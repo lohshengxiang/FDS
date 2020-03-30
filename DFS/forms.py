@@ -121,3 +121,8 @@ class ScheduleFormPT(FlaskForm):
 class ScheduleFormFT(FlaskForm):
     day_option = SelectField('day_option', choices = [("1", "Monday to Friday"),("2", "Tuesday to Saturday"),("3", "Wednesday to Sunday"),("4", "Thursday to Monday"),("5", "Friday to Tuesday"),("6", "Saturday to Wednesday"),("7", "Sunday to Thursday")])
     shift_option = SelectField('shift_option', choices = [("1", "10am to 2pm and 3pm to 7pm"),("2", "11am to 3pm and 4pm to 8pm"),("3", "12pm to 4pm and 5pm to 9pm"),("4", "1pm to 5pm and 6pm to 10pm")])
+
+class RestaurantFilterForm(FlaskForm):
+    month = SelectField('month', choices = [("01", "Jan"),("02","Feb"),("03","Mar"),("04","Apr"),("05","May"),("06","June"),("07","July"),("08","Aug"),("09","Sept"),("10","Oct"),("11","Nov"),("12","Dec")])
+    year = SelectField('year', choices = [('2020', '2020'), ('2021', '2021'), ('2022', '2022'), ('2023', '2023'), ('2024', '2024'), ('2025', '2025')])
+     

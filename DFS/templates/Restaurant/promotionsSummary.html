@@ -1,0 +1,40 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    Promotions Summary
+</h1>
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Promo Code</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Duration (Days)</th>
+            <th>Total No. Of Orders</th>
+            <th>Average No. Of Orders per Day</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for promos in promotions_list %}
+        <tr>
+            <td>{{promos.promoCode}}</td>
+            <td>{{promos.start_date}}</td>
+            <td>{{promos.end_date}}</td>
+            <td>{{promos.duration}}</td>
+            <td>{{promos.totalOrders}}</td>
+            <td>{{promos.avgOrders}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeRestaurant">
+        Back
+    </a>
+</div>
+
+{% endblock %}

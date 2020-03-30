@@ -1,0 +1,63 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    Top 5 Food Items
+</h1>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <th style="vertical-align : middle;"> Filter By: </th>
+                <td>
+                    <div class="select">
+                        {{ form.month }}
+                    </div>
+                </td>
+                <td>
+                    <div class="select">
+                        {{ form.year }}
+                    </div>
+                </td>
+                
+                <td>
+                    <div class="buttons has-addons is-centered">
+                        <button type="submit" class="button is-block is-danger is-normal">
+                            Filter
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Food Item</th>
+            <th>No. of Orders</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for contains in contains_list %}
+        <tr>
+            <td>{{contains.fname}}</td>
+            <td>{{contains.totalOrders}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeRestaurant">
+        Back
+    </a>
+</div>
+
+{% endblock %}

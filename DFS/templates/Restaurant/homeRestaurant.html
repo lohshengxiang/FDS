@@ -1,0 +1,50 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Restaurant Home Page
+</h1>
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.username }}!
+</h2>
+
+<div class="columns">
+    <div class="column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Top 5 Favourite Food Items </b></h5>
+                    <p class="card-text"></p>
+                    <br>
+                    <a href="/homeRestaurant/ViewTop5" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Completed Orders Summary </b></h5>
+                    <p class="card-text"></p>
+                    <br>
+                    <a href="/homeRestaurant/CompletedOrdersSummary" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "column is-one-third">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Promotions Summary </b></h5>
+                    <p class="card-text"></p>
+                    <br>
+                    <a href="/homeRestaurant/PromotionsSummary" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

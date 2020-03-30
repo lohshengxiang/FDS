@@ -6,12 +6,16 @@ from forms import LoginForm, RegistrationForm, OrderForm, RestaurantForm, \
 PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
 CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm, FilterGeneralSummaryForm, \
-FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT, ScheduleFormFT
+FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT, ScheduleFormFT, \
+RestaurantFilterForm
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from cryptography.fernet import Fernet
 from decimal import Decimal
 import calendar
+import logging
+from http.cookiejar import logger
+logging.basicConfig(level=logging.DEBUG)
 
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)
@@ -35,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -82,7 +86,8 @@ class Promotion():
 	promoId = None
 	start_date = None
 	end_date = None
-	message = None	
+	name = None	
+	promoCode = None
 
 class DeliverySummary(): 
 	north = None
@@ -91,6 +96,23 @@ class DeliverySummary():
 	west = None
 	central = None
 	time = None
+
+class Contains():
+	fname = None
+	totalOrders = None
+
+class CompletedOrdersSummary():
+	totalOrders = None
+	totalCost = 0
+
+class PromotionsSummary():
+	promoCode = None
+	start_date = None
+	end_date = None
+	duration = None
+	totalOrders = None
+	avgOrders = None
+
 
 # class Shift():
 # 	shift_a_start = None
@@ -201,7 +223,7 @@ def home():
 # START OF RESTAURANT VIEW ROUTES
 @view.route("/homeRestaurant", methods = ["GET","POST"])
 def homePage():
-	return render_template('homeRestaurant.html')
+	return render_template('Restaurant/homeRestaurant.html')
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
@@ -229,7 +251,7 @@ def menuPage():
 		foodItem.availability = availability_rows[x]
 		foodItem_list.append(foodItem)
 
-	return render_template('menuRestaurant.html', foodItem_list = foodItem_list)
+	return render_template('Restaurant/menuRestaurant.html', foodItem_list = foodItem_list)
 
 @view.route("/addFoodItem", methods = ["POST"])
 def addFoodItem():
@@ -247,7 +269,7 @@ def addFoodItem():
 		conn.commit() 
 		#flash('New food item added!')
 		return redirect("/menuRestaurant")
-	return render_template('addFoodItem.html', form = form)
+	return render_template('Restaurant/addFoodItem.html', form = form)
 
 @view.route("/delete_foodItem/<string:fname>", methods=["POST"])
 def delete_foodItem(fname): 
@@ -257,7 +279,7 @@ def delete_foodItem(fname):
 
 @view.route("/adminRestaurant", methods = ["GET", 'POST'])
 def adminRestaurant(): 
-	return render_template('adminRestaurant.html')
+	return render_template('Restaurant/adminRestaurant.html')
 
 @view.route("/adminRestaurant/managePromotions", methods = ["GET", "POST"])
 def manageRestaurantPromotions():
@@ -269,29 +291,131 @@ def manageRestaurantPromotions():
 	promoid_rows = []
 	start_date_rows = []
 	end_date_rows = []
-	message_rows = []
+	name_rows = []
+	promoCode_rows = []
 
 	for row in promos:
 		promoid_rows.append(row[0])
 		start_date_rows.append(row[1])
 		end_date_rows.append(row[2])
-		message_rows.append(row[3])
+		name_rows.append(row[3])
+		promoCode_rows.append(row[4])
 
 	for x in range(len(promoid_rows)):
 		promotion = Promotion()
 		promotion.promoId = promoid_rows[x]
 		promotion.start_date = start_date_rows[x]
 		promotion.end_date = end_date_rows[x]
-		promotion.message = message_rows[x]
+		promotion.name = name_rows[x]
+		promotion.promoCode = promoCode_rows[x]
 		promos_list.append(promotion)
 
-	return render_template('managePromotions.html', promos_list = promos_list)
+	return render_template('Restaurant/managePromotions.html', promos_list = promos_list)
+
+@view.route("/adminRestaurant/managePromotions/createPromotion", methods = ["GET", "POST"])
+def createRestaurantPromo():
+	form = CreatePromoForm()
+	if form.validate_on_submit() and request.method == "POST":
+		promoId = form.promoId.data
+		promoCode = form.promoCode.data
+		start_date = form.start_date.data
+		end_date = form.end_date.data
+		name = form.name.data
+		query = "INSERT INTO Promotion VALUES (%s,%s,%s,%s,%s, %s)"
+		cur.execute(query, (promoId, start_date, end_date, name, promoCode, current_user.username,))
+
+		conn.commit() 
+		return redirect("/adminRestaurant/managePromotions")
+	return render_template('Restaurant/createRestaurantPromotion.html', form = form)
 
 @view.route("/delete_restaurant_promo/<string:id>", methods=["POST"])
 def delete_restaurant_promo(id): 
-	cur.execute("DELETE FROM Promotion WHERE uname = %s", [id])
+	cur.execute("DELETE FROM Promotion WHERE promoid = %s", [id])
 	conn.commit()
-	return redirect(url_for('view.managePromotions'))
+	return redirect(url_for('view.manageRestaurantPromotions'))
+
+@view.route("/homeRestaurant/ViewTop5", methods =["GET", "POST"])
+def viewTop5():
+	username = current_user.username
+	form = RestaurantFilterForm()
+	contains_list = []
+	fname_rows = []
+	total_orders_rows = []
+
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.year.data
+		query = "SELECT fname, count(fname) FROM Contain NATURAL JOIN Orders WHERE EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s and runame = %s GROUP BY(fname) ORDER BY count(fname) DESC LIMIT 5"
+		cur.execute(query, (year,month, username))
+		contains = cur.fetchall()
+		print(len(contains), flush=True)
+		
+		for row in contains:
+			fname_rows.append(row[0])
+			total_orders_rows.append(row[1])
+		
+		for x in range(len(fname_rows)):
+			contain = Contains() 
+			contain.fname = fname_rows[x]
+			contain.totalOrders = total_orders_rows[x]
+			contains_list.append(contain)
+
+	return render_template('Restaurant/viewTop5.html', form = form, contains_list = contains_list)
+
+@view.route("/homeRestaurant/CompletedOrdersSummary", methods =["GET", "POST"])
+def CompletedOrdersSummary():
+	username = current_user.username
+	form = RestaurantFilterForm()
+	total_completedOrders = 0
+	total_cost = 0
+	
+
+	if form.validate_on_submit() and request.method == "POST":
+		month = form.month.data
+		year = form.year.data
+		query = "SELECT count(orderid) AS totalOrders, COALESCE(SUM(price), 0)  AS totalCost FROM (Food NATURAL JOIN Contain) NATURAL JOIN Orders WHERE EXTRACT(YEAR FROM order_date) = %s and EXTRACT(MONTH FROM order_date) = %s and runame = %s and is_delivered = 'True'"
+		cur.execute(query, (year,month, username))
+		completedOrders = cur.fetchone()
+
+		total_completedOrders = completedOrders[0]
+		total_cost = completedOrders[1]
+
+	return render_template('Restaurant/completedOrdersSummary.html', form = form, total_completedOrders = total_completedOrders, total_cost = total_cost)
+
+@view.route("/homeRestaurant/PromotionsSummary", methods =["GET", "POST"])
+def Promotions():
+	username = current_user.username
+	promotions_list = []
+	query = "SELECT p.promocode, start_date, end_date, count(orderid) AS numOrders FROM Promotion p, (SELECT DISTINCT runame, o.promocode, o.orderid FROM Orders o, Contain c WHERE c.orderid = o.orderid AND runame = %s) AS x where p.promocode = x.promocode AND x.runame = p.runame GROUP BY (p.promoCode, start_date, end_date)"
+	cur.execute(query,(username,)) 
+	promotions = cur.fetchall()
+	promoCode_rows = []
+	start_date_rows = []
+	end_date_rows = []
+	duration_rows = []
+	totalOrders_rows = []
+	avgOrders_rows = []
+
+	for rows in promotions:
+		promoCode_rows.append(rows[0])
+		start_date_rows.append(rows[1])
+		end_date_rows.append(rows[2])
+		totalOrders_rows.append(rows[3])
+
+	for x in range(len(promoCode_rows)):
+		promo = PromotionsSummary()
+		promo.promoCode = promoCode_rows[x]
+		promo.start_date = start_date_rows[x]
+		promo.end_date = end_date_rows[x]
+		delta = (end_date_rows[x]) - (start_date_rows[x]) 
+		days = delta.days + 1
+		promo.duration = days
+		orders = totalOrders_rows[x]
+		promo.totalOrders = orders
+		promo.avgOrders = round((orders/days),2)
+		promotions_list.append(promo)
+
+	return render_template('Restaurant/promotionsSummary.html', promotions_list = promotions_list)
 
 # END OF RESTAURANT VIEW ROUTES
 

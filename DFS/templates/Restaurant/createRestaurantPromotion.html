@@ -1,0 +1,58 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    Create New Restaurant Promotion
+</h1>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <table class="table" style="margin-left:auto;margin-right:auto;">
+        <tbody class="tbody">
+            <tr>
+                <td><b> Promotion ID </b></td>
+                <td>
+                    <input class="input" type="number" placeholder="1" name="promoId"
+                        value="{{ request.form.promoId }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Promotion Name </b></td>
+                <td>
+                    <input class="input" type="text" placeholder="eg. 10% off" name="name"
+                        value="{{ request.form.name }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Promotion Code </b></td>
+                <td>
+                    <input class="input" type="text" placeholder="eg. 10OFF" name="promoCode"
+                        value="{{ request.form.promoCode }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> Start Date </b></td>
+                <td>
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="start_date"
+                        value="{{ request.form.start_date }}">
+                </td>
+            </tr>
+            <tr>
+                <td><b> End Date </b></td>
+                <td>
+                    <input class="input" type="date" min="2020-01-01" max="2025-12-01" name="end_date"
+                        value="{{ request.form.end_date }}">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+        <div class="buttons has-addons is-centered">
+            <button type="submit" class="button is-block is-danger is-normal">
+                Create
+            </button>
+        </div>
+
+</form>
+
+{% endblock %}

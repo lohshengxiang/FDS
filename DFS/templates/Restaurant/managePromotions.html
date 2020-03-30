@@ -1,4 +1,4 @@
-{% extends "adminRestaurant.html" %}
+{% extends "baseRestaurant.html" %}
 
 {% block content %}
 <h1 class="title" style = "font-size: 300%;  ">
@@ -10,8 +10,9 @@
             <th>Promotion ID</th>
             <th>Start Date</th>
             <th>End Date</th>
-            <th>Message</th>
-            <th>Delete?</th>
+            <th>PromoCode</th>
+            <th>Name</th>
+            <th>Delete?</th> 
         </tr>
     </thead>
     <tbody>
@@ -20,7 +21,8 @@
             <td>{{promo.promoId}}</td>
             <td>{{promo.start_date}}</td>
             <td>{{promo.end_date}}</td>
-            <td>{{promo.message}}</td>
+            <td>{{promo.promoCode}}</td>
+            <td>{{promo.name}}</td>
             <td style="text-align: center;">
                 <form action="{{url_for('view.delete_restaurant_promo', id=promo.promoId)}}" method="post"> 
                     <input type="hidden" name="_method" value="DELETE">
