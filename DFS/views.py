@@ -1811,7 +1811,6 @@ def order_confirm(rname):
 
 	if form.validate_on_submit():
 		today_now = datetime.now() #+ timedelta(hours = 14) #use this if u doing this at night lol
-
 		#settle Orders start
 		try:
 			address = new_address[0]
@@ -1940,18 +1939,21 @@ def order_confirm(rname):
 		#testing end
 
 		if len(available_list) > 0:
+			try:
+				query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
+						VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+				cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
+				conn.commit()
 
-			query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
-					VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-			cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
-			conn.commit()
+				query = '''INSERT INTO Delivers(orderId,duname) VALUES (%s,%s)'''
+				cur.execute(query, (newid, available_list[0]))
+				conn.commit()
 
-			query = '''INSERT INTO Delivers(orderId,duname) VALUES (%s,%s)'''
-			cur.execute(query, (newid, available_list[0]))
-			conn.commit()
+				query = '''UPDATE Delivery_Staff SET is_delivering = True where uname = %s'''
+				cur.execute(query, (available_list[0],))
 
-			query = '''UPDATE Delivery_Staff SET is_delivering = True where uname = %s'''
-			cur.execute(query, (available_list[0],))
+			except:
+				return render_template("orders_timing_failed.html", test = test)
 		else:
 			return render_template("order_failed.html", test = test)
 

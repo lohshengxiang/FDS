@@ -136,7 +136,7 @@ CREATE TABLE Contain (
 	orderId numeric,
 	runame varchar(100),
 	fname varchar(100),
-    quantity varchar(100),
+    quantity numeric,
 	PRIMARY KEY(orderId, runame, fname),
 	FOREIGN KEY(orderId) REFERENCES Orders,
 	FOREIGN KEY(runame, fname) REFERENCES Food	
