@@ -1,4 +1,4 @@
--- trigger for when a customer adds a rating for delivery staff
+-- trigger for when a customer adds a rating for delivery staff -> calculate avg driver rating
 DROP TRIGGER IF EXISTS update_avgRating ON Delivery_Staff CASCADE;
 DROP FUNCTION IF EXISTS calculate_avgRating CASCADE;
 
@@ -20,6 +20,83 @@ CREATE TRIGGER update_avgRating
 AFTER UPDATE ON Delivers
 FOR EACH ROW EXECUTE PROCEDURE calculate_avgRating();
 
+
+-- trigger for when food is delivered, is_delivering = false for Delivery driver
+DROP TRIGGER IF EXISTS update_is_delivering ON Delivery_Staff CASCADE;
+DROP FUNCTION IF EXISTS set_is_delivering CASCADE;
+
+CREATE OR REPLACE FUNCTION set_is_delivering()
+RETURNS TRIGGER AS $$ DECLARE driver_uname varchar;
+BEGIN
+
+SELECT d.duname INTO driver_uname
+FROM Delivers d JOIN Orders o USING (orderid)
+WHERE d.orderid = NEW.orderid
+LIMIT 1;
+
+
+UPDATE Delivery_Staff d SET is_delivering = false WHERE d.uname = driver_uname;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+ CREATE TRIGGER update_is_delivering
+ AFTER UPDATE ON Orders
+ FOR EACH ROW EXECUTE PROCEDURE set_is_delivering();
+
+-- trigger to check if order_limit has reached
+DROP TRIGGER IF EXISTS check_food_maxLimit ON Orders CASCADE;
+DROP FUNCTION IF EXISTS change_availability CASCADE;
+
+CREATE OR REPLACE FUNCTION change_availability()
+RETURNS TRIGGER AS $$ DECLARE current_order_limit numeric;
+BEGIN
+
+SELECT order_limit INTO current_order_limit
+FROM Food f
+WHERE f.fname = NEW.fname AND f.runame = NEW.runame;
+
+UPDATE Food f SET order_limit = current_order_limit - NEW.quantity WHERE f.fname = NEW.fname AND f.runame = NEW.runame;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_food_maxLimit
+AFTER INSERT ON Contain
+FOR EACH ROW EXECUTE PROCEDURE change_availability();
+
+-- INSERT INTO Orders values (10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '09:01:01', 5,180, null);
+-- INSERT INTO contain values (10,'Restaurant1', 'Sushi', '9');
+-- select * from food;
+-- select * from contain;
+
+ -- trigger to ensure orders are not added in between 10pm - 10am
+DROP TRIGGER IF EXISTS check_order_timing ON Orders CASCADE;
+DROP FUNCTION IF EXISTS order_timing CASCADE;
+
+CREATE OR REPLACE FUNCTION order_timing()
+RETURNS TRIGGER AS $$ DECLARE current_orderTime time;
+BEGIN
+
+IF NEW.order_time < '10:00:00' OR new.order_time >= '22:00:00' THEN
+	RAISE EXCEPTION 'Our delivery service is not available.';
+ELSE
+	RETURN NEW;
+END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_order_timing
+BEFORE INSERT ON Orders
+FOR EACH ROW EXECUTE PROCEDURE order_timing();
+
+--test
+-- INSERT INTO Orders values
+-- (10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '10:00:00', 5,20, '10OFF');
+
+--Function to assign workers when order is inserted
+
 DROP FUNCTION if exists get_workers;
 CREATE OR REPLACE FUNCTION get_workers(today_date date, today_time time, today_month text, today_year numeric, day_option1 numeric,
 day_option2 numeric, day_option3 numeric, day_option4 numeric, day_option5 numeric, day_option6 numeric, day_option7 numeric, shift1 numeric,
@@ -37,50 +114,13 @@ returns table(available varchar(100)) as $$
 		), available_union as (
 		SELECT uname, 1 as ord from available_pt union all SELECT uname, 2 as ord from available_ft
 		), orders_today as (
-		SELECT a.uname, a.ord , count(*) as order_count from available_union a join 
+		SELECT a.uname, a.ord , count(*) as order_count from available_union a left join 
 		(select d.orderid, d.duname from Delivers d join Orders o using (orderId) where o.order_date = today_date) u
 		on a.uname = u.duname group by a.uname, a.ord
 		) select uname from orders_today order by order_count, ord
 
 $$ language sql;
 
---select * from get_workers('2020-03-29','15:26:22','March',2020,0,0,3,4,5,6,7,1,0,3,4);
-
--- UPDATE Delivers SET rating = 3.0 WHERE orderid = 1;
--- SELECT * FROM Delivery_Staff;
-
--- trigger for when order is submitted -> add a row in Delivers
--- DROP TRIGGER IF EXISTS assign_deliveryStaff ON Delivers CASCADE;
--- DROP FUNCTION IF EXISTS find_deliveryStaff CASCADE;
-
--- CREATE OR REPLACE FUNCTION find_deliveryStaff()
--- RETURNS TRIGGER AS $$ DECLARE delivery_staff varchar;
--- BEGIN
--- RAISE NOTICE 'TRIGGER CALLED'
 
 
--- SELECT duname INTO delivery_staff 
--- FROM WWS w, Delivery_Staff d
--- WHERE w.duname = d.duname AND is_delivering = false AND 
--- NEW.order_date = w.shift_date AND
--- NEW.order_time > w.start_hour AND 
--- NEW.order_time < w.end_hour
--- LIMIT 1;
 
--- IF delivery_staff IS NULL THEN
--- RAISE NOTICE 'MWS';
--- SELECT duname INTO delivery_staff 
--- FROM MWS m, Delivery_Staff d
--- WHERE m.duname = d.duname AND is_delivering = false AND 
--- NEW.order_date = w.shift_date AND
--- NEW.order_time > w.start_hour AND 
--- NEW.order_time < w.end_hour;
-
--- INSERT INTO Delivers VALUES (NEW.orderId, NEW.duname, 0, null, null, null, null);
--- RETURN NULL;
--- END;
--- $$ LANGUAGE plpgsql;
-
--- CREATE TRIGGER assign_deliveryStaff
--- AFTER INSERT ON Orders
--- FOR EACH ROW EXECUTE PROCEDURE find_deliveryStaff();

@@ -136,7 +136,7 @@ CREATE TABLE Contain (
 	orderId numeric,
 	runame varchar(100),
 	fname varchar(100),
-    quantity varchar(100),
+    quantity numeric,
 	PRIMARY KEY(orderId, runame, fname),
 	FOREIGN KEY(orderId) REFERENCES Orders,
 	FOREIGN KEY(runame, fname) REFERENCES Food	
@@ -230,6 +230,8 @@ insert into wws values (4,'PartTime2', '2020-03-25', 'Wednesday', '10:00:00', '1
 insert into wws values (5,'PartTime2', '2020-03-26', 'Thursday', '14:00:00', '18:00:00');
 insert into wws values (6,'PartTime2', '2020-03-27', 'Friday', '19:00:00', '23:00:00');
 insert into wws values (7,'PartTime2', '2020-03-29', 'Sunday', '14:00:00', '18:00:00');
+insert into wws values (8,'PartTime1', '2020-04-03', 'Friday', '17:00:00', '22:00:00');
+insert into wws values (8,'PartTime2', '2020-04-03', 'Friday', '17:00:00', '22:00:00');
 
 CREATE TABLE MWS (
 	mws_serialNum numeric NOT NULL,
@@ -246,6 +248,8 @@ INSERT INTO MWS values
 	(1,'FullTime2', 'January', 4, 1, 2020),
 	(2,'FullTime1', 'March', 1, 4, 2020),
 	(2,'FullTime2', 'March', 4, 3, 2020);
+	(3,'FullTime1', 'April', 1, 4, 2020);
+	(3,'FullTime2', 'March', 4, 3, 2020);
 
 CREATE TABLE FDS_Manager (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
