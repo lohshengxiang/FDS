@@ -16,6 +16,13 @@
                         value="{{ request.form.quantity }}">
                 </td>
             </tr>
+            <!-- <input checked type="checkbox" name="isAvail" value="{{ form.availability }}">
+            <label for="isAvail">Set item to Available?</label><br><br> -->
+
+            <label class="checkbox is-medium">
+                {{ form.availability }}
+                Set item to Available?
+            </label>
             
         </tbody>
     </table>

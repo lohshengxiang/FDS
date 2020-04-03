@@ -135,4 +135,5 @@ class RestaurantFilterForm(FlaskForm):
 
 class ChangeQuantityForm(FlaskForm):
     quantity = DecimalField('quantity', places=0, rounding=None, validators = [InputRequired(message = 'Input is required')])
+    availability = BooleanField('Availability', default = True)
     

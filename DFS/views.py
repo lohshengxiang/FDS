@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -285,11 +285,13 @@ def delete_foodItem(fname):
 def update_foodItem(fname):
 	username = current_user.username
 	logging.debug("Update method2")
-	form = ChangeQuantityForm() 
+	form = ChangeQuantityForm()
+
 	if form.validate_on_submit() and request.method == "POST":
 		logging.debug("Entered if")
 		quantity = form.quantity.data
-		cur.execute("UPDATE Food SET order_limit = %s WHERE fname = %s AND runame = %s", (quantity, fname, username))
+		availability = form.availability.data
+		cur.execute("UPDATE Food SET order_limit = %s, availability = %s WHERE fname = %s AND runame = %s", (quantity, availability, fname, username))
 		conn.commit()
 		return redirect("/menuRestaurant")
 
