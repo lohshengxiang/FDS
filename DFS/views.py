@@ -1953,9 +1953,9 @@ def order_confirm(rname):
 				cur.execute(query, (available_list[0],))
 
 			except:
-				return render_template("orders_timing_failed.html", test = test)
+				return render_template("orders_timing_failed.html", test = "")
 		else:
-			return render_template("order_failed.html", test = test)
+			return render_template("order_failed.html", test = "")
 
 		#settle insert into Deliver end
 

@@ -65,10 +65,10 @@ CREATE TRIGGER check_food_maxLimit
 AFTER INSERT ON Contain
 FOR EACH ROW EXECUTE PROCEDURE change_availability();
 
-INSERT INTO Orders values (10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '09:01:01', 5,180, null);
-INSERT INTO contain values (10,'Restaurant1', 'Sushi', '9');
-select * from food;
-select * from contain;
+-- INSERT INTO Orders values (10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '09:01:01', 5,180, null);
+-- INSERT INTO contain values (10,'Restaurant1', 'Sushi', '9');
+-- select * from food;
+-- select * from contain;
 
  -- trigger to ensure orders are not added in between 10pm - 10am
 DROP TRIGGER IF EXISTS check_order_timing ON Orders CASCADE;
@@ -92,14 +92,11 @@ BEFORE INSERT ON Orders
 FOR EACH ROW EXECUTE PROCEDURE order_timing();
 
 --test
-INSERT INTO Orders values
-(10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '10:00:00', 5,20, '10OFF');
-
-
-
+-- INSERT INTO Orders values
+-- (10,'Customer1', 'Cash', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-01-03', '10:00:00', 5,20, '10OFF');
 
 --Function to assign workers when order is inserted
-DROP TRIGGER IF EXISTS check_if_workers_avail ON Orders CASCADE;
+
 DROP FUNCTION if exists get_workers;
 CREATE OR REPLACE FUNCTION get_workers(today_date date, today_time time, today_month text, today_year numeric, day_option1 numeric,
 day_option2 numeric, day_option3 numeric, day_option4 numeric, day_option5 numeric, day_option6 numeric, day_option7 numeric, shift1 numeric,
@@ -117,9 +114,13 @@ returns table(available varchar(100)) as $$
 		), available_union as (
 		SELECT uname, 1 as ord from available_pt union all SELECT uname, 2 as ord from available_ft
 		), orders_today as (
-		SELECT a.uname, a.ord , count(*) as order_count from available_union a join 
+		SELECT a.uname, a.ord , count(*) as order_count from available_union a left join 
 		(select d.orderid, d.duname from Delivers d join Orders o using (orderId) where o.order_date = today_date) u
 		on a.uname = u.duname group by a.uname, a.ord
 		) select uname from orders_today order by order_count, ord
 
 $$ language sql;
+
+
+
+
