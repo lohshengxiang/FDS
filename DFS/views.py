@@ -1066,26 +1066,38 @@ def update_departRestaurant(orderId):
 
 @view.route("/update_arriveRestaurant/<string:orderId>", methods=["POST"])
 def update_arriveRestaurant(orderId): 
-	cur.execute("UPDATE Delivers SET arrive_restaurant = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
-	conn.commit()
+	checkQuery = "SELECT depart_restaurant FROM Delivers WHERE orderId = %s"
+	cur.execute(checkQuery, (orderId,))
+	if cur.fetchone() != None:
+		cur.execute("UPDATE Delivers SET arrive_restaurant = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+		conn.commit()
 	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
 
 @view.route("/update_departCustomer/<string:orderId>", methods=["POST"])
 def update_departCustomer(orderId): 
-	cur.execute("UPDATE Delivers SET depart_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
-	conn.commit()
+	checkQuery = "SELECT arrive_restaurant FROM Delivers WHERE orderId = %s"
+	cur.execute(checkQuery, (orderId,))
+	if cur.fetchone() != None:
+		cur.execute("UPDATE Delivers SET depart_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+		conn.commit()
 	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
 
 @view.route("/update_arriveCustomer/<string:orderId>", methods=["POST"])
 def update_arriveCustomer(orderId): 
-	cur.execute("UPDATE Delivers SET arrive_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
-	conn.commit()
+	checkQuery = "SELECT depart_customer FROM Delivers WHERE orderId = %s"
+	cur.execute(checkQuery, (orderId,))
+	if cur.fetchone() != None:
+		cur.execute("UPDATE Delivers SET arrive_customer = %s WHERE orderId = %s", [datetime.now().strftime("%H:%M:%S"), orderId])
+		conn.commit()
 	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))		
 
 @view.route("/complete_delivery/<string:orderId>", methods=["POST"])
 def complete_delivery(orderId): 
-	cur.execute("UPDATE Orders SET is_delivered = true WHERE orderId = %s", [orderId])
-	conn.commit()
+	checkQuery = "SELECT arrive_customer FROM Delivers WHERE orderId = %s"
+	cur.execute(checkQuery, (orderId,))
+	if cur.fetchone() != None:
+		cur.execute("UPDATE Orders SET is_delivered = true WHERE orderId = %s", [orderId])
+		conn.commit()
 	return redirect(url_for('view.deliveryStaffCurrentDeliveries'))
 
 @view.route("/deliveriesDeliveryStaff/completedDeliveries", methods = ["GET", 'POST'])
