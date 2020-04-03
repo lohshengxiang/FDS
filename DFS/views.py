@@ -7,7 +7,7 @@ PaymentForm, AddressForm, ChangePasswordForm, ReviewForm , AddCreditCardForm, \
 ConfirmForm, AddAddressForm, CreditCardForm, CreatePromoForm, CreateRestaurantForm, \
 CreateDeliveryStaffForm, CreateFoodItemForm, PromoForm, RateForm, FilterGeneralSummaryForm, \
 FilterCustomerSummaryForm, FilterDeliverySummaryForm, FilterDeliveryStaffSummaryForm, ScheduleFormPT, ScheduleFormFT, \
-RestaurantFilterForm
+RestaurantFilterForm, ChangeQuantityForm, CreateRestaurantPromoForm
 import base64
 from datetime import datetime, timedelta, date
 from cryptography.fernet import Fernet
@@ -64,6 +64,7 @@ class FoodItem():
 	price = None
 	category = None
 	availability = None
+	quantity = None
 
 class Restaurant():
 	runame = None 
@@ -236,12 +237,14 @@ def menuPage():
 	price_rows = []
 	category_rows = []
 	availability_rows = []
+	quantity_rows = []
 
 	for row in food:
 		fname_rows.append(row[1])
 		price_rows.append(row[3])
 		category_rows.append(row[5])
 		availability_rows.append(row[2])
+		quantity_rows.append(row[4])
 
 	for x in range(len(fname_rows)):
 		foodItem = FoodItem()
@@ -249,6 +252,7 @@ def menuPage():
 		foodItem.price = price_rows[x]
 		foodItem.category = category_rows[x]
 		foodItem.availability = availability_rows[x]
+		foodItem.quantity = quantity_rows[x]
 		foodItem_list.append(foodItem)
 
 	return render_template('Restaurant/menuRestaurant.html', foodItem_list = foodItem_list)
@@ -275,7 +279,21 @@ def addFoodItem():
 def delete_foodItem(fname): 
 	cur.execute("DELETE FROM Food WHERE fname = %s", [fname])
 	conn.commit()
-	return redirect("/menuRestaurant")
+	return redirect(url_for('view.menuPage'))
+
+@view.route("/update_foodItem/<string:fname>", methods = ["POST"])
+def update_foodItem(fname):
+	username = current_user.username
+	logging.debug("Update method2")
+	form = ChangeQuantityForm() 
+	if form.validate_on_submit() and request.method == "POST":
+		logging.debug("Entered if")
+		quantity = form.quantity.data
+		cur.execute("UPDATE Food SET order_limit = %s WHERE fname = %s AND runame = %s", (quantity, fname, username))
+		conn.commit()
+		return redirect("/menuRestaurant")
+
+	return render_template("/Restaurant/update_foodItem.html", form = form)
 
 @view.route("/adminRestaurant", methods = ["GET", 'POST'])
 def adminRestaurant(): 
@@ -314,19 +332,24 @@ def manageRestaurantPromotions():
 
 @view.route("/adminRestaurant/managePromotions/createPromotion", methods = ["GET", "POST"])
 def createRestaurantPromo():
-	form = CreatePromoForm()
+	promoQuery = "SELECT promoid FROM Promotion ORDER BY promoid DESC LIMIT 1"
+	cur.execute(promoQuery)
+	promoId = cur.fetchone()
+	nextPromoId = promoId[0] + 1
+	logging.debug("Next Promo: " + str(nextPromoId))
+
+	form = CreateRestaurantPromoForm()
 	if form.validate_on_submit() and request.method == "POST":
-		promoId = form.promoId.data
 		promoCode = form.promoCode.data
 		start_date = form.start_date.data
 		end_date = form.end_date.data
 		name = form.name.data
 		query = "INSERT INTO Promotion VALUES (%s,%s,%s,%s,%s, %s)"
-		cur.execute(query, (promoId, start_date, end_date, name, promoCode, current_user.username,))
+		cur.execute(query, (nextPromoId, start_date, end_date, name, promoCode, current_user.username,))
 
 		conn.commit() 
 		return redirect("/adminRestaurant/managePromotions")
-	return render_template('Restaurant/createRestaurantPromotion.html', form = form)
+	return render_template('Restaurant/createRestaurantPromotion.html', form = form, nextPromoId = nextPromoId)
 
 @view.route("/delete_restaurant_promo/<string:id>", methods=["POST"])
 def delete_restaurant_promo(id): 
@@ -519,16 +542,19 @@ def delete_promo(id):
 
 @view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) 
 def createPromo():
+	promoQuery = "SELECT promoid FROM FDS_Promo ORDER BY promoid DESC LIMIT 1"
+	cur.execute(promoQuery)
+	promoId = cur.fetchone()
+	nextPromoId = promoId[0] + 1
+	logging.debug("Next Promo: " + str(nextPromoId))
 	form = CreatePromoForm()
 	if form.validate_on_submit() and request.method == "POST":
-		promoId = form.promoId.data
 		promoCode = form.promoCode.data
 		start_date = form.start_date.data
 		end_date = form.end_date.data
 		name = form.name.data
 		query = "INSERT INTO FDS_Promo VALUES (%s,%s,%s,%s,%s, %s)"
-		cur.execute(query, (promoId, promoCode, start_date, end_date, name, current_user.username,))
-
+		cur.execute(query, (nextPromoId, promoCode, start_date, end_date, name, current_user.username,))
 		conn.commit() 
 		return redirect("/adminManager/managePromo")
 	return render_template('Manager/createPromo.html', form = form)
@@ -1953,9 +1979,9 @@ def order_confirm(rname):
 				cur.execute(query, (available_list[0],))
 
 			except:
-				return render_template("orders_timing_failed.html", test = test)
+				return render_template("orders_timing_failed.html", test = "")
 		else:
-			return render_template("order_failed.html", test = test)
+			return render_template("order_failed.html", test = "")
 
 		#settle insert into Deliver end
 

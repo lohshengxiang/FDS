@@ -71,7 +71,6 @@ class ConfirmForm(FlaskForm):
     hidden = HiddenField()
 
 class CreatePromoForm(FlaskForm): 
-    promoId = StringField('Promo ID', validators = [InputRequired(message = 'Input is required')])
     promoCode = StringField('Promo Code', validators = [InputRequired(message = 'Input is required')])
     start_date = DateField('Start Date')
     end_date = DateField('End Date')
@@ -84,6 +83,12 @@ class CreateRestaurantForm(FlaskForm):
     address = StringField('address',validators = [InputRequired(message = 'Input is required')])
     min_amt = StringField('min_amt',validators = [InputRequired(message = 'Input is required')])
 
+class CreateRestaurantPromoForm(FlaskForm): 
+    promoCode = StringField('Promo Code', validators = [InputRequired(message = 'Input is required')])
+    start_date = DateField('Start Date')
+    end_date = DateField('End Date')
+    name = StringField("Promo Name", validators = [InputRequired(message = 'Input is required')])
+
 class CreateDeliveryStaffForm(FlaskForm): 
     uname = StringField('uname',validators = [InputRequired(message = 'Input is required')])
     password = StringField('password', validators = [InputRequired(message = 'Input is required')])
@@ -94,7 +99,7 @@ class CreateDeliveryStaffForm(FlaskForm):
 class CreateFoodItemForm(FlaskForm):
     fname = StringField('Food Name', validators = [InputRequired(message = 'Input is required')])
     price = DecimalField('Price ($)', places=2, rounding=None, validators = [InputRequired(message = 'Input is required')])
-    order_limit = StringField('order_limit',validators = [InputRequired(message = 'Input is required')])
+    order_limit = DecimalField('order_limit', places=0, rounding=None, validators = [InputRequired(message = 'Input is required')])
     category = SelectField('Category', choices = [('Chinese','Chinese'),('Indian','Indian'), ('Japanese','Japanese'), ('Malay','Malay'), ('Western','Western'), ('Dessert','Dessert')])
     availability = SelectField('Availability', choices = [('True','Available'),('False','Not Available')])
 
@@ -127,4 +132,7 @@ class ScheduleFormFT(FlaskForm):
 class RestaurantFilterForm(FlaskForm):
     month = SelectField('month', choices = [("01", "Jan"),("02","Feb"),("03","Mar"),("04","Apr"),("05","May"),("06","June"),("07","July"),("08","Aug"),("09","Sept"),("10","Oct"),("11","Nov"),("12","Dec")])
     year = SelectField('year', choices = [('2020', '2020'), ('2021', '2021'), ('2022', '2022'), ('2023', '2023'), ('2024', '2024'), ('2025', '2025')])
-     
+
+class ChangeQuantityForm(FlaskForm):
+    quantity = DecimalField('quantity', places=0, rounding=None, validators = [InputRequired(message = 'Input is required')])
+    
