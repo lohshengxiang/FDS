@@ -300,62 +300,62 @@ CREATE TABLE Contain (
 	orderId numeric,
 	runame varchar(100),
 	fname varchar(100),
-    	quantity varchar(100),
+    quantity numeric,
 	PRIMARY KEY(orderId, runame, fname),
 	FOREIGN KEY(orderId) REFERENCES Orders,
 	FOREIGN KEY(runame, fname) REFERENCES Food	
 );
 
 INSERT INTO Contain values
-	(1,'restaurant1', 'Sushi', '1'),
-	(1,'restaurant1', 'Mochi', '1'),
-	(1,'restaurant1', 'Ramen', '1'),
+	(1,'restaurant1', 'Sushi', 1),
+	(1,'restaurant1', 'Mochi', 1),
+	(1,'restaurant1', 'Ramen', 1),
 
-	(2,'restaurant2', 'Hokkien Mee', '1'),
-	(2,'restaurant2', 'Prawn Noodles', '1'),
+	(2,'restaurant2', 'Hokkien Mee', 1),
+	(2,'restaurant2', 'Prawn Noodles', 1),
 
-	(3,'restaurant3', 'Plain Prata', '3'),
-	(3,'restaurant3', 'Egg Prata', '2'),
+	(3,'restaurant3', 'Plain Prata', 3),
+	(3,'restaurant3', 'Egg Prata', 2),
 
-	(4,'restaurant4', 'Seafood Aglio Olio', '1'),
-	(4,'restaurant4', 'Chicken Chop', '1'),
+	(4,'restaurant4', 'Seafood Aglio Olio', 1),
+	(4,'restaurant4', 'Chicken Chop', 1),
 
-	(5,'restaurant5', 'Ribeye Steak', '1'),
+	(5,'restaurant5', 'Ribeye Steak', 1),
 
-	(6,'restaurant6', 'Filet O’ Fish', '1'),
-	(6,'restaurant6', 'Pc Spicy', '1'),
+	(6,'restaurant6', 'Filet O’ Fish', 1),
+	(6,'restaurant6', 'Pc Spicy', 1),
 
-	(7,'restaurant7', 'Beef Burger', '2'),
-	(7,'restaurant7', 'Chocolate Pie', '4'),
+	(7,'restaurant7', 'Beef Burger', 2),
+	(7,'restaurant7', 'Chocolate Pie', 4),
 
-	(8,'restaurant8', 'Salad Bowl', '1'),
-	(8,'restaurant8', 'Burrito', '1'),
+	(8,'restaurant8', 'Salad Bowl', 1),
+	(8,'restaurant8', 'Burrito', 1),
 
-	(9,'restaurant9', 'Kampong Fried Rice', '1'),
-	(9,'restaurant9', 'Maggie Pataya', '1'),
-	(9,'restaurant9', 'Butter Chicken', '1'),
+	(9,'restaurant9', 'Kampong Fried Rice', 1),
+	(9,'restaurant9', 'Maggie Pataya', 1),
+	(9,'restaurant9', 'Butter Chicken', 1),
 
-	(10,'restaurant10', 'Cheese Baked Rice', '1'),
-	(10,'restaurant10', 'Grilled Chicken', '1'),
+	(10,'restaurant10', 'Cheese Baked Rice', 1),
+	(10,'restaurant10', 'Grilled Chicken', 1),
 
-	(11,'restaurant4', 'Seafood Aglio Olio', '1'),
-	(11,'restaurant4', 'Chicken Chop', '1'), 
+	(11,'restaurant4', 'Seafood Aglio Olio', 1),
+	(11,'restaurant4', 'Chicken Chop', 1), 
 
-	(12,'restaurant6', 'Filet O’ Fish', '1'),
-	(12,'restaurant6', 'Pc Spicy', '1'),
+	(12,'restaurant6', 'Filet O’ Fish', 1),
+	(12,'restaurant6', 'Pc Spicy', 1),
 
-	(13,'restaurant8', 'Salad Bowl', '1'),
-	(13,'restaurant8', 'Burrito', '1'),
+	(13,'restaurant8', 'Salad Bowl', 1),
+	(13,'restaurant8', 'Burrito', 1),
 
-	(14,'restaurant3', 'Plain Prata', '3'),
-	(14,'restaurant3', 'Egg Prata', '2'),
+	(14,'restaurant3', 'Plain Prata', 3),
+	(14,'restaurant3', 'Egg Prata', 2),
 
-	(15,'restaurant6', 'Filet O’ Fish', '1'),
-	(15,'restaurant6', 'Pc Spicy', '1'),
+	(15,'restaurant6', 'Filet O’ Fish', 1),
+	(15,'restaurant6', 'Pc Spicy', 1),
 
-	(16,'restaurant9', 'Kampong Fried Rice', '1'),
-	(16,'restaurant9', 'Maggie Pataya', '1'),
-	(16,'restaurant9', 'Butter Chicken', '1');
+	(16,'restaurant9', 'Kampong Fried Rice', 1),
+	(16,'restaurant9', 'Maggie Pataya', 1),
+	(16,'restaurant9', 'Butter Chicken', 1);
 
 CREATE TABLE Delivery_Staff (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
