@@ -10,6 +10,7 @@
                         Welcome to {{ rname }}
                     </h1>
                     <font size = "4">Click <a id = "btn" style="color:white;"><b>here</b></a> to see our reviews!</font>
+                    <font size = "4">Or <a id = "btn2" style="color:white;"><b>here</b></a> to see menu!</font>
                 </div>
             </div>
         </section>
@@ -231,6 +232,63 @@
                     })
 
                     mdl.addEventListener("modal:close", function() {
+                        console.log("closed")
+                    })
+                    </script>
+
+                    <div class="modal" id="myModal2">
+                      <div class="modal-background"></div>
+                      <div class="modal-card">
+                        <header class="modal-card-head">
+                          <p class="modal-card-title">Reviews</p>
+                          <button class="delete" aria-label="close" data-bulma-modal="close"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <div class = "content">
+                            {% if not menu_list == [] %}
+                            <table class="table" style="margin-left:auto;margin-right:auto;">
+                                <thead class="thead">
+                                    <tr>
+                                        <th>Food Item</th>
+                                        <th>Price</th>
+                                        <th>Quantity Left</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for i in menu_list %}
+                                <tr>
+                                    <td>{{i[0]}}</td>
+                                    <td>{{i[1]}}</td>
+                                    <td>{{i[2]}}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endif %}
+                            {% if menu_list == [] %}
+                            <p> We're sold out for today! </p>
+                            {% endif %}
+                            </div>
+                        </section>
+                        <footer class="modal-card-foot">
+                          <button class="button" data-bulma-modal="close">Back</button>
+                        </footer>
+                      </div>
+                    </div>
+
+                    <script>
+                    var btn2 = document.querySelector("#btn2")
+                    var mdl2 = new BulmaModal("#myModal2")
+
+                    btn2.addEventListener("click", function () {
+                        mdl2.show()
+                    })
+
+                    mdl2.addEventListener('modal:show', function() {
+                        console.log("opened")
+                    })
+
+                    mdl2.addEventListener("modal:close", function() {
                         console.log("closed")
                     })
                     </script>

@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -204,7 +204,10 @@ def load_user(username):
 				user.user_type = "Delivery_staff"
 				query = "SELECT distinct dname from Delivery_Staff where uname = %s"
 				cur.execute(query,(username,))
-				user.firstName = cur.fetchone()[0]
+				try:
+					user.firstName = cur.fetchone()[0]
+				except:
+					user.firstName = ""
 	return user
 
 @view.route("/",  methods = ["GET","POST"])
@@ -1587,9 +1590,11 @@ def order_food(rname):
 			fname_choices.append((row[0],row[0]))
 	form.fname.choices = fname_choices
 
-	query = "SELECT max(order_limit) from Food where runame = %s" 
+	first_food = fname_choices[0][0]
+
+	query = "SELECT order_limit from Food where runame = %s and fname = %s" 
 	try:
-		cur.execute(query,(runame,))
+		cur.execute(query,(runame,first_food))
 	except:
 		conn.rollback()
 	limit = int(cur.fetchone()[0])
@@ -1619,8 +1624,9 @@ def order_food(rname):
 			# get food price
 			query = "SELECT price from Food where runame = %s and fname = %s"
 			cur.execute(query,(runame,form.fname.data))
-			food_cost = int(cur.fetchone()[0]) 
+			food_cost = float(cur.fetchone()[0]) 
 			food_cost *= int(form.quantity.data) #subject to promotion
+			food_cost = float(str(round(food_cost,2)))
 
 			order_date = datetime.now().strftime("%d/%m/%Y")
 			
@@ -1648,9 +1654,17 @@ def order_food(rname):
 	review_list = cur.fetchall()
 	if not review_list:
 		review_list = []
+
+	#get menu
+	query = '''SELECT fname,price,order_limit from food where runame = %s and availability = true and order_limit > 0'''
+	cur.execute(query,(runame,))
+	menu_list = cur.fetchall()
+	if not menu_list:
+		menu_list = []
 			
 	return render_template('order_food.html', form = form, rname = rname,  current_order_len = len(cart_list), 
-	 runame = runame, total_cost = total_cost, cart_list = cart_list, delivery_fee = delivery_fee, min_amt = min_amt, review_list = review_list)
+	 runame = runame, total_cost = total_cost, cart_list = cart_list, delivery_fee = delivery_fee, min_amt = min_amt, review_list = review_list,
+	 menu_list = menu_list)
 
 @view.route("/order/<rname>/<fname>/<quantity>", methods = ["GET","POST"])
 def order_delete(rname,fname, quantity):
@@ -1778,7 +1792,9 @@ def order_payment(rname):
 			delivery_fee = 0
 		elif "off" in promo_action and "%" in promo_action:
 			discount_perc = int(promo_action.split('%')[0]) / 100
-			discount = int(discount_perc * food_cost)
+			# discount = int(discount_perc * food_cost)
+
+			discount = float(str(round(discount_perc*food_cost,2)))
 
 
 	if form.validate_on_submit() and 'pay' in request.form.getlist('action'): 
@@ -1847,7 +1863,8 @@ def order_confirm(rname):
 			delivery_fee = 0
 		elif "off" in promo_action and "%" in promo_action:
 			discount_perc = int(promo_action.split('%')[0]) / 100
-			discount = int(discount_perc * food_cost)
+			# discount = int(discount_perc * food_cost)
+			discount = float(str(round(discount_perc*food_cost,2)))
 
 	if form.validate_on_submit():
 		today_now = datetime.now() #+ timedelta(hours = 14) #use this if u doing this at night lol
@@ -2014,7 +2031,7 @@ def order_confirm(rname):
 		cur.execute(query,(current_user.username,))
 		points = cur.fetchone()[0]
 
-		after_points = round(points - points_used + food_cost)
+		after_points = round(points - points_used + int(food_cost))
 		query = '''UPDATE Customer SET points = %s where uname = %s'''
 		cur.execute(query,(after_points,current_user.username))
 		conn.commit()

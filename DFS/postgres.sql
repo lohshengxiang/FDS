@@ -117,14 +117,14 @@ CREATE TABLE Promotion (
 );
 
 INSERT INTO Promotion values
-	(1, '2020-01-01', '2020-04-27', 'free delivery', 'FREEDELIVERY','restaurant1'),
-	(2, '2020-01-05', '2020-01-19', '10% off', '10OFF','restaurant1'),
-	(3, '2020-04-10', '2020-04-22', '10% off', '10OFF','restaurant2'),
-	(4, '2020-03-01', '2020-05-02', 'free delivery', 'FREEDELIVERY','restaurant2'),
-	(5, '2020-01-01', '2020-02-03', '15% off', '15OFF','restaurant2'),
-	(6, '2020-01-03', '2020-04-04', '20% off', '20OFF','restaurant3'),
-	(7, '2020-02-02', '2020-04-16', '15% off', '15OFF','restaurant3'),
-	(8, '2020-01-01', '2020-01-04', '10% off', '10OFF','restaurant3');
+	(1, '2020-01-01', '2020-04-27', 'free delivery', 'FREEDELIVERYR1','restaurant1'),
+	(2, '2020-01-05', '2020-01-19', '10% off', '10OFFR1','restaurant1'),
+	(3, '2020-04-10', '2020-04-22', '10% off', '10OFFR2','restaurant2'),
+	(4, '2020-03-01', '2020-05-02', 'free delivery', 'FREEDELIVERYR2','restaurant2'),
+	(5, '2020-01-01', '2020-02-03', '15% off', '15OFFR2','restaurant2'),
+	(6, '2020-01-03', '2020-04-04', '20% off', '20OFFR3','restaurant3'),
+	(7, '2020-02-02', '2020-04-16', '15% off', '15OFFR3','restaurant3'),
+	(8, '2020-01-01', '2020-01-04', '10% off', '10OFFR3','restaurant3');
 
 CREATE TABLE Food (
 	runame varchar(100),
