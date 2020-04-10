@@ -1,22 +1,22 @@
 -- total participation and key constraints between orders and delivers is enforced in the front end
 
-drop table IF EXISTS Users CASCADE;
-drop table IF EXISTS FDS_Manager CASCADE;
-drop table IF EXISTS FDS_Promo CASCADE;
-drop table IF EXISTS Restaurant CASCADE;
-drop table IF EXISTS Promotion CASCADE;
-drop table IF EXISTS Food CASCADE;
-drop table IF EXISTS Customer CASCADE;
-drop table IF EXISTS Contain CASCADE;
-drop table IF EXISTS Orders CASCADE;
-drop table IF EXISTS Reviews CASCADE;
-drop table IF EXISTS Delivery_Staff CASCADE;
-drop table IF EXISTS Delivers CASCADE;
-drop table IF EXISTS Part_Time CASCADE;
-drop table IF EXISTS Full_Time CASCADE;
-drop table IF EXISTS WWS CASCADE;
-drop table IF EXISTS MWS CASCADE;
-drop table IF EXISTS CreditCard CASCADE;
+drop table IF EXISTS Users CASCADE; #mav
+drop table IF EXISTS FDS_Manager CASCADE; #jil
+drop table IF EXISTS FDS_Promo CASCADE; #jil
+drop table IF EXISTS Restaurant CASCADE; #mav
+drop table IF EXISTS Promotion CASCADE; #mav
+drop table IF EXISTS Food CASCADE; #mav
+drop table IF EXISTS Customer CASCADE; #sx
+drop table IF EXISTS Contain CASCADE; #sx
+drop table IF EXISTS Orders CASCADE; #sx
+drop table IF EXISTS Reviews CASCADE; #sx
+drop table IF EXISTS Delivery_Staff CASCADE; #cry
+drop table IF EXISTS Delivers CASCADE; #jil
+drop table IF EXISTS Part_Time CASCADE; #cry
+drop table IF EXISTS Full_Time CASCADE; #cry
+drop table IF EXISTS WWS CASCADE; #cry
+drop table IF EXISTS MWS CASCADE; #cry
+drop table IF EXISTS CreditCard CASCADE; #jil
 
 CREATE TABLE Users (
 	uname varchar(100) PRIMARY KEY,
