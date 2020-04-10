@@ -1916,7 +1916,8 @@ def order_confirm(rname):
 			address = new_address[0]
 		except:
 			return redirect("/")
-		order_date = today_now.strftime("%m/%d/%Y")
+		# order_date = today_now.strftime("%m/%d/%Y")
+		order_date = today_now.strftime("%Y-%m-%d")
 		order_time_str = today_now.strftime("%H:%M:%S")
 		order_time = today_now.time()
 		query = "SELECT max(orderid) from Orders"
