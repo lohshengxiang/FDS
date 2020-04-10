@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -1893,11 +1893,12 @@ def order_confirm(rname):
 	global points_used
 	global promo_used
 
-	delivery_fee = fixed_delivery_fee - points_used
+	delivery_fee = float(fixed_delivery_fee - points_used)
 
 	food_cost = 0
 	for i in cart_list:
 		food_cost += i["food_cost"]
+
 
 	discount = 0
 	if promo_used != "" and promo_action != "":
@@ -1916,7 +1917,7 @@ def order_confirm(rname):
 		except:
 			return redirect("/")
 		order_date = today_now.strftime("%m/%d/%Y")
-		# order_time = today_now.strftime("%H:%M:%S")
+		order_time_str = today_now.strftime("%H:%M:%S")
 		order_time = today_now.time()
 		query = "SELECT max(orderid) from Orders"
 		cur.execute(query)
@@ -2002,10 +2003,31 @@ def order_confirm(rname):
 		#get full-timers end
 
 		#testing
-		shift_list = [] #possible shifts
-		shift = 1
+		
 
 		global shift_dict
+		global day_option_dict
+
+		if shift_dict == {} or day_option_dict == {}:
+			query = '''SELECT * from Day_Options'''
+			cur.execute(query,)
+			options = cur.fetchall()
+
+			for i in options:
+				day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+			query = '''SELECT * from Shifts'''
+			cur.execute(query,)
+			shifts = cur.fetchall()
+
+			for i in shifts:
+				shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+
+
+		shift_list = [] #possible shifts
+		shift = 1
+		
+		
 		for i in ['shift1','shift2','shift3','shift4']:
 			if (order_time >= shift_dict[i][0] and order_time < shift_dict[i][1]) or (order_time >= shift_dict[i][2] and order_time < shift_dict[i][3]):
 				shift_list.append(shift)
@@ -2015,7 +2037,7 @@ def order_confirm(rname):
 
 
 		day_option_list = [] #possible day options
-		global day_option_dict
+		
 		for i in [1,2,3,4,5,6,7]:
 			if today_day in day_option_dict[i]:
 				day_option_list.append(i)
@@ -2042,7 +2064,7 @@ def order_confirm(rname):
 			try:
 				query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
 						VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-				cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
+				cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time_str,delivery_fee,food_cost - discount,promo_used))
 				conn.commit()
 
 				query = '''INSERT INTO Delivers(orderId,duname) VALUES (%s,%s)'''
