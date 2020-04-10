@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -248,11 +248,18 @@ def home():
 # START OF RESTAURANT VIEW ROUTES
 @view.route("/homeRestaurant", methods = ["GET","POST"])
 def homePage():
-	return render_template('Restaurant/homeRestaurant.html')
+	username = current_user.username
+	rnameQuery = "SELECT rname FROM Restaurant WHERE uname = %s"
+	cur.execute(rnameQuery, (username,))
+	rname = cur.fetchone()[0]
+	return render_template('Restaurant/homeRestaurant.html' , rname = rname)
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
 	username = current_user.username
+	rnameQuery = "SELECT rname FROM Restaurant WHERE uname = %s"
+	cur.execute(rnameQuery, (username,))
+	rname = cur.fetchone()
 	foodItem_list = []
 	foodItemQuery = "SELECT * from Food where runame = %s"
 	cur.execute(foodItemQuery,(username,)) 
@@ -1558,7 +1565,7 @@ def deliveryStaffRatings():
 
 	avg_ratingQuery = "SELECT avg_rating from Delivery_Staff where uname = %s"
 	cur.execute(avg_ratingQuery, (username,))
-	avg_rating = cur.fetchone()[0]
+	avg_rating = round((cur.fetchone()[0]),2)
 
 	return render_template('ratingsDeliveryStaff.html', ratings_list = ratings_list, avg_rating = avg_rating)
 
