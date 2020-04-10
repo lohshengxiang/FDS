@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -1247,14 +1247,28 @@ def deliveryStaffPastWorkSchedules():
 
 					if ordersDateQuery != None:
 						for i in ordersDateQuery:
-							if i[0].strftime("%Y-%m-%d") == date.strftime("%Y-%m-%d"):
-								schedules_dict["num_deliveries_a"] = i[1]
-								schedules_dict["num_deliveries_b"] = i[2]
-								
-								flatRateQuery = "SELECT flat_rate FROM Full_Time WHERE duname = %s"
-								cur.execute(flatRateQuery, (username,))
-								flatRate = cur.fetchone()[0]
-								schedules_dict["salary_this_shift"] = "$" + str((i[1] + i[2] )*flatRate)
+							if i[0] != None:
+								if i[0].strftime("%Y-%m-%d") == date.strftime("%Y-%m-%d"):
+
+									flatRateQuery = "SELECT flat_rate FROM Full_Time WHERE duname = %s"
+									cur.execute(flatRateQuery, (username,))
+									flatRate = cur.fetchone()[0]
+
+									if i[1] != None:
+										schedules_dict["num_deliveries_a"] = i[1]
+										salary1 = i[1] * flatRate
+									else:
+										schedules_dict["num_deliveries_a"] = 0
+										salary1 = 0
+
+									if i[2] != None:
+										schedules_dict["num_deliveries_b"] = i[2]
+										salary2 = i[2] * flatRate
+									else:
+										schedules_dict["num_deliveries_b"] = 0
+										salary2 = 0
+										
+									schedules_dict["salary_this_shift"] = "$" + str(salary1 + salary2)
 
 					schedules_list.append(schedules_dict)
 
