@@ -114,6 +114,15 @@ class PromotionsSummary():
 	totalOrders = None
 	avgOrders = None
 
+class OrderedItem():
+	orderId = None
+	cuname = None
+	order_date = None
+	order_time = None
+	foodcost = None
+	fname = None
+	quantity = None
+
 
 # class Shift():
 # 	shift_a_start = None
@@ -253,6 +262,45 @@ def homePage():
 	cur.execute(rnameQuery, (username,))
 	rname = cur.fetchone()[0]
 	return render_template('Restaurant/homeRestaurant.html' , rname = rname)
+
+@view.route("/orderRestaurant", methods = ["GET","POST"])
+def currentOrdersPage():
+	username = current_user.username
+	currOrdersQuery = "SELECT orderId, cuname, order_date, order_time, foodcost, fname, quantity FROM Orders NATURAL JOIN Contain WHERE runame = %s AND is_delivered = false;"
+	cur.execute(currOrdersQuery, (username,))
+	orders = cur.fetchall()
+	orderId = []
+	cuname = []
+	order_date = []
+	order_time = []
+	foodcost = []
+
+	orderedItems_list = []
+	foodItem_rows = []
+	quantity_rows = []
+	
+	for row in orders:
+		orderId.append(row[0])
+		cuname.append(row[1])
+		order_date.append(row[2])
+		order_time.append(row[3])
+		foodcost.append(row[4])
+		foodItem_rows.append(row[5])
+		quantity_rows.append(row[6])
+	
+	for x in range(len(foodItem_rows)):
+		orderItem = OrderedItem()
+		orderItem.orderId = orderId[x]
+		orderItem.cuname = cuname[x]
+		orderItem.order_date = order_date[x]
+		orderItem.order_time = order_time[x]
+		orderItem.foodcost = foodcost[x]
+		orderItem.fname = foodItem_rows[x]
+		orderItem.quantity = quantity_rows[x]
+		orderedItems_list.append(orderItem)
+	
+	return render_template('Restaurant/orderRestaurant.html', orderedItems_list = orderedItems_list)
+
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
