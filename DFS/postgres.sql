@@ -1,22 +1,58 @@
 -- total participation and key constraints between orders and delivers is enforced in the front end
 
-drop table IF EXISTS Users CASCADE; #mav
-drop table IF EXISTS FDS_Manager CASCADE; #jil
-drop table IF EXISTS FDS_Promo CASCADE; #jil
-drop table IF EXISTS Restaurant CASCADE; #mav
-drop table IF EXISTS Promotion CASCADE; #mav
-drop table IF EXISTS Food CASCADE; #mav
-drop table IF EXISTS Customer CASCADE; #sx
-drop table IF EXISTS Contain CASCADE; #sx
-drop table IF EXISTS Orders CASCADE; #sx
-drop table IF EXISTS Reviews CASCADE; #sx
-drop table IF EXISTS Delivery_Staff CASCADE; #cry
-drop table IF EXISTS Delivers CASCADE; #jil
-drop table IF EXISTS Part_Time CASCADE; #cry
-drop table IF EXISTS Full_Time CASCADE; #cry
-drop table IF EXISTS WWS CASCADE; #cry
-drop table IF EXISTS MWS CASCADE; #cry
-drop table IF EXISTS CreditCard CASCADE; #jil
+drop table IF EXISTS Users CASCADE; --mav
+drop table IF EXISTS FDS_Manager CASCADE; --jil
+drop table IF EXISTS FDS_Promo CASCADE; --jil
+drop table IF EXISTS Restaurant CASCADE; --mav
+drop table IF EXISTS Promotion CASCADE; --mav
+drop table IF EXISTS Food CASCADE; --mav
+drop table IF EXISTS Customer CASCADE; --sx
+drop table IF EXISTS Contain CASCADE; --sx
+drop table IF EXISTS Orders CASCADE; --sx
+drop table IF EXISTS Reviews CASCADE; --sx
+drop table IF EXISTS Delivery_Staff CASCADE; --cry
+drop table IF EXISTS Delivers CASCADE; --jil
+drop table IF EXISTS Part_Time CASCADE; --cry
+drop table IF EXISTS Full_Time CASCADE; --cry
+drop table IF EXISTS WWS CASCADE; --cry
+drop table IF EXISTS MWS CASCADE; --cry
+drop table IF EXISTS CreditCard CASCADE; --jil
+drop table IF EXISTS Day_Options;
+drop table IF EXISTS Shifts;
+
+CREATE TABLE Day_Options(
+	option numeric PRIMARY KEY,
+	day1 varchar(20),
+	day2 varchar(20),
+	day3 varchar(20),
+	day4 varchar(20),
+	day5 varchar(20)
+);
+
+--day_options
+insert into Day_Options values (1,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
+insert into Day_Options values (2,'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+insert into Day_Options values (3,'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (4,'Monday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (5,'Monday', 'Tuesday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (6,'Monday', 'Tuesday', 'Wednesday', 'Saturday', 'Sunday');
+insert into Day_Options values (7,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Sunday');
+
+
+CREATE TABLE Shifts(
+	shift_id varchar PRIMARY KEY,
+	start1 time,
+	end1 time,
+	start2 time,
+	end2 time
+);
+
+--Shifts
+insert into Shifts values ('shift1','10:00:00','14:00:00','15:00:00','19:00:00');
+insert into Shifts values ('shift2','11:00:00','15:00:00','16:00:00','20:00:00');
+insert into Shifts values ('shift3','12:00:00', '16:00:00', '17:00:00','21:00:00');
+insert into Shifts values ('shift4','13:00:00', '17:00:00', '18:00:00', '22:00:00');
+
 
 CREATE TABLE Users (
 	uname varchar(100) PRIMARY KEY,

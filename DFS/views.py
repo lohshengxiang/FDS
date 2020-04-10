@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -145,19 +145,21 @@ class PromotionsSummary():
 # shift3.shift_b_start = '18:00:00'
 # shift3.shift_b_end = '22:00:00'
 
-shift_dict = { "shift1" : ['10:00:00','14:00:00','15:00:00','19:00:00'],
-				"shift2" : ['11:00:00','15:00:00','16:00:00','20:00:00'],
-				"shift3" : ['12:00:00', '16:00:00', '17:00:00','21:00:00'],
-				"shift4" : ['13:00:00', '17:00:00', '18:00:00', '22:00:00']}
+shift_dict = {}
+day_option_dict = {}
+# shift_dict = { "shift1" : ['10:00:00','14:00:00','15:00:00','19:00:00'],
+# 				"shift2" : ['11:00:00','15:00:00','16:00:00','20:00:00'],
+# 				"shift3" : ['12:00:00', '16:00:00', '17:00:00','21:00:00'],
+# 				"shift4" : ['13:00:00', '17:00:00', '18:00:00', '22:00:00']}
 
 
-day_option_dict = { 1 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], 
-					2 : ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-					3 : ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-					4 : ["Monday", "Thursday", "Friday", "Saturday", "Sunday"],
-					5 : ["Monday", "Tuesday", "Friday", "Saturday", "Sunday"],
-					6 : ["Monday", "Tuesday", "Wednesday", "Saturday", "Sunday"],
-					7 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"]}
+# day_option_dict = { 1 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], 
+# 					2 : ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+# 					3 : ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+# 					4 : ["Monday", "Thursday", "Friday", "Saturday", "Sunday"],
+# 					5 : ["Monday", "Tuesday", "Friday", "Saturday", "Sunday"],
+# 					6 : ["Monday", "Tuesday", "Wednesday", "Saturday", "Sunday"],
+# 					7 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"]}
 
 
 @login_manager.user_loader
@@ -214,7 +216,26 @@ def load_user(username):
 def home():
 	test = False
 	if current_user.is_authenticated:
-		test = current_user.user_type
+		
+		# initiate shift and day_options
+		global shift_dict
+		global day_option_dict
+
+		query = '''SELECT * from Day_Options'''
+		cur.execute(query,)
+		options = cur.fetchall()
+
+		for i in options:
+			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+		query = '''SELECT * from Shifts'''
+		cur.execute(query,)
+		shifts = cur.fetchall()
+
+		for i in shifts:
+			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+
+		# test = shift_dict
 		userType = current_user.user_type
 		if (userType == 'Restaurant'):
 			return redirect ('/homeRestaurant')
@@ -1888,7 +1909,8 @@ def order_confirm(rname):
 		except:
 			return redirect("/")
 		order_date = today_now.strftime("%m/%d/%Y")
-		order_time = today_now.strftime("%H:%M:%S")
+		# order_time = today_now.strftime("%H:%M:%S")
+		order_time = today_now.time()
 		query = "SELECT max(orderid) from Orders"
 		cur.execute(query)
 		maxid = int(cur.fetchone()[0])
