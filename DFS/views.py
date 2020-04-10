@@ -1302,6 +1302,10 @@ def deliveryStaffManageWorkSchedule():
 			schedules_dict["shift_day"] = row[3]
 			schedules_dict["start_hour"] = row[4]
 			schedules_dict["end_hour"] = row[5]
+			if row[2] > date_obj.date():
+				schedules_dict["can_delete"] = True
+			else:
+				schedules_dict["can_delete"] = False
 
 			thisWeekSchedules_list.append(schedules_dict)
 
@@ -1313,15 +1317,14 @@ def deliveryStaffManageWorkSchedule():
 		hourIntervalCheck = True
 		overlapCheck = True
 
-		def next_weekday(d, weekday):
-			days_ahead = weekday - d.weekday()
-			if days_ahead <= 0: # Target day already happened this week
-				days_ahead += 7
-			return d + timedelta(days_ahead)
+		start_of_next_week = (end_of_week + timedelta(days=1))
+		next_week = start_of_next_week.date()
 
 		date_choices = []
 		for i in range(0,6):
-			str_date = next_weekday(date_obj, i).strftime("%Y-%m-%d")
+			str_date = str(next_week)
+			next_week += timedelta(days=1)
+
 			date_choices.append((str_date, str_date))		
 		
 		form.date.choices = date_choices
@@ -1367,8 +1370,7 @@ def deliveryStaffManageWorkSchedule():
 
 		# for when it is submitted
 		nextWeekScheduleSubmittedQuery = "SELECT * from WWS where duname = %s and shift_date >= %s and shift_date <= %s"
-		cur.execute(nextWeekScheduleSubmittedQuery, (username, datetime.strptime(next_weekday(date_obj, 0).strftime("%Y-%m-%d"), "%Y-%m-%d"),
-													datetime.strptime(next_weekday(date_obj, 6).strftime("%Y-%m-%d"), "%Y-%m-%d")))
+		cur.execute(nextWeekScheduleSubmittedQuery, (username, start_of_next_week, next_week))
 		nextWeekScheduleSubmitted = cur.fetchall()
 		nextWeekScheduleSubmitted_list = []
 		
@@ -1519,6 +1521,39 @@ def insertSchedulePT():
 		conn.commit()
 	
 	submittedSchedule = True
+	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
+
+@view.route("/deleteWWS/<wws_serialNum>", methods=["GET", 'POST'])
+def deleteWWS(wws_serialNum):
+	username = current_user.username
+
+	#get all wws for the week of this wws that we want to delete EXCEPT the wws that we want to delete
+	#check all the conditions
+	#delete if conditions still fulfilled
+
+	wwsQuery = "SELECT * FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+	cur.execute(wwsQuery, (username, wws_serialNum))
+	wwsToDelete = cur.fetchone()
+
+	date_obj = wwsToDelete[2]
+
+	start_of_week = date_obj - timedelta(days=date_obj.weekday())  # Monday
+	end_of_week = start_of_week + timedelta(days=6)  # Sunday
+
+	thisWeekQuery = "SELECT * FROM WWS WHERE duname = %s AND shift_date >= %s AND shift_date <= %s EXCEPT SELECT * FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+	cur.execute(thisWeekQuery, (username, start_of_week, end_of_week, username, wws_serialNum))
+	thisWeekSchedules = cur.fetchall()
+
+	totalHours = 0
+
+	for row in thisWeekSchedules:
+		totalHours += (int)(row[5].strftime("%H")) - (int)(row[4].strftime("%H"))
+
+	if totalHours >= 10:
+		deleteQuery = "DELETE FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+		cur.execute(deleteQuery, (username, wws_serialNum))
+		conn.commit()
+
 	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
 
 @view.route("/ratingsDeliveryStaff", methods = ["GET", 'POST'])

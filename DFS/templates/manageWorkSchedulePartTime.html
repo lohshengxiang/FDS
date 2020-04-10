@@ -4,6 +4,10 @@
 <h3 class="title" style = "font-size: 300%;  ">
   This Week's Schedule
 </h3>
+<h2>
+	<font color="red"> You will not be able to delete a shift if total hours this week is less than 10! </font>
+</h2>
+</br>
 
 <table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
     <thead class="thead">
@@ -13,6 +17,7 @@
 			<th>Shift Day</th>
 			<th>Start Hour</th>
 			<th>End Hour</th>
+			<th>Delete?</th>
         </tr>
     </thead>
     <tbody>
@@ -23,10 +28,21 @@
 				<td>{{schedules.shift_day}}</td>
 				<td>{{schedules.start_hour}}</td>
 				<td>{{schedules.end_hour}}</td>
+				<td>
+				{% if schedules.can_delete == True %}
+					<div class= "buttons has-addons is-centered">
+						<a href="/deleteWWS/{{schedules.wws_serialNum}}">
+							<button class="button is-block is-danger is-small">Delete</button>
+						</a>
+					</div>
+				{% endif %}
+				</td>
 			</tr>
         {% endfor %}
     </tbody>
 </table>
+
+
 
 <h3 class="title" style = "font-size: 300%;  ">
   Next Week's Schedule
@@ -54,7 +70,7 @@
 				<td>
 					<div class= "buttons has-addons is-centered">
 						<a href="/schedulePT/{{wws.shift_date}}/{{wws.shift_start}}/{{wws.shift_end}}">
-							<button class="button is-block is-danger is-small">Delete</button>
+							<button class="button is-block is-danger is-small">Remove</button>
 						</a>
 					</div>
 				</td>
@@ -90,8 +106,7 @@
 			<div class= "buttons has-addons is-centered">
 				<button class="button is-block is-info is-small" type = "submit">Submit Schedule</button>
 			</div>
-			<font color="red"; size="2">No changes can be made after you submit your schedule. 
-			<br> Please submit your schedule before the week starts.</font>
+			<font color="red"; size="2">Please submit your schedule before the week starts.</font>
 		</form>
 	{% endif %}
 
@@ -126,7 +141,8 @@
 			</tbody>
 			</table>
 		</form>
-		<font color="red"; size="1.5">Shift will not be added if selected shift duration exceeds four hours.</font>
+		<font color="red">Shift will not be added if selected shift duration exceeds 4 hours
+		</br> or if selected shifts are overlapping</font>
 	</section>
 	{% endif %}
 	
@@ -139,6 +155,7 @@
 				<th>Shift Day</th>
 				<th>Start Hour</th>
 				<th>End Hour</th>
+				<th>Delete?</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -149,6 +166,13 @@
 					<td>{{schedules.shift_day}}</td>
 					<td>{{schedules.start_hour}}</td>
 					<td>{{schedules.end_hour}}</td>
+					
+					<div class= "buttons has-addons is-centered">
+						<a href="/deleteWWS/{{schedules.wws_serialNum}}">
+							<button class="button is-block is-danger is-small">Delete</button>
+						</a>
+					</div>
+					
 				</tr>
 			{% endfor %}
 		</tbody>
