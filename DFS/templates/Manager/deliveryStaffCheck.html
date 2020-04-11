@@ -1,0 +1,48 @@
+{% extends "/Manager/homeManager.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    FDS Delivery Staff Check
+</h1>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification is-danger">
+    {{ messages[0] }}
+</div>
+{% endif %}
+{% endwith %}
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Total Number of Working Delivery Staff</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for FDSPromotion in promo_list %}
+        <tr>
+            <td style="text-align:center;">
+                {date}
+            </td>
+            <td style="text-align:center;">
+                {time}
+            </td>
+            <td style="text-align:center;">
+                {totalNumber}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+<div class="buttons has-addons is-centered">
+    <a class="button is-block is-info is-small" href="/homeManager">
+        Back
+    </a>
+</div>
+
+{% endblock %}

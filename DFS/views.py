@@ -114,6 +114,10 @@ class PromotionsSummary():
 	totalOrders = None
 	avgOrders = None
 
+class deliveryStaffCheck(): 
+	date = None
+	time = None
+	totalNumber = None
 
 # class Shift():
 # 	shift_a_start = None
@@ -883,6 +887,12 @@ def deliveryStaffSummary():
 
 	return render_template('Manager/deliveryStaffSummary.html', form = form, numOrders = numOrders, totalHours = totalHours, totalSalary = totalSalary, 
 				avgDeliveryTime = avgDeliveryTime, numRatings = numRatings, avgRating = avgRating)
+
+@view.route("/homeManager/deliveryStaffCheck", methods =["GET", "POST"])
+def deliveryStaffCheck(): 
+	flash('Important: Inform more delivery staff to work at the timings below to hit 5 working delivery staff')
+
+	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
 
