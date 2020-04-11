@@ -121,6 +121,26 @@ returns table(available varchar(100)) as $$
 
 $$ language sql;
 
+-- function to get the number of workers at a particular hour 
+
+DROP FUNCTION if exists num_workers; 
+CREATE OR REPLACE FUNCTION num_workers(today_date date, start_time time, end_time time, today_month text, today_year numeric, day_option1 numeric,
+day_option2 numeric, day_option3 numeric, day_option4 numeric, day_option5 numeric, day_option6 numeric, day_option7 numeric, shift1 numeric,
+shift2 numeric, shift3 numeric, shift4 numeric)
+returns table(workingnum bigint) as $$
+	WITH working_pt as (
+		SELECT distinct duname from WWS where shift_date = today_date and start_hour <= start_time and end_hour >= end_time
+		), working_ft as (
+		SELECT distinct duname from MWS where work_month = today_month and work_year = today_year and day_option in (day_option1, day_option2, day_option3,
+		day_option4, day_option5, day_option6, day_option7) and shift in (shift1, shift2, shift3, shift4)
+		), workers_now as (
+		SELECT duname from working_pt
+		union all 
+		SELECT duname from working_ft
+		) select count(*) from workers_now 
+
+$$ language sql; 
+
 
 
 

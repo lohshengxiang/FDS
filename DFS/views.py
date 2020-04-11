@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -113,6 +113,20 @@ class PromotionsSummary():
 	duration = None
 	totalOrders = None
 	avgOrders = None
+
+class DeliveryStaffCheck(): 
+	date = None
+	time = None
+	totalNumber = None
+
+class OrderedItem():
+	orderId = None
+	cuname = None
+	order_date = None
+	order_time = None
+	foodcost = None
+	fname = None
+	quantity = None
 
 
 # class Shift():
@@ -253,6 +267,45 @@ def homePage():
 	cur.execute(rnameQuery, (username,))
 	rname = cur.fetchone()[0]
 	return render_template('Restaurant/homeRestaurant.html' , rname = rname)
+
+@view.route("/orderRestaurant", methods = ["GET","POST"])
+def currentOrdersPage():
+	username = current_user.username
+	currOrdersQuery = "SELECT orderId, cuname, order_date, order_time, foodcost, fname, quantity FROM Orders NATURAL JOIN Contain WHERE runame = %s AND is_delivered = false;"
+	cur.execute(currOrdersQuery, (username,))
+	orders = cur.fetchall()
+	orderId = []
+	cuname = []
+	order_date = []
+	order_time = []
+	foodcost = []
+
+	orderedItems_list = []
+	foodItem_rows = []
+	quantity_rows = []
+	
+	for row in orders:
+		orderId.append(row[0])
+		cuname.append(row[1])
+		order_date.append(row[2])
+		order_time.append(row[3])
+		foodcost.append(row[4])
+		foodItem_rows.append(row[5])
+		quantity_rows.append(row[6])
+	
+	for x in range(len(foodItem_rows)):
+		orderItem = OrderedItem()
+		orderItem.orderId = orderId[x]
+		orderItem.cuname = cuname[x]
+		orderItem.order_date = order_date[x]
+		orderItem.order_time = order_time[x]
+		orderItem.foodcost = foodcost[x]
+		orderItem.fname = foodItem_rows[x]
+		orderItem.quantity = quantity_rows[x]
+		orderedItems_list.append(orderItem)
+	
+	return render_template('Restaurant/orderRestaurant.html', orderedItems_list = orderedItems_list)
+
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
@@ -728,7 +781,7 @@ def deliverySummary():
 		for x, y in time_list: 
 			summary = DeliverySummary() 
 			summary.time = x
-			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date =%s and order_time >= %s and order_time < %s"
+			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date = %s and order_time >= %s and order_time < %s"
 			cur.execute(query1, (date,x,y))
 			summary.west = cur.fetchone()[0]
 			query2 = "SELECT count(orderId) FROM Orders WHERE area ='East' and order_date = %s and order_time >= %s and order_time < %s"
@@ -911,6 +964,76 @@ def deliveryStaffSummary():
 
 	return render_template('Manager/deliveryStaffSummary.html', form = form, numOrders = numOrders, totalHours = totalHours, totalSalary = totalSalary, 
 				avgDeliveryTime = avgDeliveryTime, numRatings = numRatings, avgRating = avgRating)
+
+@view.route("/homeManager/deliveryStaffCheck", methods =["GET", "POST"])
+def deliveryStaffCheck(): 
+	flash('Important: Inform more delivery staff to work at the timings below to hit 5 working delivery staff')
+
+	global shift_dict
+	global day_option_dict
+
+	if day_option_dict == {}:
+		query = '''SELECT * from Day_Options'''
+		cur.execute(query,)
+		options = cur.fetchall()
+
+		for i in options:
+			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+	if shift_dict == {}:
+		query = '''SELECT * from Shifts'''
+		cur.execute(query,)
+		shifts = cur.fetchall()
+		
+		for i in shifts:
+			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+
+	deliveryStaffList = []
+	for i in [1,2,3,4,5,6,7]: # shows the next 7 days
+		today_now = datetime.now()
+		today_day = calendar.day_name[today_now.weekday()]
+		today_month = calendar.month_name[today_now.month]
+		today_year = today_now.year
+		today_date = today_now.date()
+
+		day_option_list = []
+		for i in [1,2,3,4,5,6,7]:
+			if today_day in day_option_dict[i]:
+				day_option_list.append(i)
+			else:
+				day_option_list.append(0)
+
+		time_list = (('10:00:00', '11:00:00'), ('11:00:00', '12:00:00'), ('12:00:00', '13:00:00'), ('13:00:00', '14:00:00'), ('14:00:00', '15:00:00'), ('15:00:00', '16:00:00'), ('16:00:00', '17:00:00'), 
+			('17:00:00', '18:00:00'), ('18:00:00', '19:00:00'), ('19:00:00', '20:00:00'), ('20:00:00', '21:00:00'), ('21:00:00', '22:00:00'))
+
+		query = '''SELECT * from num_workers(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+		for x, y in time_list:
+			time_str = x
+			time_obj = datetime.strptime(time_str, '%H:%M:%S').time()
+			shift_list = [] 
+			shift = 1
+			for i in ['shift1','shift2','shift3','shift4']:
+				if (time_obj >= shift_dict[i][0] and time_obj < shift_dict[i][1]) or (time_obj >= shift_dict[i][2] and time_obj < shift_dict[i][3]):
+					shift_list.append(shift)
+				else:
+					shift_list.append(0)
+				shift += 1
+
+			cur.execute(query, (today_date, x, y, today_month, today_year, day_option_list[0], day_option_list[1], day_option_list[2],
+				day_option_list[3], day_option_list[4], day_option_list[5], day_option_list[6], shift_list[0], shift_list[1], shift_list[2],
+				shift_list[3]))
+			num = cur.fetchone()[0]
+
+			if num < 5:
+				check = DeliveryStaffCheck()
+				check.date = today_date
+				check.time = x
+				check.totalNumber = num
+				deliveryStaffList.append(check)
+		
+			today_now += timedelta(days=1)
+
+	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
 
@@ -1323,6 +1446,9 @@ def deliveryStaffManageWorkSchedule():
 		cur.execute(thisWeekQuery, (username, start_of_week, end_of_week))
 		thisWeekSchedules = cur.fetchall()
 		thisWeekSchedules_list = []
+
+		totalHoursThisWeek = 0
+
 		for row in thisWeekSchedules:
 			schedules_dict = {}
 			schedules_dict["wws_serialNum"] = row[0]
@@ -1330,8 +1456,78 @@ def deliveryStaffManageWorkSchedule():
 			schedules_dict["shift_day"] = row[3]
 			schedules_dict["start_hour"] = row[4]
 			schedules_dict["end_hour"] = row[5]
+			if row[2] > date_obj.date()+ timedelta(days=1):
+				schedules_dict["can_delete"] = True
+			else:
+				schedules_dict["can_delete"] = False
+
+			totalHoursThisWeek += (int)(row[5].strftime("%H")) - (int)(row[4].strftime("%H"))
 
 			thisWeekSchedules_list.append(schedules_dict)
+
+		#form to add more wws for this week
+		addWWSform = ScheduleFormPT()
+
+		date_choices1 = []
+		for i in range(1,6):
+			date = date_obj + timedelta(days=i)
+			if date <= end_of_week:
+				date_choices1.append((str(date.date()), str(date.date())))	
+		
+		addWWSform.date.choices = date_choices1
+
+		start_choices1 = []
+		for i in range(10,21):
+			start_choices1.append((str(i)+":00:00",str(i)+":00:00"))
+		
+		addWWSform.start.choices = start_choices1
+
+		end_choices1 = []
+		for i in range(11,22):
+			end_choices1.append((str(i)+":00:00",str(i)+":00:00"))
+		
+		addWWSform.end.choices = end_choices1
+
+		if addWWSform.validate_on_submit() and request.method == "POST":
+			hours_this_shift = (int)(addWWSform.end.data[0:1]) - (int)(addWWSform.start.data[0:1])
+			shift_date = datetime.strptime(addWWSform.date.data, "%Y-%m-%d")
+			start_hour = datetime.strptime(addWWSform.start.data, "%H:%M:%S")
+			end_hour = datetime.strptime(addWWSform.end.data, "%H:%M:%S")
+			
+			checkIfOverlapping = True
+			checkIfHourInterval = True
+			
+			for row in thisWeekSchedules_list:
+				if datetime.strptime(str(row['shift_date']), "%Y-%m-%d") == shift_date:
+					#check if existing wws start before new wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < end_hour:
+						checkIfOverlapping = False
+					#check if existing wws start before 1h after new wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < datetime.strptime(str(row['end_hour']), "%H:%M:%S") + timedelta(hours=1):
+						checkIfHourInterval = False
+					#check if existing wws start before new wws and new wws start before 1h after the old wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour and start_hour < datetime.strptime(str(row['end_hour']), "%H:%M:%S")+ timedelta(hours=1):
+						checkIfHourInterval = False
+					#check if old wws is before new wws and new wws starts before old wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour and start_hour < datetime.strptime(str(row['end_hour']), "%H:%M:%S"):
+						checkIfOverlapping = False
+					#check if they have the same start or end
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") == start_hour or datetime.strptime(str(row['end_hour']), "%H:%M:%S") == end_hour:
+						checkIfOverlapping = False
+				
+			if (totalHoursThisWeek + hours_this_shift <= 48) and checkIfOverlapping == True and checkIfHourInterval == True and (hours_this_shift<=4):
+				serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+				cur.execute(serialNumQuery, (username,))
+				serialNum = cur.fetchone()[0]
+				serialNum += 1
+				
+				submitQuery = '''INSERT INTO WWS(wws_serialNum, duname, shift_date, shift_day, start_hour, end_hour) 
+							VALUES (%s,%s,%s,%s,%s,%s)'''
+				cur.execute(submitQuery, (serialNum, username, datetime.strptime(addWWSform.date.data, "%Y-%m-%d"),  datetime.strptime(addWWSform.date.data, "%Y-%m-%d").strftime("%A"),  
+				datetime.strptime(addWWSform.start.data, "%H:%M:%S"),  datetime.strptime(addWWSform.end.data, "%H:%M:%S")))
+				conn.commit()
+
+				return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
 
 		#next week's schedule
 		form = ScheduleFormPT()
@@ -1341,30 +1537,29 @@ def deliveryStaffManageWorkSchedule():
 		hourIntervalCheck = True
 		overlapCheck = True
 
-		def next_weekday(d, weekday):
-			days_ahead = weekday - d.weekday()
-			if days_ahead <= 0: # Target day already happened this week
-				days_ahead += 7
-			return d + timedelta(days_ahead)
+		start_of_next_week = (end_of_week + timedelta(days=1))
+		next_week = start_of_next_week
 
-		date_choices = []
+		date_choices2 = []
 		for i in range(0,6):
-			str_date = next_weekday(date_obj, i).strftime("%Y-%m-%d")
-			date_choices.append((str_date, str_date))		
-		
-		form.date.choices = date_choices
+			str_date = next_week
+			next_week += timedelta(days=1)
 
-		start_choices = []
+			date_choices2.append((str(str_date.date()), str(str_date.date())))		
+		
+		form.date.choices = date_choices2
+
+		start_choices2 = []
 		for i in range(10,21):
-			start_choices.append((str(i)+":00:00",str(i)+":00:00"))
+			start_choices2.append((str(i)+":00:00",str(i)+":00:00"))
 		
-		form.start.choices = start_choices
+		form.start.choices = start_choices2
 
-		end_choices = []
+		end_choices2 = []
 		for i in range(11,22):
-			end_choices.append((str(i)+":00:00",str(i)+":00:00"))
+			end_choices2.append((str(i)+":00:00",str(i)+":00:00"))
 		
-		form.end.choices = end_choices
+		form.end.choices = end_choices2
 
 		if form.validate_on_submit() and request.method == "POST":
 			wws_dict = {}
@@ -1395,29 +1590,79 @@ def deliveryStaffManageWorkSchedule():
 
 		# for when it is submitted
 		nextWeekScheduleSubmittedQuery = "SELECT * from WWS where duname = %s and shift_date >= %s and shift_date <= %s"
-		cur.execute(nextWeekScheduleSubmittedQuery, (username, datetime.strptime(next_weekday(date_obj, 0).strftime("%Y-%m-%d"), "%Y-%m-%d"),
-													datetime.strptime(next_weekday(date_obj, 6).strftime("%Y-%m-%d"), "%Y-%m-%d")))
+		cur.execute(nextWeekScheduleSubmittedQuery, (username, start_of_next_week.date(), next_week))
 		nextWeekScheduleSubmitted = cur.fetchall()
 		nextWeekScheduleSubmitted_list = []
+		totalHoursNextWeek = 0
 		
 		for row in nextWeekScheduleSubmitted:
 			nextWeekScheduleSubmitted_dict = {}
-			nextWeekScheduleSubmitted_dict["wws_serialNum"] = row[0]
-			nextWeekScheduleSubmitted_dict["shift_date"] = row[2]
-			nextWeekScheduleSubmitted_dict["shift_day"] = row[3]
-			nextWeekScheduleSubmitted_dict["start_hour"] = row[4]
-			nextWeekScheduleSubmitted_dict["end_hour"] = row[5]
+			nextWeekScheduleSubmitted_dict['wws_serialNum'] = row[0]
+			nextWeekScheduleSubmitted_dict['shift_date'] = row[2]
+			nextWeekScheduleSubmitted_dict['shift_day'] = row[3]
+			nextWeekScheduleSubmitted_dict['start_hour'] = row[4]
+			nextWeekScheduleSubmitted_dict['end_hour'] = row[5]
 			nextWeekScheduleSubmitted_list.append(nextWeekScheduleSubmitted_dict)
+
+			totalHoursNextWeek += (int)(row[5].strftime("%H")) - (int)(row[4].strftime("%H"))
 		
 		if len(nextWeekScheduleSubmitted_list) == 0:
 			submittedSchedule = False
 		else:
 			submittedSchedule = True	
 		
-		return render_template('manageWorkSchedulePartTime.html', thisWeekSchedules_list = thisWeekSchedules_list, 
-		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
-		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list)
+		#form to add more wws for next week
+		addWWSform2 = ScheduleFormPT()
+		addWWSform2.date.choices = date_choices2
+		addWWSform2.start.choices = start_choices2
+		addWWSform2.end.choices = end_choices2
 
+		if addWWSform2.validate_on_submit() and request.method == "POST":
+			hours_this_shift2 = (int)(addWWSform2.end.data[0:1]) - (int)(addWWSform2.start.data[0:1])
+			shift_date2 = datetime.strptime(addWWSform2.date.data, "%Y-%m-%d")
+			start_hour2 = datetime.strptime(addWWSform2.start.data, "%H:%M:%S")
+			end_hour2 = datetime.strptime(addWWSform2.end.data, "%H:%M:%S")
+			
+			checkIfOverlapping2 = True
+			checkIfHourInterval2 = True
+			
+			for row in nextWeekScheduleSubmitted_list:
+				if datetime.strptime(str(row['shift_date']), "%Y-%m-%d") == shift_date2:
+					#check if existing wws start before new wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < end_hour2:
+						checkIfOverlapping2 = False
+					#check if existing wws start before 1h after new wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < datetime.strptime(str(row['end_hour']), "%H:%M:%S") + timedelta(hours=1):
+						checkIfHourInterval2 = False
+					#check if existing wws start before new wws and new wws start before 1h after the old wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S")+ timedelta(hours=1):
+						checkIfHourInterval2 = False
+					#check if old wws is before new wws and new wws starts before old wws ends
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S"):
+						checkIfOverlapping2 = False
+					#check if they have the same start or end
+					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") == start_hour2 or datetime.strptime(str(row['end_hour']), "%H:%M:%S") == end_hour2:
+						checkIfOverlapping2 = False
+				
+			if (totalHoursNextWeek + hours_this_shift2 <= 48) and checkIfOverlapping2 == True and checkIfHourInterval2 == True and (hours_this_shift2<=4):
+				serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+				cur.execute(serialNumQuery, (username,))
+				serialNum = cur.fetchone()[0]
+				serialNum += 1
+				
+				submitQuery = '''INSERT INTO WWS(wws_serialNum, duname, shift_date, shift_day, start_hour, end_hour) 
+							VALUES (%s,%s,%s,%s,%s,%s)'''
+				cur.execute(submitQuery, (serialNum, username, datetime.strptime(addWWSform2.date.data, "%Y-%m-%d"),  datetime.strptime(addWWSform2.date.data, "%Y-%m-%d").strftime("%A"),  
+				datetime.strptime(addWWSform2.start.data, "%H:%M:%S"),  datetime.strptime(addWWSform2.end.data, "%H:%M:%S")))
+				conn.commit()
+
+				return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
+	
+		return render_template('manageWorkSchedulePartTime.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
+		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
+		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list, 
+		addWWSform2 = addWWSform2)
+	
 	#if full time
 	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
 	cur.execute(checkFullTime, (username,))
@@ -1547,6 +1792,39 @@ def insertSchedulePT():
 		conn.commit()
 	
 	submittedSchedule = True
+	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
+
+@view.route("/deleteWWS/<wws_serialNum>", methods=["GET", 'POST'])
+def deleteWWS(wws_serialNum):
+	username = current_user.username
+
+	#get all wws for the week of this wws that we want to delete EXCEPT the wws that we want to delete
+	#check all the conditions
+	#delete if conditions still fulfilled
+
+	wwsQuery = "SELECT * FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+	cur.execute(wwsQuery, (username, wws_serialNum))
+	wwsToDelete = cur.fetchone()
+
+	date_obj = wwsToDelete[2]
+
+	start_of_week = date_obj - timedelta(days=date_obj.weekday())  # Monday
+	end_of_week = start_of_week + timedelta(days=6)  # Sunday
+
+	thisWeekQuery = "SELECT * FROM WWS WHERE duname = %s AND shift_date >= %s AND shift_date <= %s EXCEPT SELECT * FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+	cur.execute(thisWeekQuery, (username, start_of_week, end_of_week, username, wws_serialNum))
+	thisWeekSchedules = cur.fetchall()
+
+	totalHours = 0
+
+	for row in thisWeekSchedules:
+		totalHours += (int)(row[5].strftime("%H")) - (int)(row[4].strftime("%H"))
+
+	if totalHours >= 10:
+		deleteQuery = "DELETE FROM WWS WHERE duname = %s and wws_serialNUm = %s"
+		cur.execute(deleteQuery, (username, wws_serialNum))
+		conn.commit()
+
 	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
 
 @view.route("/ratingsDeliveryStaff", methods = ["GET", 'POST'])
