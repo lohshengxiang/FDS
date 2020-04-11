@@ -1,0 +1,224 @@
+{% extends "baseDeliveryStaff.html" %}
+
+{% block content %}
+<h2>
+	<font color="red"> You will not be able to delete a shift if total hours this week is less than 10! </font>
+</h2>
+</br>
+<h3 class="title" style = "font-size: 300%;  ">
+  This Week's Schedule
+</h3>
+
+<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+    <thead class="thead">
+        <tr>
+			<th>Serial Num</th>
+            <th>Shift Date</th>
+			<th>Shift Day</th>
+			<th>Start Hour</th>
+			<th>End Hour</th>
+			<th>Delete?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for schedules in thisWeekSchedules_list %}
+			<tr>
+				<td>{{schedules.wws_serialNum}}</td>
+				<td>{{schedules.shift_date}}</td>
+				<td>{{schedules.shift_day}}</td>
+				<td>{{schedules.start_hour}}</td>
+				<td>{{schedules.end_hour}}</td>
+				<td>
+				{% if schedules.can_delete == True %}
+					<div class= "buttons has-addons is-centered">
+						<a href="/deleteWWS/{{schedules.wws_serialNum}}">
+							<button class="button is-block is-danger is-small">Delete</button>
+						</a>
+					</div>
+				{% endif %}
+				</td>
+			</tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<form method="POST">
+{{ addWWSform.csrf_token }}
+	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+	<tbody>
+		<tr>
+			<td>
+			  <div class = "select"> 
+			  {{ addWWSform.date }}
+			  </div>	
+			</td>
+			<td>
+			  <div class = "select"> 
+			  {{ addWWSform.start }}
+			  </div>
+			</td>
+			<td>
+			  <div class = "select"> 
+			  {{ addWWSform.end }}
+			  </div>
+			</td>
+			<td>
+			  <div class= "buttons has-addons is-centered">
+				<button class="button is-block is-info is-small" type = "submit">Add</button>
+			  </div>
+			</td>
+		</tr>
+	</tbody>
+	</table>
+</form>
+
+
+<h3 class="title" style = "font-size: 300%;  ">
+  Next Week's Schedule
+</h3>
+	{% if submittedSchedule == False %}
+	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+		<thead class="thead">
+			<tr>
+				<th>Shift Date</th>
+				<th>Shift Day</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Shift Duration</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for wws in nextWeekSchedules_list %}
+			<tr>
+				<td>{{wws.shift_date}}</td>
+				<td>{{wws.shift_day}}</td>
+				<td>{{wws.shift_start}}</td>
+				<td>{{wws.shift_end}}</td>
+				<td>{{wws.num_hours}}</td>
+				
+				<td>
+					<div class= "buttons has-addons is-centered">
+						<a href="/schedulePT/{{wws.shift_date}}/{{wws.shift_start}}/{{wws.shift_end}}">
+							<button class="button is-block is-danger is-small">Remove</button>
+						</a>
+					</div>
+				</td>
+				
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<p>	Total hours for next week = {{totalHours}}
+		<br>
+		{% if totalHours != 0 and totalHours < 10 %}
+			<font color="red"> Please ensure that your total hours is at least 10! </font>
+		{% endif %}
+		<br>
+		{% if totalHours > 48 %}
+			<font color="red"> Please ensure that your total hours is at most 48! </font>
+		{% endif %}
+	</p>
+	
+	<p>{% if hourIntervalCheck == False%} 
+		<font color="red"> Please ensure that there is at least 1 hour interval between shifts! </font>
+		{% endif %}
+	</p>
+	
+	<p>{% if overlapCheck == False%} 
+		<font color="red"> Please ensure that there are no overlapping shifts! </font>
+		{% endif %}
+	</p>
+	
+	{% if overlapCheck == True and hourIntervalCheck == True and 10 <= totalHours and totalHours <= 48%}
+		<form action="{{url_for('view.insertSchedulePT')}}" method="post"> 
+			<div class= "buttons has-addons is-centered">
+				<button class="button is-block is-info is-small" type = "submit">Submit Schedule</button>
+			</div>
+			<font color="red"; size="2">Please submit your schedule before the week starts.</font>
+		</form>
+	{% endif %}
+	
+	{% endif %}
+
+	{% if submittedSchedule == True %}
+	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+		<thead class="thead">
+			<tr>
+				<th>Serial Num</th>
+				<th>Shift Date</th>
+				<th>Shift Day</th>
+				<th>Start Hour</th>
+				<th>End Hour</th>
+				<th>Delete?</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for schedules in nextWeekScheduleSubmitted_list %}
+				<tr>
+					<td>{{schedules.wws_serialNum}}</td>
+					<td>{{schedules.shift_date}}</td>
+					<td>{{schedules.shift_day}}</td>
+					<td>{{schedules.start_hour}}</td>
+					<td>{{schedules.end_hour}}</td>
+					
+					<td>
+						<div class= "buttons has-addons is-centered">
+							<a href="/deleteWWS/{{schedules.wws_serialNum}}">
+								<button class="button is-block is-danger is-small">Delete</button>
+							</a>
+						</div>
+					</td>
+					
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+	
+	
+
+	
+	<section class="section">
+		<form method="POST">
+		{{ form.csrf_token }}
+			<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+			<tbody>
+				<tr>
+					<td>
+					  <div class = "select"> 
+					  {{ form.date }}
+					  </div>	
+					</td>
+					<td>
+					  <div class = "select"> 
+					  {{ form.start }}
+					  </div>
+					</td>
+					<td>
+					  <div class = "select"> 
+					  {{ form.end }}
+					  </div>
+					</td>
+					<td>
+					{% if submittedSchedule == False %}
+					  <div class= "buttons has-addons is-centered">
+						<button class="button is-block is-info is-small" type = "submit" name="action" value="NoHave">NoHave</button>
+					  </div>
+					{% endif %}
+					  {% if submittedSchedule == True %}
+					  <div class= "buttons has-addons is-centered">
+						<button class="button is-block is-info is-small" type = "submit" name="action" value="Have">Have</button>
+					  </div>
+					  {% endif %}
+					</td>
+				</tr>
+			</tbody>
+			</table>
+		</form>
+		<font color="red">Shift will not be added if selected shift duration exceeds 4 hours!</font>
+	</section>
+
+
+{% endblock %}

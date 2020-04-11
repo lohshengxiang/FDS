@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -1562,18 +1562,19 @@ def deliveryStaffManageWorkSchedule():
 		form.end.choices = end_choices2
 
 		if form.validate_on_submit() and request.method == "POST":
-			wws_dict = {}
-			wws_dict['username'] =  username
-			wws_dict['shift_date'] =  form.date.data
-			wws_dict['shift_day'] = datetime.strptime(form.date.data, "%Y-%m-%d").strftime("%A")
-			wws_dict['shift_start'] = form.start.data
-			wws_dict['shift_end'] =  form.end.data
-			wws_dict['num_hours'] =  (int)(form.end.data[:2]) - (int)(form.start.data[:2])
-			
-			if wws_dict not in nextWeekSchedules_list and wws_dict['num_hours']<=4 and wws_dict['shift_start'] < wws_dict['shift_end']:
-				nextWeekSchedules_list.append(wws_dict)
+			if 'NoHave' in request.form.getlist('action'):
+				wws_dict = {}
+				wws_dict['username'] =  username
+				wws_dict['shift_date'] =  form.date.data
+				wws_dict['shift_day'] = datetime.strptime(form.date.data, "%Y-%m-%d").strftime("%A")
+				wws_dict['shift_start'] = form.start.data
+				wws_dict['shift_end'] =  form.end.data
+				wws_dict['num_hours'] =  (int)(form.end.data[:2]) - (int)(form.start.data[:2])
+				
+				if wws_dict not in nextWeekSchedules_list and wws_dict['num_hours']<=4 and wws_dict['shift_start'] < wws_dict['shift_end']:
+					nextWeekSchedules_list.append(wws_dict)
 
-			return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
+				return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
 
 		for wws in nextWeekSchedules_list:
 			totalHours += wws['num_hours']
@@ -1617,48 +1618,49 @@ def deliveryStaffManageWorkSchedule():
 		addWWSform2.start.choices = start_choices2
 		addWWSform2.end.choices = end_choices2
 
-		if addWWSform2.validate_on_submit() and request.method == "POST":
-			hours_this_shift2 = (int)(addWWSform2.end.data[0:1]) - (int)(addWWSform2.start.data[0:1])
-			shift_date2 = datetime.strptime(addWWSform2.date.data, "%Y-%m-%d")
-			start_hour2 = datetime.strptime(addWWSform2.start.data, "%H:%M:%S")
-			end_hour2 = datetime.strptime(addWWSform2.end.data, "%H:%M:%S")
-			
-			checkIfOverlapping2 = True
-			checkIfHourInterval2 = True
-			
-			for row in nextWeekScheduleSubmitted_list:
-				if datetime.strptime(str(row['shift_date']), "%Y-%m-%d") == shift_date2:
-					#check if existing wws start before new wws ends
-					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < end_hour2:
-						checkIfOverlapping2 = False
-					#check if existing wws start before 1h after new wws ends
-					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < datetime.strptime(str(row['end_hour']), "%H:%M:%S") + timedelta(hours=1):
-						checkIfHourInterval2 = False
-					#check if existing wws start before new wws and new wws start before 1h after the old wws ends
-					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S")+ timedelta(hours=1):
-						checkIfHourInterval2 = False
-					#check if old wws is before new wws and new wws starts before old wws ends
-					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S"):
-						checkIfOverlapping2 = False
-					#check if they have the same start or end
-					if datetime.strptime(str(row['start_hour']), "%H:%M:%S") == start_hour2 or datetime.strptime(str(row['end_hour']), "%H:%M:%S") == end_hour2:
-						checkIfOverlapping2 = False
+		if form.validate_on_submit() and request.method == "POST":
+			if 'Have' in request.form.getlist('action'):
+				hours_this_shift2 = (int)(addWWSform2.end.data[0:1]) - (int)(addWWSform2.start.data[0:1])
+				shift_date2 = datetime.strptime(addWWSform2.date.data, "%Y-%m-%d")
+				start_hour2 = datetime.strptime(addWWSform2.start.data, "%H:%M:%S")
+				end_hour2 = datetime.strptime(addWWSform2.end.data, "%H:%M:%S")
 				
-			if (totalHoursNextWeek + hours_this_shift2 <= 48) and checkIfOverlapping2 == True and checkIfHourInterval2 == True and (hours_this_shift2<=4):
-				serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
-				cur.execute(serialNumQuery, (username,))
-				serialNum = cur.fetchone()[0]
-				serialNum += 1
+				checkIfOverlapping2 = True
+				checkIfHourInterval2 = True
 				
-				submitQuery = '''INSERT INTO WWS(wws_serialNum, duname, shift_date, shift_day, start_hour, end_hour) 
-							VALUES (%s,%s,%s,%s,%s,%s)'''
-				cur.execute(submitQuery, (serialNum, username, datetime.strptime(addWWSform2.date.data, "%Y-%m-%d"),  datetime.strptime(addWWSform2.date.data, "%Y-%m-%d").strftime("%A"),  
-				datetime.strptime(addWWSform2.start.data, "%H:%M:%S"),  datetime.strptime(addWWSform2.end.data, "%H:%M:%S")))
-				conn.commit()
+				for row in nextWeekScheduleSubmitted_list:
+					if datetime.strptime(str(row['shift_date']), "%Y-%m-%d") == shift_date2:
+						#check if existing wws start before new wws ends
+						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < end_hour2:
+							checkIfOverlapping2 = False
+						#check if existing wws start before 1h after new wws ends
+						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") > start_hour2 and datetime.strptime(str(row['start_hour']), "%H:%M:%S") < datetime.strptime(str(row['end_hour']), "%H:%M:%S") + timedelta(hours=1):
+							checkIfHourInterval2 = False
+						#check if existing wws start before new wws and new wws start before 1h after the old wws ends
+						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S")+ timedelta(hours=1):
+							checkIfHourInterval2 = False
+						#check if old wws is before new wws and new wws starts before old wws ends
+						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") < start_hour2 and start_hour2 < datetime.strptime(str(row['end_hour']), "%H:%M:%S"):
+							checkIfOverlapping2 = False
+						#check if they have the same start or end
+						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") == start_hour2 or datetime.strptime(str(row['end_hour']), "%H:%M:%S") == end_hour2:
+							checkIfOverlapping2 = False
+					
+				if (totalHoursNextWeek + hours_this_shift2 <= 48) and checkIfOverlapping2 == True and checkIfHourInterval2 == True and (hours_this_shift2<=4):
+					serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+					cur.execute(serialNumQuery, (username,))
+					serialNum = cur.fetchone()[0]
+					serialNum += 1
+					
+					submitQuery = '''INSERT INTO WWS(wws_serialNum, duname, shift_date, shift_day, start_hour, end_hour) 
+								VALUES (%s,%s,%s,%s,%s,%s)'''
+					cur.execute(submitQuery, (serialNum, username, datetime.strptime(addWWSform2.date.data, "%Y-%m-%d"),  datetime.strptime(addWWSform2.date.data, "%Y-%m-%d").strftime("%A"),  
+					datetime.strptime(addWWSform2.start.data, "%H:%M:%S"),  datetime.strptime(addWWSform2.end.data, "%H:%M:%S")))
+					conn.commit()
 
-				return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
-	
-		return render_template('manageWorkSchedulePartTime.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
+					return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
+		
+		return render_template('manage_test.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
 		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
 		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list, 
 		addWWSform2 = addWWSform2)
