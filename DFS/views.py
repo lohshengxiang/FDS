@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -1516,7 +1516,7 @@ def deliveryStaffManageWorkSchedule():
 						checkIfOverlapping = False
 				
 			if (totalHoursThisWeek + hours_this_shift <= 48) and checkIfOverlapping == True and checkIfHourInterval == True and (hours_this_shift<=4):
-				serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+				serialNumQuery = "SELECT MAX(wws_serialNum) FROM WWS GROUP BY duname HAVING duname = %s"
 				cur.execute(serialNumQuery, (username,))
 				serialNum = cur.fetchone()[0]
 				serialNum += 1
@@ -1647,7 +1647,7 @@ def deliveryStaffManageWorkSchedule():
 							checkIfOverlapping2 = False
 					
 				if (totalHoursNextWeek + hours_this_shift2 <= 48) and checkIfOverlapping2 == True and checkIfHourInterval2 == True and (hours_this_shift2<=4):
-					serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+					serialNumQuery = "SELECT MAX(wws_serialNum) FROM WWS GROUP BY duname HAVING duname = %s"
 					cur.execute(serialNumQuery, (username,))
 					serialNum = cur.fetchone()[0]
 					serialNum += 1
@@ -1660,7 +1660,7 @@ def deliveryStaffManageWorkSchedule():
 
 					return redirect("/scheduleDeliveryStaff/manageWorkSchedule")
 		
-		return render_template('manage_test.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
+		return render_template('manageWorkSchedulePartTime.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
 		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
 		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list, 
 		addWWSform2 = addWWSform2)
@@ -1728,7 +1728,7 @@ def deliveryStaffManageWorkSchedule():
 			if mws_dict not in mws_list:
 				mws_list.append(mws_dict)
 
-				serialNumQuery = "SELECT COUNT(*) FROM MWS GROUP BY duname HAVING duname = %s"
+				serialNumQuery = "SELECT MAX(wws_serialNum) FROM MWS GROUP BY duname HAVING duname = %s"
 				cur.execute(serialNumQuery, (username,))
 				serialNum = cur.fetchone()[0]
 
@@ -1781,7 +1781,7 @@ def insertSchedulePT():
 	global nextWeekSchedules_list
 	global submittedSchedule 
 
-	serialNumQuery = "SELECT COUNT(*) FROM WWS GROUP BY duname HAVING duname = %s"
+	serialNumQuery = "SELECT MAX(wws_serialNum) FROM WWS GROUP BY duname HAVING duname = %s"
 	cur.execute(serialNumQuery, (username,))
 	serialNum = cur.fetchone()[0]
 

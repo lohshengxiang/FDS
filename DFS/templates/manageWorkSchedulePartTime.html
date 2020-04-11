@@ -109,7 +109,7 @@
 			{% endfor %}
 		</tbody>
 	</table>
-	
+
 	<p>	Total hours for next week = {{totalHours}}
 		<br>
 		{% if totalHours != 0 and totalHours < 10 %}
@@ -139,42 +139,9 @@
 			<font color="red"; size="2">Please submit your schedule before the week starts.</font>
 		</form>
 	{% endif %}
-
 	
-	<section class="section">
-		<form method="POST">
-		{{ form.csrf_token }}
-			<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
-			<tbody>
-				<tr>
-					<td>
-					  <div class = "select"> 
-					  {{ form.date }}
-					  </div>	
-					</td>
-					<td>
-					  <div class = "select"> 
-					  {{ form.start }}
-					  </div>
-					</td>
-					<td>
-					  <div class = "select"> 
-					  {{ form.end }}
-					  </div>
-					</td>
-					<td>
-					  <div class= "buttons has-addons is-centered">
-						<button class="button is-block is-info is-small" type = "submit">Add</button>
-					  </div>
-					</td>
-				</tr>
-			</tbody>
-			</table>
-		</form>
-		<font color="red">Shift will not be added if selected shift duration exceeds 4 hours!</font>
-	</section>
 	{% endif %}
-	
+
 	{% if submittedSchedule == True %}
 	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
 		<thead class="thead">
@@ -208,36 +175,50 @@
 			{% endfor %}
 		</tbody>
 	</table>
-	
-	<form method="POST">
-	{{ addWWSform2.csrf_token }}
-	<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
-		<tbody>
-			<tr>
-				<td>
-				  <div class = "select"> 
-				  {{ addWWSform2.date }}
-				  </div>	
-				</td>
-				<td>
-				  <div class = "select"> 
-				  {{ addWWSform2.start }}
-				  </div>
-				</td>
-				<td>
-				  <div class = "select"> 
-				  {{ addWWSform2.end }}
-				  </div>
-				</td>
-				<td>
-				  <div class= "buttons has-addons is-centered">
-					<button class="button is-block is-info is-small" type = "submit">Add</button>
-				  </div>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</form>
 	{% endif %}
+	
+	
+
+	
+	<section class="section">
+		<form method="POST">
+		{{ form.csrf_token }}
+			<table class="table" style="margin-left:auto;margin-right:auto;font-size: 14px;">
+			<tbody>
+				<tr>
+					<td>
+					  <div class = "select"> 
+					  {{ form.date }}
+					  </div>	
+					</td>
+					<td>
+					  <div class = "select"> 
+					  {{ form.start }}
+					  </div>
+					</td>
+					<td>
+					  <div class = "select"> 
+					  {{ form.end }}
+					  </div>
+					</td>
+					<td>
+					{% if submittedSchedule == False %}
+					  <div class= "buttons has-addons is-centered">
+						<button class="button is-block is-info is-small" type = "submit" name="action" value="NoHave">Add</button>
+					  </div>
+					{% endif %}
+					  {% if submittedSchedule == True %}
+					  <div class= "buttons has-addons is-centered">
+						<button class="button is-block is-info is-small" type = "submit" name="action" value="Have">Add</button>
+					  </div>
+					  {% endif %}
+					</td>
+				</tr>
+			</tbody>
+			</table>
+		</form>
+		<font color="red">Shift will not be added if selected shift duration exceeds 4 hours!</font>
+	</section>
+
 
 {% endblock %}
