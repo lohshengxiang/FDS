@@ -22,16 +22,16 @@
         </tr>
     </thead>
     <tbody>
-        {% for FDSPromotion in promo_list %}
+        {% for DeliveryStaffCheck in deliveryStaffList %}
         <tr>
             <td style="text-align:center;">
-                {date}
+                {{DeliveryStaffCheck.date}}
             </td>
             <td style="text-align:center;">
-                {time}
+                {{DeliveryStaffCheck.time}}
             </td>
             <td style="text-align:center;">
-                {totalNumber}
+                {{DeliveryStaffCheck.totalNumber}}
             </td>
         </tr>
         {% endfor %}
