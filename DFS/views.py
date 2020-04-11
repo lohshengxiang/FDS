@@ -114,6 +114,20 @@ class PromotionsSummary():
 	totalOrders = None
 	avgOrders = None
 
+class DeliveryStaffCheck(): 
+	date = None
+	time = None
+	totalNumber = None
+
+class OrderedItem():
+	orderId = None
+	cuname = None
+	order_date = None
+	order_time = None
+	foodcost = None
+	fname = None
+	quantity = None
+
 
 # class Shift():
 # 	shift_a_start = None
@@ -253,6 +267,45 @@ def homePage():
 	cur.execute(rnameQuery, (username,))
 	rname = cur.fetchone()[0]
 	return render_template('Restaurant/homeRestaurant.html' , rname = rname)
+
+@view.route("/orderRestaurant", methods = ["GET","POST"])
+def currentOrdersPage():
+	username = current_user.username
+	currOrdersQuery = "SELECT orderId, cuname, order_date, order_time, foodcost, fname, quantity FROM Orders NATURAL JOIN Contain WHERE runame = %s AND is_delivered = false;"
+	cur.execute(currOrdersQuery, (username,))
+	orders = cur.fetchall()
+	orderId = []
+	cuname = []
+	order_date = []
+	order_time = []
+	foodcost = []
+
+	orderedItems_list = []
+	foodItem_rows = []
+	quantity_rows = []
+	
+	for row in orders:
+		orderId.append(row[0])
+		cuname.append(row[1])
+		order_date.append(row[2])
+		order_time.append(row[3])
+		foodcost.append(row[4])
+		foodItem_rows.append(row[5])
+		quantity_rows.append(row[6])
+	
+	for x in range(len(foodItem_rows)):
+		orderItem = OrderedItem()
+		orderItem.orderId = orderId[x]
+		orderItem.cuname = cuname[x]
+		orderItem.order_date = order_date[x]
+		orderItem.order_time = order_time[x]
+		orderItem.foodcost = foodcost[x]
+		orderItem.fname = foodItem_rows[x]
+		orderItem.quantity = quantity_rows[x]
+		orderedItems_list.append(orderItem)
+	
+	return render_template('Restaurant/orderRestaurant.html', orderedItems_list = orderedItems_list)
+
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
@@ -728,7 +781,7 @@ def deliverySummary():
 		for x, y in time_list: 
 			summary = DeliverySummary() 
 			summary.time = x
-			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date =%s and order_time >= %s and order_time < %s"
+			query1 = "SELECT count(orderId) FROM Orders WHERE area ='West' and order_date = %s and order_time >= %s and order_time < %s"
 			cur.execute(query1, (date,x,y))
 			summary.west = cur.fetchone()[0]
 			query2 = "SELECT count(orderId) FROM Orders WHERE area ='East' and order_date = %s and order_time >= %s and order_time < %s"
@@ -911,6 +964,76 @@ def deliveryStaffSummary():
 
 	return render_template('Manager/deliveryStaffSummary.html', form = form, numOrders = numOrders, totalHours = totalHours, totalSalary = totalSalary, 
 				avgDeliveryTime = avgDeliveryTime, numRatings = numRatings, avgRating = avgRating)
+
+@view.route("/homeManager/deliveryStaffCheck", methods =["GET", "POST"])
+def deliveryStaffCheck(): 
+	flash('Important: Inform more delivery staff to work at the timings below to hit 5 working delivery staff')
+
+	global shift_dict
+	global day_option_dict
+
+	if day_option_dict == {}:
+		query = '''SELECT * from Day_Options'''
+		cur.execute(query,)
+		options = cur.fetchall()
+
+		for i in options:
+			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+	if shift_dict == {}:
+		query = '''SELECT * from Shifts'''
+		cur.execute(query,)
+		shifts = cur.fetchall()
+		
+		for i in shifts:
+			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+
+	deliveryStaffList = []
+	for i in [1,2,3,4,5,6,7]: # shows the next 7 days
+		today_now = datetime.now()
+		today_day = calendar.day_name[today_now.weekday()]
+		today_month = calendar.month_name[today_now.month]
+		today_year = today_now.year
+		today_date = today_now.date()
+
+		day_option_list = []
+		for i in [1,2,3,4,5,6,7]:
+			if today_day in day_option_dict[i]:
+				day_option_list.append(i)
+			else:
+				day_option_list.append(0)
+
+		time_list = (('10:00:00', '11:00:00'), ('11:00:00', '12:00:00'), ('12:00:00', '13:00:00'), ('13:00:00', '14:00:00'), ('14:00:00', '15:00:00'), ('15:00:00', '16:00:00'), ('16:00:00', '17:00:00'), 
+			('17:00:00', '18:00:00'), ('18:00:00', '19:00:00'), ('19:00:00', '20:00:00'), ('20:00:00', '21:00:00'), ('21:00:00', '22:00:00'))
+
+		query = '''SELECT * from num_workers(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+		for x, y in time_list:
+			time_str = x
+			time_obj = datetime.strptime(time_str, '%H:%M:%S').time()
+			shift_list = [] 
+			shift = 1
+			for i in ['shift1','shift2','shift3','shift4']:
+				if (time_obj >= shift_dict[i][0] and time_obj < shift_dict[i][1]) or (time_obj >= shift_dict[i][2] and time_obj < shift_dict[i][3]):
+					shift_list.append(shift)
+				else:
+					shift_list.append(0)
+				shift += 1
+
+			cur.execute(query, (today_date, x, y, today_month, today_year, day_option_list[0], day_option_list[1], day_option_list[2],
+				day_option_list[3], day_option_list[4], day_option_list[5], day_option_list[6], shift_list[0], shift_list[1], shift_list[2],
+				shift_list[3]))
+			num = cur.fetchone()[0]
+
+			if num < 5:
+				check = DeliveryStaffCheck()
+				check.date = today_date
+				check.time = x
+				check.totalNumber = num
+				deliveryStaffList.append(check)
+		
+			today_now += timedelta(days=1)
+
+	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
 

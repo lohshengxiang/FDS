@@ -1,0 +1,35 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style="font-size: 300%;  ">
+    Upcoming Orders
+</h1>
+
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Order ID</th>
+            <th>Customer Name</th>
+            <th>Order Date</th>
+            <th>Order Time</th>
+            <th>Total Cost</th>
+            <th>Food Item</th>
+            <th>Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for orders in orderedItems_list %}
+        <tr>
+            <td>{{orders.orderId}}</td>
+            <td>{{orders.cuname}}</td>
+            <td>{{orders.order_date}}</td>
+            <td>{{orders.order_time}}</td>
+            <td>{{orders.foodcost}}</td>
+            <td>{{orders.fname}}</td>
+            <td>{{orders.quantity}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -2,59 +2,70 @@
 
 {% block content %}
 <h1 class="title" style="font-size: 300%;  ">
-  FDS Manager Home Page
+    FDS Manager Home Page
 </h1>
 <h2 class="subtitle" style="font-size: 200%">
-  Hi {{ current_user.username }}!
+    Hi {{ current_user.username }}!
 </h2>
 
 <div class="columns">
-  <div class="column is-one-fourth">
-      <div class="col-sm-6">
-          <div class="card">
-              <div class="card-content">
-                  <h5 class="card-title"><b> View General Summary </b></h5>
-                  <br>
-                  <a href="/homeManager/generalSummary" class="btn btn-primary">Go</a>
-              </div>
-          </div>
-      </div>
-  </div>
-  <div class = "column is-one-fourth">
-      <div class="col-sm-6">
-          <div class="card">
-              <div class="card-content">
-                  <h5 class="card-title"><b> View Customer Summary </b></h5>
-                  <br>
-                  <a href="/homeManager/customerSummary" class="btn btn-primary">Go</a>
-              </div>
-          </div>
-      </div>
-  </div>
-  <div class = "column is-one-fourth">
-      <div class="col-sm-6">
-          <div class="card">
-              <div class="card-content">
-                  <h5 class="card-title"><b> View Delivery Summary </b></h5>
-                  <br>
-                  <a href="/homeManager/deliverySummary" class="btn btn-primary">Go</a>
-              </div>
-          </div>
-      </div>
-  </div>
-  <div class = "column is-one-fourth">
-    <div class="col-sm-6">
-        <div class="card">
-            <div class="card-content">
-                <h5 class="card-title"><b> View Delivery Staff Summary </b></h5>
-                <br>
-                <a href="/homeManager/deliveryStaffSummary" class="btn btn-primary">Go</a>
+    <div class="column is-one-fourth">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View General Summary </b></h5>
+                    <br>
+                    <a href="/homeManager/generalSummary" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="column is-one-fourth">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Customer Summary </b></h5>
+                    <br>
+                    <a href="/homeManager/customerSummary" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="column is-one-fourth">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Delivery Summary </b></h5>
+                    <br>
+                    <a href="/homeManager/deliverySummary" class="btn btn-primary">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="column is-one-fourth">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-content">
+                    <h5 class="card-title"><b> View Delivery Staff Summary </b></h5>
+                    <br>
+                    <a href="/homeManager/deliveryStaffSummary" class="btn btn-primary">Go</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+
+<div class="column is-one-fourth">
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-content">
+                <h5 class="card-title"><b> Check Number of Delivery Staff </b></h5>
+                <br>
+                <a href="/homeManager/deliveryStaffCheck" class="btn btn-primary">Go</a>
+            </div>
+        </div>
+    </div>
 </div>
-
-
 
 {% endblock %}
