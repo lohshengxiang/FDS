@@ -1670,7 +1670,8 @@ def order_food(rname):
 			food_cost *= int(form.quantity.data) #subject to promotion
 			food_cost = float(str(round(food_cost,2)))
 
-			order_date = datetime.now().strftime("%d/%m/%Y")
+			# order_date = datetime.now().strftime("%d/%m/%Y")
+			order_date = today_now.strftime("%Y-%m-%d")
 			
 			item_dict = {'username': username,
 						'rname' : rname,
