@@ -118,6 +118,16 @@ class deliveryStaffCheck():
 	date = None
 	time = None
 	totalNumber = None
+	
+class OrderedItem():
+	orderId = None
+	cuname = None
+	order_date = None
+	order_time = None
+	foodcost = None
+	fname = None
+	quantity = None
+
 
 # class Shift():
 # 	shift_a_start = None
@@ -149,19 +159,21 @@ class deliveryStaffCheck():
 # shift3.shift_b_start = '18:00:00'
 # shift3.shift_b_end = '22:00:00'
 
-shift_dict = { "shift1" : ['10:00:00','14:00:00','15:00:00','19:00:00'],
-				"shift2" : ['11:00:00','15:00:00','16:00:00','20:00:00'],
-				"shift3" : ['12:00:00', '16:00:00', '17:00:00','21:00:00'],
-				"shift4" : ['13:00:00', '17:00:00', '18:00:00', '22:00:00']}
+shift_dict = {}
+day_option_dict = {}
+# shift_dict = { "shift1" : ['10:00:00','14:00:00','15:00:00','19:00:00'],
+# 				"shift2" : ['11:00:00','15:00:00','16:00:00','20:00:00'],
+# 				"shift3" : ['12:00:00', '16:00:00', '17:00:00','21:00:00'],
+# 				"shift4" : ['13:00:00', '17:00:00', '18:00:00', '22:00:00']}
 
 
-day_option_dict = { 1 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], 
-					2 : ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-					3 : ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-					4 : ["Monday", "Thursday", "Friday", "Saturday", "Sunday"],
-					5 : ["Monday", "Tuesday", "Friday", "Saturday", "Sunday"],
-					6 : ["Monday", "Tuesday", "Wednesday", "Saturday", "Sunday"],
-					7 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"]}
+# day_option_dict = { 1 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], 
+# 					2 : ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+# 					3 : ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+# 					4 : ["Monday", "Thursday", "Friday", "Saturday", "Sunday"],
+# 					5 : ["Monday", "Tuesday", "Friday", "Saturday", "Sunday"],
+# 					6 : ["Monday", "Tuesday", "Wednesday", "Saturday", "Sunday"],
+# 					7 : ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"]}
 
 
 @login_manager.user_loader
@@ -218,7 +230,26 @@ def load_user(username):
 def home():
 	test = False
 	if current_user.is_authenticated:
-		test = current_user.user_type
+		
+		# initiate shift and day_options
+		global shift_dict
+		global day_option_dict
+
+		query = '''SELECT * from Day_Options'''
+		cur.execute(query,)
+		options = cur.fetchall()
+
+		for i in options:
+			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+		query = '''SELECT * from Shifts'''
+		cur.execute(query,)
+		shifts = cur.fetchall()
+
+		for i in shifts:
+			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+
+		# test = shift_dict
 		userType = current_user.user_type
 		if (userType == 'Restaurant'):
 			return redirect ('/homeRestaurant')
@@ -231,11 +262,57 @@ def home():
 # START OF RESTAURANT VIEW ROUTES
 @view.route("/homeRestaurant", methods = ["GET","POST"])
 def homePage():
-	return render_template('Restaurant/homeRestaurant.html')
+	username = current_user.username
+	rnameQuery = "SELECT rname FROM Restaurant WHERE uname = %s"
+	cur.execute(rnameQuery, (username,))
+	rname = cur.fetchone()[0]
+	return render_template('Restaurant/homeRestaurant.html' , rname = rname)
+
+@view.route("/orderRestaurant", methods = ["GET","POST"])
+def currentOrdersPage():
+	username = current_user.username
+	currOrdersQuery = "SELECT orderId, cuname, order_date, order_time, foodcost, fname, quantity FROM Orders NATURAL JOIN Contain WHERE runame = %s AND is_delivered = false;"
+	cur.execute(currOrdersQuery, (username,))
+	orders = cur.fetchall()
+	orderId = []
+	cuname = []
+	order_date = []
+	order_time = []
+	foodcost = []
+
+	orderedItems_list = []
+	foodItem_rows = []
+	quantity_rows = []
+	
+	for row in orders:
+		orderId.append(row[0])
+		cuname.append(row[1])
+		order_date.append(row[2])
+		order_time.append(row[3])
+		foodcost.append(row[4])
+		foodItem_rows.append(row[5])
+		quantity_rows.append(row[6])
+	
+	for x in range(len(foodItem_rows)):
+		orderItem = OrderedItem()
+		orderItem.orderId = orderId[x]
+		orderItem.cuname = cuname[x]
+		orderItem.order_date = order_date[x]
+		orderItem.order_time = order_time[x]
+		orderItem.foodcost = foodcost[x]
+		orderItem.fname = foodItem_rows[x]
+		orderItem.quantity = quantity_rows[x]
+		orderedItems_list.append(orderItem)
+	
+	return render_template('Restaurant/orderRestaurant.html', orderedItems_list = orderedItems_list)
+
 
 @view.route("/menuRestaurant", methods = ["GET","POST"])
 def menuPage():
 	username = current_user.username
+	rnameQuery = "SELECT rname FROM Restaurant WHERE uname = %s"
+	cur.execute(rnameQuery, (username,))
+	rname = cur.fetchone()
 	foodItem_list = []
 	foodItemQuery = "SELECT * from Food where runame = %s"
 	cur.execute(foodItemQuery,(username,)) 
@@ -1547,7 +1624,7 @@ def deliveryStaffRatings():
 
 	avg_ratingQuery = "SELECT avg_rating from Delivery_Staff where uname = %s"
 	cur.execute(avg_ratingQuery, (username,))
-	avg_rating = cur.fetchone()[0]
+	avg_rating = round((cur.fetchone()[0]),2)
 
 	return render_template('ratingsDeliveryStaff.html', ratings_list = ratings_list, avg_rating = avg_rating)
 
@@ -1875,11 +1952,12 @@ def order_confirm(rname):
 	global points_used
 	global promo_used
 
-	delivery_fee = fixed_delivery_fee - points_used
+	delivery_fee = float(fixed_delivery_fee - points_used)
 
 	food_cost = 0
 	for i in cart_list:
 		food_cost += i["food_cost"]
+
 
 	discount = 0
 	if promo_used != "" and promo_action != "":
@@ -1897,8 +1975,10 @@ def order_confirm(rname):
 			address = new_address[0]
 		except:
 			return redirect("/")
-		order_date = today_now.strftime("%m/%d/%Y")
-		order_time = today_now.strftime("%H:%M:%S")
+		# order_date = today_now.strftime("%m/%d/%Y")
+		order_date = today_now.strftime("%Y-%m-%d")
+		order_time_str = today_now.strftime("%H:%M:%S")
+		order_time = today_now.time()
 		query = "SELECT max(orderid) from Orders"
 		cur.execute(query)
 		maxid = int(cur.fetchone()[0])
@@ -1983,10 +2063,31 @@ def order_confirm(rname):
 		#get full-timers end
 
 		#testing
-		shift_list = [] #possible shifts
-		shift = 1
+		
 
 		global shift_dict
+		global day_option_dict
+
+		if shift_dict == {} or day_option_dict == {}:
+			query = '''SELECT * from Day_Options'''
+			cur.execute(query,)
+			options = cur.fetchall()
+
+			for i in options:
+				day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
+
+			query = '''SELECT * from Shifts'''
+			cur.execute(query,)
+			shifts = cur.fetchall()
+
+			for i in shifts:
+				shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+
+
+		shift_list = [] #possible shifts
+		shift = 1
+		
+		
 		for i in ['shift1','shift2','shift3','shift4']:
 			if (order_time >= shift_dict[i][0] and order_time < shift_dict[i][1]) or (order_time >= shift_dict[i][2] and order_time < shift_dict[i][3]):
 				shift_list.append(shift)
@@ -1996,7 +2097,7 @@ def order_confirm(rname):
 
 
 		day_option_list = [] #possible day options
-		global day_option_dict
+		
 		for i in [1,2,3,4,5,6,7]:
 			if today_day in day_option_dict[i]:
 				day_option_list.append(i)
@@ -2023,7 +2124,7 @@ def order_confirm(rname):
 			try:
 				query = '''INSERT INTO orders(orderId,cuname, payment_type, deliveryAddress, deliveryPostalCode, area, order_date,order_time,deliveryFee,foodCost,promoCode) 
 						VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-				cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time,delivery_fee,food_cost - discount,promo_used))
+				cur.execute(query,(newid,current_user.username,payment_type,deliveryAddress,deliveryPostalCode,area,order_date,order_time_str,delivery_fee,food_cost - discount,promo_used))
 				conn.commit()
 
 				query = '''INSERT INTO Delivers(orderId,duname) VALUES (%s,%s)'''

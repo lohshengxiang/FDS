@@ -2,11 +2,11 @@
 
 {% block content %}
 <h1 class="title" style = "font-size: 300%;  ">
-  Welcome to DFS {{ test }}
+  Welcome to DFS 
 </h1>
 {% if current_user.is_authenticated %}
   <h2 class="subtitle" style = "font-size: 200%">
-    Hi {{ current_user.username }}! You are a {{ current_user.user_type }}. Start ordering now!
+    Hi {{ current_user.firstName }}! Start ordering now!
   </h2>
 {% endif %}
 {% if not current_user.is_authenticated %}

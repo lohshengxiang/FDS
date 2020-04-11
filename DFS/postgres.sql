@@ -1,22 +1,58 @@
 -- total participation and key constraints between orders and delivers is enforced in the front end
 
-drop table IF EXISTS Users CASCADE;
-drop table IF EXISTS FDS_Manager CASCADE;
-drop table IF EXISTS FDS_Promo CASCADE;
-drop table IF EXISTS Restaurant CASCADE;
-drop table IF EXISTS Promotion CASCADE;
-drop table IF EXISTS Food CASCADE;
-drop table IF EXISTS Customer CASCADE;
-drop table IF EXISTS Contain CASCADE;
-drop table IF EXISTS Orders CASCADE;
-drop table IF EXISTS Reviews CASCADE;
-drop table IF EXISTS Delivery_Staff CASCADE;
-drop table IF EXISTS Delivers CASCADE;
-drop table IF EXISTS Part_Time CASCADE;
-drop table IF EXISTS Full_Time CASCADE;
-drop table IF EXISTS WWS CASCADE;
-drop table IF EXISTS MWS CASCADE;
-drop table IF EXISTS CreditCard CASCADE;
+drop table IF EXISTS Users CASCADE; --mav
+drop table IF EXISTS FDS_Manager CASCADE; --jil
+drop table IF EXISTS FDS_Promo CASCADE; --jil
+drop table IF EXISTS Restaurant CASCADE; --mav
+drop table IF EXISTS Promotion CASCADE; --mav
+drop table IF EXISTS Food CASCADE; --mav
+drop table IF EXISTS Customer CASCADE; --sx
+drop table IF EXISTS Contain CASCADE; --sx
+drop table IF EXISTS Orders CASCADE; --sx
+drop table IF EXISTS Reviews CASCADE; --sx
+drop table IF EXISTS Delivery_Staff CASCADE; --cry
+drop table IF EXISTS Delivers CASCADE; --jil
+drop table IF EXISTS Part_Time CASCADE; --cry
+drop table IF EXISTS Full_Time CASCADE; --cry
+drop table IF EXISTS WWS CASCADE; --cry
+drop table IF EXISTS MWS CASCADE; --cry
+drop table IF EXISTS CreditCard CASCADE; --jil
+drop table IF EXISTS Day_Options;
+drop table IF EXISTS Shifts;
+
+CREATE TABLE Day_Options(
+	option numeric PRIMARY KEY,
+	day1 varchar(20),
+	day2 varchar(20),
+	day3 varchar(20),
+	day4 varchar(20),
+	day5 varchar(20)
+);
+
+--day_options
+insert into Day_Options values (1,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
+insert into Day_Options values (2,'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+insert into Day_Options values (3,'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (4,'Monday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (5,'Monday', 'Tuesday', 'Friday', 'Saturday', 'Sunday');
+insert into Day_Options values (6,'Monday', 'Tuesday', 'Wednesday', 'Saturday', 'Sunday');
+insert into Day_Options values (7,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Sunday');
+
+
+CREATE TABLE Shifts(
+	shift_id varchar PRIMARY KEY,
+	start1 time,
+	end1 time,
+	start2 time,
+	end2 time
+);
+
+--Shifts
+insert into Shifts values ('shift1','10:00:00','14:00:00','15:00:00','19:00:00');
+insert into Shifts values ('shift2','11:00:00','15:00:00','16:00:00','20:00:00');
+insert into Shifts values ('shift3','12:00:00', '16:00:00', '17:00:00','21:00:00');
+insert into Shifts values ('shift4','13:00:00', '17:00:00', '18:00:00', '22:00:00');
+
 
 CREATE TABLE Users (
 	uname varchar(100) PRIMARY KEY,
@@ -117,8 +153,8 @@ CREATE TABLE Promotion (
 );
 
 INSERT INTO Promotion values
-	(1, '2020-01-01', '2020-04-27', 'free delivery', 'FREEDELIVERYR1','restaurant1'),
-	(2, '2020-01-05', '2020-01-19', '10% off', '10OFFR1','restaurant1'),
+	(1, '2020-04-10', '2020-04-27', 'free delivery', 'FREEDELIVERYR1','restaurant1'),
+	(2, '2020-04-10', '2020-04-13', '10% off', '10OFFR1','restaurant1'),
 	(3, '2020-04-10', '2020-04-22', '10% off', '10OFFR2','restaurant2'),
 	(4, '2020-03-01', '2020-05-02', 'free delivery', 'FREEDELIVERYR2','restaurant2'),
 	(5, '2020-01-01', '2020-02-03', '15% off', '15OFFR2','restaurant2'),
@@ -178,7 +214,11 @@ INSERT INTO Food values
 ('restaurant7','Beef Burger',true,10,100,'Western'), 
 ('restaurant7','Veggie Burger',true,8,100,'Western'),
 ('restaurant7','Chicken Burger',true,10,100,'Western'),
+('restaurant7','Fries',true,4,100,'Western'),
+('restaurant7','Portobello Burger',true,14,100,'Western'),
+('restaurant7','Cheese Burger',true,12,100,'Western'),
 ('restaurant7','Chocolate Pie',true,6,200,'Dessert'),
+('restaurant7','Strawberry Pie',true,6,200,'Dessert'),
 
 ('restaurant8','Burrito',true,6,100,'Western'), 
 ('restaurant8','Chicken Kebab',true,5,100,'Western'), 
@@ -279,7 +319,11 @@ INSERT INTO Orders values
 	(14,'customer9', 'Credit Card', '50 East Coast Road', '429979','East', true, '2020-02-24', '16:00:04', 5,6.4, '20OFF'),
 
 	(15,'customer10', 'Cash', '1 Senoko Crescent', '758283','North', true, '2020-02-25', '10:12:59', 5,11, null),
-	(16,'customer10', 'Credit Card', '7 Amoy St Far East Square', '049949','Central', true, '2020-02-25', '19:14:31', 5,15, null); 
+	(16,'customer10', 'Credit Card', '7 Amoy St Far East Square', '049949','Central', true, '2020-02-25', '19:14:31', 5,15, null), 
+
+	(17,'customer1', 'Credit Card', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-04-10', '19:14:31', 5,15, '10OFFR1'), 
+	(18,'customer1', 'Credit Card', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-04-10', '12:14:31', 5,15, '10OFFR1'), 
+	(19,'customer1', 'Credit Card', 'Blk 123 Serangoon Ave 3 #01-01', '530123','North-East', true, '2020-04-10', '15:14:31', 5,15, 'FREEDELIVERYR1'); 
 
 CREATE TABLE Reviews (
 	orderId numeric REFERENCES Orders(orderId) ON DELETE CASCADE,
@@ -355,7 +399,17 @@ INSERT INTO Contain values
 
 	(16,'restaurant9', 'Kampong Fried Rice', 1),
 	(16,'restaurant9', 'Maggie Pataya', 1),
-	(16,'restaurant9', 'Butter Chicken', 1);
+	(16,'restaurant9', 'Butter Chicken', 1),
+
+	(17,'restaurant1', 'Ramen', 5),
+	(17,'restaurant1', 'Mochi', 3),
+	
+	(18,'restaurant1', 'Ramen', 2),
+	(18,'restaurant1', 'Sushi', 3),
+
+	(19,'restaurant1', 'California Roll', 3),
+	(19,'restaurant1', 'Sushi', 3),
+	(19,'restaurant1', 'Ramen', 2);
 
 CREATE TABLE Delivery_Staff (
 	uname varchar(100) PRIMARY KEY REFERENCES Users ON DELETE CASCADE,
