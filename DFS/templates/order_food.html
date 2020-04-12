@@ -59,7 +59,7 @@
                         <tr>
                             <td>{{item.fname}}</td>
                             <td>{{item.quantity}}</td>
-                            <td>{{item.food_cost}}</td>
+                            <td>${{item.food_cost}}</td>
                             <td>
                             <div class= "buttons has-addons is-centered">
                               <a href="/order/{{item.rname}}/{{item.fname}}/{{item.quantity}}">
@@ -72,7 +72,7 @@
                         <tr>
                             <td></td>
                             <td>Delivery Cost:</br>Total Cost:</td>
-                            <td>{{delivery_fee}}</br>{{total_cost + delivery_fee}}</td>
+                            <td>${{delivery_fee}}</br>${{total_cost + delivery_fee}}</td>
                         </tr>
                         </tbody>
                     </table>

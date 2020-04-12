@@ -49,13 +49,13 @@
                         <tr>
                             <td>{{item.fname}}</td>
                             <td>{{item.quantity}}</td>
-                            <td>{{item.food_cost}}</td>
+                            <td>${{item.food_cost}}</td>
                         </tr>
                         {% endfor %}
                         <tr>
                             <td></td>
                             <td>Delivery Cost:</br>Total Cost:</td>
-                            <td>{{delivery_fee}}</br>{{total_cost + delivery_fee}}</td>
+                            <td>${{delivery_fee}}</br>${{total_cost + delivery_fee}}</td>
                         </tr>
 
                         </tbody>

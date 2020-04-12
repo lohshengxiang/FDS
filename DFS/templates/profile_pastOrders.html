@@ -74,7 +74,7 @@
                               <td>{{item.order_date}}</td>
                               <td>{{item.order_time}}</td>
                               <!-- <td>{{item.deliveryFee}}</td> -->
-                              <td>{{item.foodCost + item.deliveryFee}}</td>
+                              <td>${{item.foodCost + item.deliveryFee}}</td>
                               <td>{{item.promoCode}}</td>
                               {% if item.reviewed == False %}
                               <td>
