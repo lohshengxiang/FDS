@@ -40,7 +40,7 @@ insert into Day_Options values (7,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
 
 
 CREATE TABLE Shifts(
-	shift_id varchar PRIMARY KEY,
+	shift_id numeric PRIMARY KEY,
 	start1 time,
 	end1 time,
 	start2 time,
@@ -48,10 +48,10 @@ CREATE TABLE Shifts(
 );
 
 --Shifts
-insert into Shifts values ('shift1','10:00:00','14:00:00','15:00:00','19:00:00');
-insert into Shifts values ('shift2','11:00:00','15:00:00','16:00:00','20:00:00');
-insert into Shifts values ('shift3','12:00:00', '16:00:00', '17:00:00','21:00:00');
-insert into Shifts values ('shift4','13:00:00', '17:00:00', '18:00:00', '22:00:00');
+insert into Shifts values (1,'10:00:00','14:00:00','15:00:00','19:00:00');
+insert into Shifts values (2,'11:00:00','15:00:00','16:00:00','20:00:00');
+insert into Shifts values (3,'12:00:00', '16:00:00', '17:00:00','21:00:00');
+insert into Shifts values (4,'13:00:00', '17:00:00', '18:00:00', '22:00:00');
 
 
 CREATE TABLE Users (
@@ -674,7 +674,9 @@ CREATE TABLE MWS (
 	day_option numeric NOT NULL,
 	shift numeric NOT NULL,
 	work_year numeric NOT NULL,
-	PRIMARY KEY (duname, mws_serialNum)
+	PRIMARY KEY (duname, mws_serialNum),
+	FOREIGN KEY(day_option) REFERENCES Day_Options,
+	FOREIGN KEY(shift) REFERENCES Shifts
 );
 
 INSERT INTO MWS values

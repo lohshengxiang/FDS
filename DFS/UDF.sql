@@ -141,6 +141,24 @@ returns table(workingnum bigint) as $$
 
 $$ language sql; 
 
+--function to get the number of deliveries for both shifts in a day
+DROP FUNCTION if exists num_deliveries;
+CREATE OR REPLACE FUNCTION num_deliveries(work_month numeric, start1 time, end1 time, start2 time, end2 time, username varchar)
+returns table(work_date date, num1 bigint, num2 bigint) as $$
+	WITH temp1 AS (SELECT O.order_date, count(*) as num1 FROM Orders O 
+	JOIN Delivers D ON O.orderId = D.orderId
+	WHERE (select extract(month from O.order_date)) = work_month
+	AND O.order_time > start1 AND O.order_time < end1 AND D.duname = username
+	GROUP BY O.order_date),
+	
+	temp2 AS(SELECT order_date, count(*) AS num2 FROM Orders O 
+	JOIN Delivers D ON O.orderId = D.orderId 
+	WHERE (select extract(month from O.order_date)) = work_month
+	AND D.depart_restaurant > start2 AND D.arrive_customer < end2 AND D.duname = username
+	GROUP BY O.order_date)
 
-
+	SELECT temp1.order_date, temp1.num1, temp2.num2
+	FROM temp1 FULL OUTER JOIN temp2 ON temp1.order_date = temp2.order_date
+	
+$$ language sql;
 
