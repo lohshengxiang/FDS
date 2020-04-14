@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -247,7 +247,7 @@ def home():
 		shifts = cur.fetchall()
 
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+			shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]
 
 		# test = shift_dict
 		userType = current_user.user_type
@@ -1373,23 +1373,8 @@ def deliveryStaffPastWorkSchedules():
 					schedules_dict["start_b"] = shift_dict['shift' + str(row[4])][2]
 					schedules_dict["end_b"] = shift_dict['shift' + str(row[4])][3]
 
-					ordersDateQuery = '''WITH temp1 AS (SELECT O.order_date, count(*) as num1 FROM Orders O 
-										JOIN Delivers D ON O.orderId = D.orderId
-										WHERE (select extract(month from O.order_date)) = %s
-										AND O.order_time > %s AND O.order_time < %s AND D.duname = %s
-										GROUP BY O.order_date),
-										
-										temp2 AS(SELECT order_date, count(*) AS num2 FROM Orders O 
-										JOIN Delivers D ON O.orderId = D.orderId 
-										WHERE (select extract(month from O.order_date)) = %s
-										AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s
-										GROUP BY O.order_date)
-
-										SELECT temp1.order_date, temp1.num1, temp2.num2
-										FROM temp1 FULL OUTER JOIN temp2 ON temp1.order_date = temp2.order_date'''
-
-					cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], username, 
-													datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
+					ordersDateQuery = '''SELECT * from num_deliveries(%s,%s,%s,%s,%s,%s)'''
+					cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
 					ordersDateQuery = cur.fetchall()
 
 					schedules_dict["num_deliveries_a"] = 0
@@ -1892,7 +1877,7 @@ def order_food(rname):
 
 	runame = cur.fetchone()[0]
 
-	query = "SELECT distinct fname from Food where runame = %s"
+	query = "SELECT distinct fname from Food where runame = %s and order_limit > 0"
 	try:
 		cur.execute(query,(runame,))
 	except:
@@ -1951,7 +1936,7 @@ def order_food(rname):
 			food_cost = float(str(round(food_cost,2)))
 
 			# order_date = datetime.now().strftime("%d/%m/%Y")
-			order_date = today_now.strftime("%Y-%m-%d")
+			# order_date = today_now.strftime("%Y-%m-%d")
 			
 			item_dict = {'username': username,
 						'rname' : rname,
