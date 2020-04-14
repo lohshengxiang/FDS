@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -1877,7 +1877,7 @@ def order_food(rname):
 
 	runame = cur.fetchone()[0]
 
-	query = "SELECT distinct fname from Food where runame = %s"
+	query = "SELECT distinct fname from Food where runame = %s and order_limit > 0"
 	try:
 		cur.execute(query,(runame,))
 	except:
@@ -1936,7 +1936,7 @@ def order_food(rname):
 			food_cost = float(str(round(food_cost,2)))
 
 			# order_date = datetime.now().strftime("%d/%m/%Y")
-			order_date = today_now.strftime("%Y-%m-%d")
+			# order_date = today_now.strftime("%Y-%m-%d")
 			
 			item_dict = {'username': username,
 						'rname' : rname,
