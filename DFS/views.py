@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -569,7 +569,7 @@ def delete_restaurant(runame):
 @view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
 def manageDeliveryStaff():
 	dstaff_list = []
-	dstaffQuery = "SELECT * from Delivery_Staff" #avg rating need to query from delivers not dstaff
+	dstaffQuery = "SELECT * from Delivery_Staff order by uname" #avg rating need to query from delivers not dstaff
 	cur.execute(dstaffQuery)
 	dstaff = cur.fetchall()
 	duname_rows = []
@@ -670,16 +670,15 @@ def createDeliveryStaff():
 		uname = form.uname.data
 		password = form.password.data
 		dname = form.dname.data
-		flatRate = form.flatRate.data
 		staffType = form.staffType.data
 		avgRating = 0
 		query1 = "INSERT INTO Users VALUES(%s, %s)"
 		cur.execute(query1, (uname, password))
 		conn.commit()
-		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s, %s)"
-		cur.execute(query2, (uname, dname, avgRating, flatRate))
+		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s)"
+		cur.execute(query2, (uname, dname, avgRating))
 		conn.commit()
-		if staffType.lower() == "Full Time".lower(): 
+		if staffType == "FullTime":
 			query3 = "INSERT INTO Full_Time VALUES(%s)"
 			cur.execute(query3, (uname,))
 			conn.commit()
@@ -972,7 +971,7 @@ def deliveryStaffCheck():
 	global shift_dict
 	global day_option_dict
 
-	if day_option_dict == {}:
+	if shift_dict == {} or day_option_dict == {}:
 		query = '''SELECT * from Day_Options'''
 		cur.execute(query,)
 		options = cur.fetchall()
@@ -980,13 +979,12 @@ def deliveryStaffCheck():
 		for i in options:
 			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
 
-	if shift_dict == {}:
 		query = '''SELECT * from Shifts'''
 		cur.execute(query,)
 		shifts = cur.fetchall()
-		
+
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+			shift_dict['shift' + i[0]] = [i[1],i[2],i[3],i[4]]
 
 	deliveryStaffList = []
 	for i in [1,2,3,4,5,6,7]: # shows the next 7 days

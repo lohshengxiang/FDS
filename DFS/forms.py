@@ -93,7 +93,6 @@ class CreateDeliveryStaffForm(FlaskForm):
     uname = StringField('uname',validators = [InputRequired(message = 'Input is required')])
     password = StringField('password', validators = [InputRequired(message = 'Input is required')])
     dname = StringField('dname', validators = [InputRequired(message = 'Input is required')])
-    flatRate = SelectField('flatRate', choices = [('3', '3'),('4','4')])
     staffType = SelectField('staffType', choices = [('PartTime', 'PartTime'),('FullTime', 'FullTime')])
 
 class CreateFoodItemForm(FlaskForm):
