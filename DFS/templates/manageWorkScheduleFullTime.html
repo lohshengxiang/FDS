@@ -61,6 +61,15 @@
 				<td>{{mws.end_hour_a}}</td>
 				<td>{{mws.start_hour_b}}</td>
 				<td>{{mws.end_hour_b}}</td>
+				<td>
+				{% if mws.can_delete == True %}
+					<div class= "buttons has-addons is-centered">
+						<a href="/deleteMWS/{{mws.mws_serialNum}}">
+							<button class="button is-block is-danger is-small">Delete</button>
+						</a>
+					</div>
+				{% endif %}
+				</td>
 			</tr>
 		{% endfor %}
 		</tbody>
