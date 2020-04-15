@@ -987,15 +987,15 @@ def deliveryStaffCheck():
 		shifts = cur.fetchall()
 		
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+			shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]	
 
 	deliveryStaffList = []
-	for i in [1,2,3,4,5,6,7]: # shows the next 7 days
+	for i in [0,1,2,3,4,5,6]: # shows the next 7 days
 		today_now = datetime.now()
 		today_day = calendar.day_name[today_now.weekday()]
 		today_month = calendar.month_name[today_now.month]
 		today_year = today_now.year
-		today_date = today_now.date()
+		today_date = today_now.date() + timedelta(days = i)
 
 		day_option_list = []
 		for i in [1,2,3,4,5,6,7]:
