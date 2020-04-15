@@ -1840,7 +1840,7 @@ def deliveryStaffRatings():
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
 	form = RestaurantForm()
-	query = "SELECT distinct rname from Restaurant,Food where runame = uname and category = %s"
+	query = "SELECT distinct rname from Restaurant,Food where runame = uname and category = %s and availability = true"
 	# query = "SELECT distinct runame from Food where category = %s"
 	try:
 		cur.execute(query,(category,))
