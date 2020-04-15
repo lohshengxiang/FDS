@@ -40,7 +40,7 @@ deliverer = ""
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
 cur = conn.cursor()
 
 class User():
@@ -1904,7 +1904,7 @@ def order_food(rname):
 
 	runame = cur.fetchone()[0]
 
-	query = "SELECT distinct fname from Food where runame = %s and order_limit > 0"
+	query = "SELECT distinct fname from Food where runame = %s and order_limit > 0 and availability = true"
 	try:
 		cur.execute(query,(runame,))
 	except:
