@@ -32,6 +32,7 @@ promo_used = ""
 promo_action = ""
 nextWeekSchedules_list = []
 submittedSchedule = False
+deliverer = ""
 
 
 # available_FT_list = []
@@ -2096,11 +2097,11 @@ def order_payment(rname):
 					flash('Promo added!')
 					redirect(url_for('view.order_payment', rname = rname))
 				else:
-					form2.promo.errors.append("Invalid Promo Code")
+					form2.promo.errors.append("Promo Code Expired")
 					redirect(url_for('view.order_payment', rname = rname))
 
 			else:
-				form2.promo.errors.append("Invalid Promo Code2")
+				form2.promo.errors.append("Invalid Promo Code")
 				redirect(url_for('view.order_payment', rname = rname))
 
 	food_cost = 0
@@ -2302,7 +2303,7 @@ def order_confirm(rname):
 			shifts = cur.fetchall()
 
 			for i in shifts:
-				shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+				shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]
 
 
 		shift_list = [] #possible shifts
@@ -2401,7 +2402,11 @@ def order_confirm(rname):
 
 		#settle Contain end
 
+		global deliverer
 
+		query = '''SELECT dname from Delivery_Staff where uname = %s'''
+		cur.execute(query,(available_list[0],))
+		deliverer = cur.fetchone()[0]
 
 		return redirect("/done")
 
@@ -2419,17 +2424,23 @@ def order_done():
 	global fixed_delivery_fee
 	global points_used
 	global promo_used
+	global deliverer 
+
+	temp = deliverer
+
+
 	cart_list = []
 	new_address = []
 	payment_type = ""
 	card_used = ""
 	points_used = 0
 	promo_used = ""
+	deliverer = ""
 
 	# global available_FT_list
 	# test = available_FT_list
 	# available_FT_list = []
-	return render_template('order_done.html')
+	return render_template('order_done.html', temp = temp)
 
 
 @view.route("/cart", methods = ["GET","POST"])
