@@ -40,7 +40,7 @@ deliverer = ""
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -548,9 +548,14 @@ def manageRestaurants():
 	rname_rows = []
 	address_rows = []
 	for row in restaurants:
-		runame_rows.append(row[0])
-		rname_rows.append(row[1])
-		address_rows.append(row[2])
+		runame = row[0]
+		query = "SELECT count(*) FROM Food WHERE availability = true AND runame = %s"
+		cur.execute(query, (runame,))
+		result = cur.fetchone()[0]
+		if result > 0: 
+			runame_rows.append(row[0])
+			rname_rows.append(row[1])
+			address_rows.append(row[2])
 
 	for x in range(len(rname_rows)):
 		restaurant = Restaurant()
@@ -563,14 +568,21 @@ def manageRestaurants():
 
 @view.route("/delete_restaurant/<string:runame>", methods=["POST"])
 def delete_restaurant(runame): 
-	cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
+	cur.execute("UPDATE Food set availability = false WHERE runame = %s", [runame])
 	conn.commit()
+
+	query = "SELECT count(*) FROM Contain WHERE runame = %s"
+	cur.execute(query, (runame,))
+	result = cur.fetchone()[0]
+	if result == 0:
+		cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
+		conn.commit()
 	return redirect(url_for('view.manageRestaurants'))
 
 @view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
 def manageDeliveryStaff():
 	dstaff_list = []
-	dstaffQuery = "SELECT * from Delivery_Staff" #avg rating need to query from delivers not dstaff
+	dstaffQuery = "SELECT * from Delivery_Staff order by uname" #avg rating need to query from delivers not dstaff
 	cur.execute(dstaffQuery)
 	dstaff = cur.fetchall()
 	duname_rows = []
@@ -671,16 +683,15 @@ def createDeliveryStaff():
 		uname = form.uname.data
 		password = form.password.data
 		dname = form.dname.data
-		flatRate = form.flatRate.data
 		staffType = form.staffType.data
 		avgRating = 0
 		query1 = "INSERT INTO Users VALUES(%s, %s)"
 		cur.execute(query1, (uname, password))
 		conn.commit()
-		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s, %s)"
-		cur.execute(query2, (uname, dname, avgRating, flatRate))
+		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s)"
+		cur.execute(query2, (uname, dname, avgRating))
 		conn.commit()
-		if staffType.lower() == "Full Time".lower(): 
+		if staffType == "FullTime":
 			query3 = "INSERT INTO Full_Time VALUES(%s)"
 			cur.execute(query3, (uname,))
 			conn.commit()
@@ -693,6 +704,8 @@ def createDeliveryStaff():
 
 @view.route("/delete_deliveryStaff/<string:duname>", methods=["POST"])
 def delete_DeliveryStaff(duname): 
+	cur.execute("UPDATE Delivers SET duname = null WHERE duname = %s", [duname])
+	conn.commit()
 	cur.execute("DELETE FROM Users WHERE uname = %s", [duname])
 	conn.commit()
 	return redirect(url_for('view.manageDeliveryStaff'))
@@ -973,7 +986,7 @@ def deliveryStaffCheck():
 	global shift_dict
 	global day_option_dict
 
-	if day_option_dict == {}:
+	if shift_dict == {} or day_option_dict == {}:
 		query = '''SELECT * from Day_Options'''
 		cur.execute(query,)
 		options = cur.fetchall()
@@ -981,21 +994,20 @@ def deliveryStaffCheck():
 		for i in options:
 			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
 
-	if shift_dict == {}:
 		query = '''SELECT * from Shifts'''
 		cur.execute(query,)
 		shifts = cur.fetchall()
-		
+
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+			shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]	
 
 	deliveryStaffList = []
-	for i in [1,2,3,4,5,6,7]: # shows the next 7 days
+	for i in [0,1,2,3,4,5,6]: # shows the next 7 days
 		today_now = datetime.now()
 		today_day = calendar.day_name[today_now.weekday()]
 		today_month = calendar.month_name[today_now.month]
 		today_year = today_now.year
-		today_date = today_now.date()
+		today_date = today_now.date() + timedelta(days = i)
 
 		day_option_list = []
 		for i in [1,2,3,4,5,6,7]:
@@ -1741,6 +1753,10 @@ def deliveryStaffManageWorkSchedule():
 			submitted_dict["end_hour_a"] = shift_dict['shift' + str(row[4])][1]
 			submitted_dict["start_hour_b"] = shift_dict['shift' + str(row[4])][2]
 			submitted_dict["end_hour_b"] = shift_dict['shift' + str(row[4])][3]
+			if date_obj!=end_of_month:
+				submitted_dict["can_delete"] = True
+			else:
+				submitted_dict["can_delete"] = False
 
 			submitted_list.append(submitted_dict)
 
@@ -1812,6 +1828,16 @@ def deleteWWS(wws_serialNum):
 		deleteQuery = "DELETE FROM WWS WHERE duname = %s and wws_serialNUm = %s"
 		cur.execute(deleteQuery, (username, wws_serialNum))
 		conn.commit()
+
+	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
+
+@view.route("/deleteMWS/<mws_serialNum>", methods=["GET", 'POST'])
+def deleteMWS(mws_serialNum):
+	username = current_user.username
+
+	deleteQuery = "DELETE FROM MWS WHERE duname = %s and mws_serialNum = %s"
+	cur.execute(deleteQuery, (username, mws_serialNum))
+	conn.commit()
 
 	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
 
