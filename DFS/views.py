@@ -40,7 +40,7 @@ deliverer = ""
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -549,10 +549,17 @@ def manageRestaurants():
 	address_rows = []
 	for row in restaurants:
 		runame = row[0]
+		query1 = "SELECT count(*) FROM Food WHERE runame = %s"
+		cur.execute(query1, (runame,))
+		result1 = cur.fetchone()[0]
 		query = "SELECT count(*) FROM Food WHERE availability = true AND runame = %s"
 		cur.execute(query, (runame,))
 		result = cur.fetchone()[0]
-		if result > 0: 
+		if result1 == 0:
+			runame_rows.append(row[0])
+			rname_rows.append(row[1])
+			address_rows.append(row[2])
+		elif result > 0: 
 			runame_rows.append(row[0])
 			rname_rows.append(row[1])
 			address_rows.append(row[2])
