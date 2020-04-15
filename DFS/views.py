@@ -39,7 +39,7 @@ submittedSchedule = False
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -1713,7 +1713,7 @@ def deliveryStaffManageWorkSchedule():
 			if mws_dict not in mws_list:
 				mws_list.append(mws_dict)
 
-				serialNumQuery = "SELECT MAX(wws_serialNum) FROM MWS GROUP BY duname HAVING duname = %s"
+				serialNumQuery = "SELECT MAX(mws_serialNum) FROM MWS GROUP BY duname HAVING duname = %s"
 				cur.execute(serialNumQuery, (username,))
 				serialNum = cur.fetchone()[0]
 
@@ -1740,6 +1740,10 @@ def deliveryStaffManageWorkSchedule():
 			submitted_dict["end_hour_a"] = shift_dict['shift' + str(row[4])][1]
 			submitted_dict["start_hour_b"] = shift_dict['shift' + str(row[4])][2]
 			submitted_dict["end_hour_b"] = shift_dict['shift' + str(row[4])][3]
+			if date_obj!=end_of_month:
+				submitted_dict["can_delete"] = True
+			else:
+				submitted_dict["can_delete"] = False
 
 			submitted_list.append(submitted_dict)
 
@@ -1811,6 +1815,16 @@ def deleteWWS(wws_serialNum):
 		deleteQuery = "DELETE FROM WWS WHERE duname = %s and wws_serialNUm = %s"
 		cur.execute(deleteQuery, (username, wws_serialNum))
 		conn.commit()
+
+	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
+
+@view.route("/deleteMWS/<mws_serialNum>", methods=["GET", 'POST'])
+def deleteMWS(mws_serialNum):
+	username = current_user.username
+
+	deleteQuery = "DELETE FROM MWS WHERE duname = %s and mws_serialNum = %s"
+	cur.execute(deleteQuery, (username, mws_serialNum))
+	conn.commit()
 
 	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
 
