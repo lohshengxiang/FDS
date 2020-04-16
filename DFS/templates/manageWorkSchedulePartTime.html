@@ -2,7 +2,7 @@
 
 {% block content %}
 <h2>
-	<font color="red"> You will not be able to delete a shift if total hours this week is less than 10! </font>
+	<font color="red"> You will not be able to delete a shift if total hours this week is less than 10 or add a shift if total hours will exceed 48! </font>
 </h2>
 </br>
 <h3 class="title" style = "font-size: 300%;  ">
@@ -42,6 +42,8 @@
     </tbody>
 </table>
 
+Total hours for this week = {{totalHoursThisWeek}}
+<br></br>
 
 <form method="POST">
 {{ addWWSform.csrf_token }}
@@ -175,10 +177,9 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	
+	Total hours for next week = {{totalHoursNextWeek}}	
 	{% endif %}
-	
-	
-
 	
 	<section class="section">
 		<form method="POST">

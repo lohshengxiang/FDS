@@ -1073,7 +1073,11 @@ def deliveryStaffCheck():
 				check.time = x
 				check.totalNumber = num
 				deliveryStaffList.append(check)
+<<<<<<< HEAD
+		
+=======
 
+>>>>>>> 7171c841d8900b74cc1e555d11088099c9e0230c
 	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
@@ -1515,7 +1519,7 @@ def deliveryStaffManageWorkSchedule():
 		addWWSform.end.choices = end_choices1
 
 		if addWWSform.validate_on_submit() and request.method == "POST":
-			hours_this_shift = (int)(addWWSform.end.data[0:1]) - (int)(addWWSform.start.data[0:1])
+			hours_this_shift = (int)(addWWSform.end.data[:2]) - (int)(addWWSform.start.data[:2])
 			shift_date = datetime.strptime(addWWSform.date.data, "%Y-%m-%d")
 			start_hour = datetime.strptime(addWWSform.start.data, "%H:%M:%S")
 			end_hour = datetime.strptime(addWWSform.end.data, "%H:%M:%S")
@@ -1646,7 +1650,7 @@ def deliveryStaffManageWorkSchedule():
 
 		if form.validate_on_submit() and request.method == "POST":
 			if 'Have' in request.form.getlist('action'):
-				hours_this_shift2 = (int)(addWWSform2.end.data[0:1]) - (int)(addWWSform2.start.data[0:1])
+				hours_this_shift2 = (int)(addWWSform2.end.data[:2]) - (int)(addWWSform2.start.data[:2])
 				shift_date2 = datetime.strptime(addWWSform2.date.data, "%Y-%m-%d")
 				start_hour2 = datetime.strptime(addWWSform2.start.data, "%H:%M:%S")
 				end_hour2 = datetime.strptime(addWWSform2.end.data, "%H:%M:%S")
@@ -1672,7 +1676,7 @@ def deliveryStaffManageWorkSchedule():
 						if datetime.strptime(str(row['start_hour']), "%H:%M:%S") == start_hour2 or datetime.strptime(str(row['end_hour']), "%H:%M:%S") == end_hour2:
 							checkIfOverlapping2 = False
 					
-				if (totalHoursNextWeek + hours_this_shift2 <= 48) and checkIfOverlapping2 == True and checkIfHourInterval2 == True and (hours_this_shift2<=4):
+				if totalHoursNextWeek + hours_this_shift2 <= 48 and checkIfOverlapping2 == True and checkIfHourInterval2 == True and hours_this_shift2 <= 4:
 					serialNumQuery = "SELECT MAX(wws_serialNum) FROM WWS GROUP BY duname HAVING duname = %s"
 					cur.execute(serialNumQuery, (username,))
 					serialNum = cur.fetchone()[0]
@@ -1689,7 +1693,7 @@ def deliveryStaffManageWorkSchedule():
 		return render_template('manageWorkSchedulePartTime.html', thisWeekSchedules_list = thisWeekSchedules_list, addWWSform = addWWSform,
 		nextWeekSchedules_list = nextWeekSchedules_list, form = form, totalHours = totalHours, hourIntervalCheck = hourIntervalCheck, 
 		overlapCheck = overlapCheck, submittedSchedule = submittedSchedule, nextWeekScheduleSubmitted_list = nextWeekScheduleSubmitted_list, 
-		addWWSform2 = addWWSform2)
+		addWWSform2 = addWWSform2, totalHoursThisWeek = totalHoursThisWeek, totalHoursNextWeek = totalHoursNextWeek)
 	
 	#if full time
 	checkFullTime = "SELECT * FROM Full_Time WHERE duname = %s"
