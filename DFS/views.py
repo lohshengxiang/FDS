@@ -366,12 +366,6 @@ def addFoodItem():
 		return redirect("/menuRestaurant")
 	return render_template('Restaurant/addFoodItem.html', form = form)
 
-@view.route("/delete_foodItem/<string:fname>", methods=["POST"])
-def delete_foodItem(fname): 
-	cur.execute("DELETE FROM Food WHERE fname = %s", [fname])
-	conn.commit()
-	return redirect(url_for('view.menuPage'))
-
 @view.route("/update_foodItem/<string:fname>", methods = ["POST"])
 def update_foodItem(fname):
 	username = current_user.username
