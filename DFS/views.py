@@ -1082,8 +1082,6 @@ def deliveryStaffCheck():
 				check.totalNumber = num
 				deliveryStaffList.append(check)
 		
-			today_now += timedelta(days=1)
-
 	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
