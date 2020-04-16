@@ -129,6 +129,11 @@ class OrderedItem():
 	fname = None
 	quantity = None
 
+class Reviews():
+	orderId = None
+	order_date = None
+	review = None
+
 
 # class Shift():
 # 	shift_a_start = None
@@ -315,7 +320,7 @@ def menuPage():
 	cur.execute(rnameQuery, (username,))
 	rname = cur.fetchone()
 	foodItem_list = []
-	foodItemQuery = "SELECT * from Food where runame = %s"
+	foodItemQuery = "SELECT * from Food where runame = %s ORDER BY order_limit"
 	cur.execute(foodItemQuery,(username,)) 
 	food = cur.fetchall()
 	fname_rows = []
@@ -341,6 +346,7 @@ def menuPage():
 		foodItem_list.append(foodItem)
 
 	return render_template('Restaurant/menuRestaurant.html', foodItem_list = foodItem_list)
+
 
 @view.route("/addFoodItem", methods = ["POST"])
 def addFoodItem():
@@ -381,6 +387,31 @@ def update_foodItem(fname):
 		return redirect("/menuRestaurant")
 
 	return render_template("/Restaurant/update_foodItem.html", form = form)
+
+@view.route("/reviewRestaurant", methods = ["GET","POST"])
+def viewReviews():
+	username = current_user.username
+	reviews_list = []
+	reviewsQuery = "SELECT DISTINCT r.orderId, order_date, review FROM (Orders o NATURAL JOIN Contain c) JOIN Reviews r ON r.orderid = o.orderid WHERE c.runame = %s"
+	cur.execute(reviewsQuery,(username,)) 
+	reviews = cur.fetchall()
+	orderId_rows = []
+	order_date_rows = []
+	review_rows = []
+
+	for row in reviews:
+		orderId_rows.append(row[0])
+		order_date_rows.append(row[1])
+		review_rows.append(row[2])
+
+	for x in range(len(orderId_rows)):
+		reviewItem = Reviews()
+		reviewItem.orderId = orderId_rows[x]
+		reviewItem.order_date = order_date_rows[x]
+		reviewItem.review = review_rows[x]
+		reviews_list.append(reviewItem)
+
+	return render_template('Restaurant/reviewRestaurant.html', reviews_list = reviews_list)
 
 @view.route("/adminRestaurant", methods = ["GET", 'POST'])
 def adminRestaurant(): 

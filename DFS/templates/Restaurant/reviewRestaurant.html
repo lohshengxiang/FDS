@@ -1,0 +1,28 @@
+{% extends "baseRestaurant.html" %}
+
+{% block content %}
+<h1 class="title" style = "font-size: 300%;  ">
+  FDS Restaurant Reviews
+<h2 class="subtitle" style = "font-size: 200%">
+    Hi {{ current_user.firstName }}!
+</h2>
+<table class="table" style="margin-left:auto;margin-right:auto;">
+    <thead class="thead">
+        <tr>
+            <th>Order ID</th>
+            <th>Order Date</th>
+            <th>Review</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in reviews_list %}
+        <tr>
+            <td>{{item.orderId}}</td>
+            <td>{{item.order_date}}</td>
+            <td>{{item.review}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
