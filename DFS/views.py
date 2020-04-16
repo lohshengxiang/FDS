@@ -40,7 +40,7 @@ deliverer = ""
 view = Blueprint("view", __name__)
 
 #change password before running
-conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = welcome1")
+conn = psycopg2.connect("dbname=fds2 user=postgres host = localhost password = password")
 cur = conn.cursor()
 
 class User():
@@ -1073,11 +1073,6 @@ def deliveryStaffCheck():
 				check.time = x
 				check.totalNumber = num
 				deliveryStaffList.append(check)
-<<<<<<< HEAD
-		
-=======
-
->>>>>>> 7171c841d8900b74cc1e555d11088099c9e0230c
 	return render_template('Manager/deliveryStaffCheck.html', deliveryStaffList = deliveryStaffList)
 
 # END OF MANAGER VIEW ROUTES
