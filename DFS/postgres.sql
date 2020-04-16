@@ -40,7 +40,7 @@ insert into Day_Options values (7,'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
 
 
 CREATE TABLE Shifts(
-	shift_id varchar PRIMARY KEY,
+	shift_id numeric PRIMARY KEY,
 	start1 time,
 	end1 time,
 	start2 time,
@@ -48,10 +48,10 @@ CREATE TABLE Shifts(
 );
 
 --Shifts
-insert into Shifts values ('shift1','10:00:00','14:00:00','15:00:00','19:00:00');
-insert into Shifts values ('shift2','11:00:00','15:00:00','16:00:00','20:00:00');
-insert into Shifts values ('shift3','12:00:00', '16:00:00', '17:00:00','21:00:00');
-insert into Shifts values ('shift4','13:00:00', '17:00:00', '18:00:00', '22:00:00');
+insert into Shifts values (1,'10:00:00','14:00:00','15:00:00','19:00:00');
+insert into Shifts values (2,'11:00:00','15:00:00','16:00:00','20:00:00');
+insert into Shifts values (3,'12:00:00', '16:00:00', '17:00:00','21:00:00');
+insert into Shifts values (4,'13:00:00', '17:00:00', '18:00:00', '22:00:00');
 
 
 CREATE TABLE Users (
@@ -462,22 +462,22 @@ CREATE TABLE Delivers (
 );
 
 INSERT INTO Delivers values
-	(1,'parttime1', 5.0, '10:53:40', '11:11:11', '11:15:23', '11:30:44'), -- jan 1 wed
-	(2,'fulltime1', 4.0, '13:25:33', '13:30:42', '13:32:40', '13:50:20'), -- jan 1 wed 
-	(3,'parttime1', 4.0, '17:11:30', '17:20:00', '17:25:00', '17:35:00'), -- jan 1 wed 
-	(4,'fulltime1', 5.0, '16:55:00', '17:20:00', '17:25:00', '17:35:00'), -- feb 1 sat 
-	(5,'fulltime16', 3.0, '17:15:40', '17:20:00', '17:25:00', '17:35:00'), -- march 1 sun
-	(6,'parttime4', 4.0, '12:01:56', '12:10:10', '12:15:58', '12:30:20'), -- march 6 
-	(7,'fulltime6', 5.0, '19:03:44', '19:15:15', '19:17:12', '19:33:24'), -- april 1 wed
-	(8,'fulltime6', 3.0, '19:12:59', '19:22:23', '19:25:33', '19:55:32'), --april 3 fri
-	(9,'fulltime1', 5.0, '12:23:00', '12:34:12', '12:35:00', '12:59:00'), --april 4 sat
-	(10,'fulltime1', 4.0, '14:01:59', '14:10:32', '14:12:55', '14:30:22'), --april 4 sat
-	(11,'fulltime11', 2.0, '20:32:59', '20:42:58', '20:45:01', '21:02:05'), -- april 4 sat 8pm 
-	(12,'fulltime6', 2.0, '21:24:10', '21:30:33', '21:34:56', '21:57:00'), -- feb 4 tues
-	(13,'fulltime1', 4.0, '15:11:30', '15:16:30', '15:20:20', '15:40:20'), -- feb 23 sun
-	(14,'fulltime16', 5.0, '16:01:00', '16:20:19', '16:22:36', '16:47:38'), -- feb 24 mon shift 1
-	(15,'fulltime6', 5.0, '10:13:20', '10:20:33', '10:23:00', '10:43:20'), -- feb 25 tues
-	(16,'fulltime6', 3.0, '19:15:20', '19:20:40', '19:22:00', '19:33:41'); -- feb 25 tues shift 4
+	(1,'parttime1', 5, '10:53:40', '11:11:11', '11:15:23', '11:30:44'), -- jan 1 wed
+	(2,'fulltime1', 4, '13:25:33', '13:30:42', '13:32:40', '13:50:20'), -- jan 1 wed 
+	(3,'parttime1', 4, '17:11:30', '17:20:00', '17:25:00', '17:35:00'), -- jan 1 wed 
+	(4,'fulltime1', 5, '16:55:00', '17:20:00', '17:25:00', '17:35:00'), -- feb 1 sat 
+	(5,'fulltime16', 3, '17:15:40', '17:20:00', '17:25:00', '17:35:00'), -- march 1 sun
+	(6,'parttime4', 4, '12:01:56', '12:10:10', '12:15:58', '12:30:20'), -- march 6 
+	(7,'fulltime6', 5, '19:03:44', '19:15:15', '19:17:12', '19:33:24'), -- april 1 wed
+	(8,'fulltime6', 3, '19:12:59', '19:22:23', '19:25:33', '19:55:32'), --april 3 fri
+	(9,'fulltime1', 5, '12:23:00', '12:34:12', '12:35:00', '12:59:00'), --april 4 sat
+	(10,'fulltime1', 4, '14:01:59', '14:10:32', '14:12:55', '14:30:22'), --april 4 sat
+	(11,'fulltime11', 2, '20:32:59', '20:42:58', '20:45:01', '21:02:05'), -- april 4 sat 8pm 
+	(12,'fulltime6', 2, '21:24:10', '21:30:33', '21:34:56', '21:57:00'), -- feb 4 tues
+	(13,'fulltime1', 4, '15:11:30', '15:16:30', '15:20:20', '15:40:20'), -- feb 23 sun
+	(14,'fulltime16', 5, '16:01:00', '16:20:19', '16:22:36', '16:47:38'), -- feb 24 mon shift 1
+	(15,'fulltime6', 5, '10:13:20', '10:20:33', '10:23:00', '10:43:20'), -- feb 25 tues
+	(16,'fulltime6', 3, '19:15:20', '19:20:40', '19:22:00', '19:33:41'); -- feb 25 tues shift 4
 	
 	
 CREATE TABLE Part_Time (
@@ -674,7 +674,9 @@ CREATE TABLE MWS (
 	day_option numeric NOT NULL,
 	shift numeric NOT NULL,
 	work_year numeric NOT NULL,
-	PRIMARY KEY (duname, mws_serialNum)
+	PRIMARY KEY (duname, mws_serialNum),
+	FOREIGN KEY(day_option) REFERENCES Day_Options,
+	FOREIGN KEY(shift) REFERENCES Shifts
 );
 
 INSERT INTO MWS values

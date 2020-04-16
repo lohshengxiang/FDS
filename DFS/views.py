@@ -32,6 +32,7 @@ promo_used = ""
 promo_action = ""
 nextWeekSchedules_list = []
 submittedSchedule = False
+deliverer = ""
 
 
 # available_FT_list = []
@@ -247,7 +248,7 @@ def home():
 		shifts = cur.fetchall()
 
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+			shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]
 
 		# test = shift_dict
 		userType = current_user.user_type
@@ -547,9 +548,21 @@ def manageRestaurants():
 	rname_rows = []
 	address_rows = []
 	for row in restaurants:
-		runame_rows.append(row[0])
-		rname_rows.append(row[1])
-		address_rows.append(row[2])
+		runame = row[0]
+		query1 = "SELECT count(*) FROM Food WHERE runame = %s"
+		cur.execute(query1, (runame,))
+		result1 = cur.fetchone()[0]
+		query = "SELECT count(*) FROM Food WHERE availability = true AND runame = %s"
+		cur.execute(query, (runame,))
+		result = cur.fetchone()[0]
+		if result1 == 0:
+			runame_rows.append(row[0])
+			rname_rows.append(row[1])
+			address_rows.append(row[2])
+		elif result > 0: 
+			runame_rows.append(row[0])
+			rname_rows.append(row[1])
+			address_rows.append(row[2])
 
 	for x in range(len(rname_rows)):
 		restaurant = Restaurant()
@@ -562,14 +575,21 @@ def manageRestaurants():
 
 @view.route("/delete_restaurant/<string:runame>", methods=["POST"])
 def delete_restaurant(runame): 
-	cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
+	cur.execute("UPDATE Food set availability = false WHERE runame = %s", [runame])
 	conn.commit()
+
+	query = "SELECT count(*) FROM Contain WHERE runame = %s"
+	cur.execute(query, (runame,))
+	result = cur.fetchone()[0]
+	if result == 0:
+		cur.execute("DELETE FROM Users WHERE uname = %s", [runame])
+		conn.commit()
 	return redirect(url_for('view.manageRestaurants'))
 
 @view.route("/adminManager/manageDeliveryStaff", methods = ["GET", "POST"])
 def manageDeliveryStaff():
 	dstaff_list = []
-	dstaffQuery = "SELECT * from Delivery_Staff" #avg rating need to query from delivers not dstaff
+	dstaffQuery = "SELECT * from Delivery_Staff order by uname" #avg rating need to query from delivers not dstaff
 	cur.execute(dstaffQuery)
 	dstaff = cur.fetchall()
 	duname_rows = []
@@ -670,16 +690,15 @@ def createDeliveryStaff():
 		uname = form.uname.data
 		password = form.password.data
 		dname = form.dname.data
-		flatRate = form.flatRate.data
 		staffType = form.staffType.data
 		avgRating = 0
 		query1 = "INSERT INTO Users VALUES(%s, %s)"
 		cur.execute(query1, (uname, password))
 		conn.commit()
-		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s, %s)"
-		cur.execute(query2, (uname, dname, avgRating, flatRate))
+		query2 = "INSERT INTO Delivery_Staff VALUES(%s, %s, %s)"
+		cur.execute(query2, (uname, dname, avgRating))
 		conn.commit()
-		if staffType.lower() == "Full Time".lower(): 
+		if staffType == "FullTime":
 			query3 = "INSERT INTO Full_Time VALUES(%s)"
 			cur.execute(query3, (uname,))
 			conn.commit()
@@ -692,6 +711,8 @@ def createDeliveryStaff():
 
 @view.route("/delete_deliveryStaff/<string:duname>", methods=["POST"])
 def delete_DeliveryStaff(duname): 
+	cur.execute("UPDATE Delivers SET duname = null WHERE duname = %s", [duname])
+	conn.commit()
 	cur.execute("DELETE FROM Users WHERE uname = %s", [duname])
 	conn.commit()
 	return redirect(url_for('view.manageDeliveryStaff'))
@@ -972,7 +993,7 @@ def deliveryStaffCheck():
 	global shift_dict
 	global day_option_dict
 
-	if day_option_dict == {}:
+	if shift_dict == {} or day_option_dict == {}:
 		query = '''SELECT * from Day_Options'''
 		cur.execute(query,)
 		options = cur.fetchall()
@@ -980,21 +1001,20 @@ def deliveryStaffCheck():
 		for i in options:
 			day_option_dict[i[0]] = [i[1],i[2],i[3],i[4],i[5]]
 
-	if shift_dict == {}:
 		query = '''SELECT * from Shifts'''
 		cur.execute(query,)
 		shifts = cur.fetchall()
-		
+
 		for i in shifts:
-			shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]	
+			shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]	
 
 	deliveryStaffList = []
-	for i in [1,2,3,4,5,6,7]: # shows the next 7 days
+	for i in [0,1,2,3,4,5,6]: # shows the next 7 days
 		today_now = datetime.now()
 		today_day = calendar.day_name[today_now.weekday()]
 		today_month = calendar.month_name[today_now.month]
 		today_year = today_now.year
-		today_date = today_now.date()
+		today_date = today_now.date() + timedelta(days = i)
 
 		day_option_list = []
 		for i in [1,2,3,4,5,6,7]:
@@ -1373,23 +1393,8 @@ def deliveryStaffPastWorkSchedules():
 					schedules_dict["start_b"] = shift_dict['shift' + str(row[4])][2]
 					schedules_dict["end_b"] = shift_dict['shift' + str(row[4])][3]
 
-					ordersDateQuery = '''WITH temp1 AS (SELECT O.order_date, count(*) as num1 FROM Orders O 
-										JOIN Delivers D ON O.orderId = D.orderId
-										WHERE (select extract(month from O.order_date)) = %s
-										AND O.order_time > %s AND O.order_time < %s AND D.duname = %s
-										GROUP BY O.order_date),
-										
-										temp2 AS(SELECT order_date, count(*) AS num2 FROM Orders O 
-										JOIN Delivers D ON O.orderId = D.orderId 
-										WHERE (select extract(month from O.order_date)) = %s
-										AND D.depart_restaurant > %s AND D.arrive_customer < %s AND D.duname = %s
-										GROUP BY O.order_date)
-
-										SELECT temp1.order_date, temp1.num1, temp2.num2
-										FROM temp1 FULL OUTER JOIN temp2 ON temp1.order_date = temp2.order_date'''
-
-					cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], username, 
-													datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
+					ordersDateQuery = '''SELECT * from num_deliveries(%s,%s,%s,%s,%s,%s)'''
+					cur.execute(ordersDateQuery, (datetime.strptime(row[2], "%B").month, shift_dict['shift' + str(row[4])][0], shift_dict['shift' + str(row[4])][1], shift_dict['shift' + str(row[4])][2], shift_dict['shift' + str(row[4])][3], username))
 					ordersDateQuery = cur.fetchall()
 
 					schedules_dict["num_deliveries_a"] = 0
@@ -1728,7 +1733,7 @@ def deliveryStaffManageWorkSchedule():
 			if mws_dict not in mws_list:
 				mws_list.append(mws_dict)
 
-				serialNumQuery = "SELECT MAX(wws_serialNum) FROM MWS GROUP BY duname HAVING duname = %s"
+				serialNumQuery = "SELECT MAX(mws_serialNum) FROM MWS GROUP BY duname HAVING duname = %s"
 				cur.execute(serialNumQuery, (username,))
 				serialNum = cur.fetchone()[0]
 
@@ -1755,6 +1760,10 @@ def deliveryStaffManageWorkSchedule():
 			submitted_dict["end_hour_a"] = shift_dict['shift' + str(row[4])][1]
 			submitted_dict["start_hour_b"] = shift_dict['shift' + str(row[4])][2]
 			submitted_dict["end_hour_b"] = shift_dict['shift' + str(row[4])][3]
+			if date_obj!=end_of_month:
+				submitted_dict["can_delete"] = True
+			else:
+				submitted_dict["can_delete"] = False
 
 			submitted_list.append(submitted_dict)
 
@@ -1829,6 +1838,16 @@ def deleteWWS(wws_serialNum):
 
 	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
 
+@view.route("/deleteMWS/<mws_serialNum>", methods=["GET", 'POST'])
+def deleteMWS(mws_serialNum):
+	username = current_user.username
+
+	deleteQuery = "DELETE FROM MWS WHERE duname = %s and mws_serialNum = %s"
+	cur.execute(deleteQuery, (username, mws_serialNum))
+	conn.commit()
+
+	return redirect(url_for('view.deliveryStaffManageWorkSchedule'))
+
 @view.route("/ratingsDeliveryStaff", methods = ["GET", 'POST'])
 def deliveryStaffRatings(): 
 	username = current_user.username
@@ -1854,7 +1873,7 @@ def deliveryStaffRatings():
 @view.route("/category/<category>", methods = ["GET","POST"])
 def category(category):
 	form = RestaurantForm()
-	query = "SELECT distinct rname from Restaurant,Food where runame = uname and category = %s"
+	query = "SELECT distinct rname from Restaurant,Food where runame = uname and category = %s and availability = true"
 	# query = "SELECT distinct runame from Food where category = %s"
 	try:
 		cur.execute(query,(category,))
@@ -1892,7 +1911,7 @@ def order_food(rname):
 
 	runame = cur.fetchone()[0]
 
-	query = "SELECT distinct fname from Food where runame = %s"
+	query = "SELECT distinct fname from Food where runame = %s and order_limit > 0 and availability = true"
 	try:
 		cur.execute(query,(runame,))
 	except:
@@ -1951,7 +1970,7 @@ def order_food(rname):
 			food_cost = float(str(round(food_cost,2)))
 
 			# order_date = datetime.now().strftime("%d/%m/%Y")
-			order_date = today_now.strftime("%Y-%m-%d")
+			# order_date = today_now.strftime("%Y-%m-%d")
 			
 			item_dict = {'username': username,
 						'rname' : rname,
@@ -2097,11 +2116,11 @@ def order_payment(rname):
 					flash('Promo added!')
 					redirect(url_for('view.order_payment', rname = rname))
 				else:
-					form2.promo.errors.append("Invalid Promo Code")
+					form2.promo.errors.append("Promo Code Expired")
 					redirect(url_for('view.order_payment', rname = rname))
 
 			else:
-				form2.promo.errors.append("Invalid Promo Code2")
+				form2.promo.errors.append("Invalid Promo Code")
 				redirect(url_for('view.order_payment', rname = rname))
 
 	food_cost = 0
@@ -2303,7 +2322,7 @@ def order_confirm(rname):
 			shifts = cur.fetchall()
 
 			for i in shifts:
-				shift_dict[i[0]] = [i[1],i[2],i[3],i[4]]
+				shift_dict['shift' + str(i[0])] = [i[1],i[2],i[3],i[4]]
 
 
 		shift_list = [] #possible shifts
@@ -2402,7 +2421,11 @@ def order_confirm(rname):
 
 		#settle Contain end
 
+		global deliverer
 
+		query = '''SELECT dname from Delivery_Staff where uname = %s'''
+		cur.execute(query,(available_list[0],))
+		deliverer = cur.fetchone()[0]
 
 		return redirect("/done")
 
@@ -2420,17 +2443,23 @@ def order_done():
 	global fixed_delivery_fee
 	global points_used
 	global promo_used
+	global deliverer 
+
+	temp = deliverer
+
+
 	cart_list = []
 	new_address = []
 	payment_type = ""
 	card_used = ""
 	points_used = 0
 	promo_used = ""
+	deliverer = ""
 
 	# global available_FT_list
 	# test = available_FT_list
 	# available_FT_list = []
-	return render_template('order_done.html')
+	return render_template('order_done.html', temp = temp)
 
 
 @view.route("/cart", methods = ["GET","POST"])
