@@ -6,7 +6,7 @@ Ensure Python 3 is installed with the following packages:
 
 Flask, flask-Login, flask-wtf, cryptography, datetime
 
-
+Install any other packages when prompted. 
 
 ##Postgresql Setup
 
