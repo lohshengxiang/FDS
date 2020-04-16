@@ -444,10 +444,9 @@ def manageRestaurantPromotions():
 
 @view.route("/adminRestaurant/managePromotions/createPromotion", methods = ["GET", "POST"])
 def createRestaurantPromo():
-	promoQuery = "SELECT promoid FROM Promotion ORDER BY promoid DESC LIMIT 1"
-	cur.execute(promoQuery)
-	promoId = cur.fetchone()
-	nextPromoId = promoId[0] + 1
+	cur.execute("SELECT MAX(promoId) FROM Promotion")
+	id = cur.fetchone()
+	nextPromoId = id[0] + 1
 	logging.debug("Next Promo: " + str(nextPromoId))
 
 	form = CreateRestaurantPromoForm()
@@ -673,10 +672,9 @@ def delete_promo(id):
 
 @view.route("/adminManager/managePromo/createPromo", methods = ["GET", "POST"]) 
 def createPromo():
-	promoQuery = "SELECT promoid FROM FDS_Promo ORDER BY promoid DESC LIMIT 1"
-	cur.execute(promoQuery)
-	promoId = cur.fetchone()
-	nextPromoId = promoId[0] + 1
+	cur.execute("SELECT COUNT(promoId) FROM FDS_Promo")
+	id = cur.fetchone()
+	nextPromoId = id[0] + 1
 	logging.debug("Next Promo: " + str(nextPromoId))
 	form = CreatePromoForm()
 	if form.validate_on_submit() and request.method == "POST":
