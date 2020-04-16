@@ -15,15 +15,14 @@
             <th>Category</th>
             <th>Availability</th>
             <th>Quantity</th>
-            <th>Update Qty</th>
-            <th>Delete?</th>
+            <th>Update Item</th>
         </tr>
     </thead>
     <tbody>
         {% for item in foodItem_list %}
         <tr>
             <td>{{item.fname}}</td>
-            <td>{{item.price}}</td>
+            <td>${{item.price}}</td>
             <td>{{item.category}}</td>
             <td>{{item.availability}}</td>
             <td>{{item.quantity}}</td>
@@ -31,12 +30,6 @@
                 <form action="{{url_for('view.update_foodItem', fname=item.fname)}}" method="post"> 
                     <input type="hidden" name="_method" value="UPDATE">
                     <input type="submit" value="Update" class="button is-block is-info is-small">
-                </form>
-            </td>
-            <td style="text-align: center;">
-                <form action="{{url_for('view.delete_foodItem', fname=item.fname)}}" method="post"> 
-                    <input type="hidden" name="_method" value="DELETE">
-                    <input type="submit" value="Delete" class="button is-block is-info is-small">
                 </form>
             </td>
         </tr>
