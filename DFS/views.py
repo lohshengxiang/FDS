@@ -2682,7 +2682,14 @@ def profile_nav(nav):
 				if exist:
 					one_order_dict["rated"] = True
 				else:
-					one_order_dict["rated"] = False
+					#check if delivery staff exists
+					query = '''SELECT duname from Delivers where orderId = %s'''
+					cur.execute(query,(i[0],))
+					exist2 = cur.fetchone()[0]
+					if exist2: #theres a name
+						one_order_dict["rated"] = False
+					else: #no name. staff quit, so rate = true so that customer cannot rate
+						one_order_dict["rated"] = True
 			except:
 				one_order_dict["rated"] = True # if cannot find means order has no driver
 
